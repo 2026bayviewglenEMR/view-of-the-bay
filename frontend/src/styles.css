@@ -1,0 +1,33 @@
+/* src/assets/global.css */
+
+:root {
+  /* Backgrounds */
+  --color-bg: #0f172a;
+  --color-paper: #1e293b;
+
+  /* Brand Colors */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-secondary: #14b8a6;
+
+  /* Typography */
+  --color-text-1: #f8fafc;
+  --color-text-2: #94a3b8;
+  --color-text-3: #475569;
+
+  /* Utility & State */
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  
+  /* UI Elements */
+  --color-border: #334155;
+}
+
+/* Apply the absolute base styles to the body */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-1);
+}
