@@ -1,0 +1,73 @@
+/* src/assets/styles.css */
+
+:root {
+  /* ------------------------- */
+  /* 1. Core Custom Palette    */
+  /* ------------------------- */
+  
+  /* Backgrounds */
+  --color-bg: #f2f3f4;
+  --color-paper: #ffffff;
+
+  /* Brand Colors */
+  --color-primary: #BEC5A4;
+  --color-primary-hover: #8A8E75;
+  --color-secondary: #D5C7AD;
+
+  /* Typography */
+  --color-text-1: #8A8E75;
+  --color-text-2: #BEC5A4;
+  --color-text-3: #D5C7AD;
+
+  /* Utility & State */
+  --color-danger: #ff7070;
+  --color-success: #BEC5A4;
+  --color-warning: #ffc800;
+  
+  /* UI Elements */
+  --color-border: #14080E;
+
+
+  /* ------------------------- */
+  /* 2. Element Plus Overrides */
+  /* ------------------------- */
+  
+  /* This forces the component library to use your colors above */
+  --el-color-primary: var(--color-primary);
+  --el-color-primary-light-3: var(--color-primary-hover); /* Used by Element for hover states */
+  --el-color-success: var(--color-success);
+  --el-color-warning: var(--color-warning);
+  --el-color-danger: var(--color-danger);
+
+  --el-bg-color: var(--color-bg);
+  --el-bg-color-overlay: var(--color-paper); /* Card backgrounds */
+  
+  --el-text-color-primary: var(--color-text-1);
+  --el-text-color-regular: var(--color-text-2);
+  --el-text-color-secondary: var(--color-text-3);
+  
+  --el-border-color: var(--color-border);
+}
+
+/* ------------------------- */
+/* 3. Global CSS Resets      */
+/* ------------------------- */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-1);
+}
+
+/* Optional: Make links match your primary color */
+a {
+  color: var(--color-primary-hover);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+a:hover {
+  opacity: 0.8;
+}
