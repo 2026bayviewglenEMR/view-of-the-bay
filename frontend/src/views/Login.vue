@@ -14,12 +14,20 @@
           <el-input v-model="password" type="password" placeholder="Please enter password" show-password />
         </el-form-item>
 
-        <el-button @click="submit" type="primary" class="full-width">Log In</el-button>
+        <el-button @click.prevent @click="signIn" type="primary" class="full-width">Log In</el-button>
         <el-button @click="testServer" type="primary" class="full-width">Test Server</el-button>
       </el-form>
       
       <div class="footer">
         <el-link @click="forgotPassword" type="info">Forgot Password?</el-link>
+        <el-alert
+          v-if="error"
+          title="Error"
+          type="error"
+          :description="error"
+          show-icon
+          :closable="true"
+        />
       </div>
     </el-card>
   </div>
@@ -28,12 +36,26 @@
 <script setup>
 import { api } from './../api/api';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const username = ref("");
 const password = ref("");
+const error = ref("");
 
-const submit = () => {
-    console.log(username.value, password.value);
+const signIn = async () => {
+    console.log("signing in");
+    try {
+      const res = await api.signIn(username.value, password.value);
+      if (res) {
+        console.log("Authenticated");
+        router.push("/")
+      } else {
+        error.value = res.error
+      }
+    } catch (e) {
+      error.value = e?.response?.data?.message || e?.message || "An unexpected server error occurred.";
+    }
 }
 
 const forgotPassword = () => {

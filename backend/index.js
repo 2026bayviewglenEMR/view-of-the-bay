@@ -1,12 +1,20 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+
+//middleware to log requests
+app.use((req, res, next) => {
+    const time = new Date().toLocaleTimeString();
+    console.log(`[${time}] ${req.method} request to ${req.url}`);
+    next();
+})
 
 // 1. Import the route files
 const authRoutes = require('./routes/authRoutes');
