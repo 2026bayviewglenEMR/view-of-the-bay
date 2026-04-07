@@ -10,6 +10,9 @@ app.use(express.json());
 
 // 1. Import the route files
 const authRoutes = require('./routes/authRoutes');
+const labsRouter = require('./routes/labs');
+const commsRouter = require('./routes/comms');
+const fileUploadsRouter = require('./routes/fileUploads');
 
 // 2. Mount the routes to their base URLs
 // If a request starts with '/api/patients', send it to Student 2's file
@@ -18,6 +21,9 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/clinical', clinicalRoutes); 
 app.use('/api/scheduling', schedulingRoutes);
+app.use('/api/labs', labsRouter);
+app.use('/api/comms', commsRouter);
+app.use('/api/fileUploads', fileUploadsRouter);
 
 // Fallback for 404s
 app.use((req, res) => {
