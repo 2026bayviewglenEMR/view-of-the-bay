@@ -9,5 +9,5 @@ router.get('/patients/:patientId/alerts', async (req, res) => {
     res.json(alerts);
 });
 
-modules.exports = router;
+// modules.exports = router;
 
