@@ -7,11 +7,11 @@
 
       <el-form label-position="top">
         <el-form-item label="Username">
-          <el-input placeholder="Please enter your username" />
+          <el-input v-model="username" placeholder="Please enter your username" />
         </el-form-item>
 
         <el-form-item label="Password">
-          <el-input type="password" placeholder="Please enter password" show-password />
+          <el-input v-model="password" type="password" placeholder="Please enter password" show-password />
         </el-form-item>
 
         <el-button type="primary" class="full-width">Log In</el-button>
@@ -24,6 +24,13 @@
   </div>
 </template>
 
+<script setup>
+import { ref } from 'vue';
+
+const username = ref("");
+const password = ref("");
+</script>
+
 <style scoped>
 .login-container {
   display: flex;
@@ -33,6 +40,7 @@
 }
 .login-card {
   width: 400px;
+  background-color: var(--color-paper)
 }
 .login-title {
   margin: 0;
