@@ -2,7 +2,7 @@
   <div class="login-container">
     <el-card class="login-card">
       <template #header>
-        <h2 class="login-title">View of the Bay</h2>
+        <h2 class="login-title">Vue of the Bay</h2>
       </template>
 
       <el-form label-position="top">
