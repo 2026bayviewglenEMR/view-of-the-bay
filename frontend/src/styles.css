@@ -2,26 +2,26 @@
 
 :root {
   /* Backgrounds */
-  --color-bg: #0f172a;
-  --color-paper: #1e293b;
+  --color-bg: #f2f3f4;
+  --color-paper: #ffffff;
 
   /* Brand Colors */
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-secondary: #14b8a6;
+  --color-primary: #BEC5A4;
+  --color-primary-hover: #8A8E75;
+  --color-secondary: #D5C7AD;
 
   /* Typography */
-  --color-text-1: #f8fafc;
-  --color-text-2: #94a3b8;
-  --color-text-3: #475569;
+  --color-text-1: #8A8E75;
+  --color-text-2: #BEC5A4;
+  --color-text-3: #D5C7AD;
 
   /* Utility & State */
-  --color-danger: #ef4444;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
+  --color-danger: #ff7070;
+  --color-success: #BEC5A4;
+  --color-warning: #ffc800;
   
   /* UI Elements */
-  --color-border: #334155;
+  --color-border: #14080E;
 }
 
 /* Apply the absolute base styles to the body */
