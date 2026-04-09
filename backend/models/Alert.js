@@ -1,42 +1,55 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const alertSchema = new mongoose.Schema({
-    patientId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Patient'
-    },
-    type: {
-        type: String,
-        enum: ['patient', 'screening', 'task'],
-        required: true
-    },
-    title: {
-        type: String,
-        required: true
-    },
-    message: {
-        type: String
-    },
-    dueDate: {
-        type: Date
+const alertSchema = new mongoose.Schema(
+  {
+    patient: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
+      index: true,
     },
     assignedTo: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
     },
-    status: {
-        type: String,
-        enum: ['active', 'completed'],
-        default: 'active'
-    },
-    dismissedAt: {
-        type: Date,
-        default: null
-    },
-    completedAt: {
-        type: Date,
-        default: null
-    }
-}, { timestamps: true });
 
-module.exports = mongoose.model('Alert', alertSchema);
+    type: {
+      type: String,
+      enum: ["patient", "screening", "task"],
+      required: true,
+      index: true,
+    },
+
+    title: {
+      type: String,
+      required: true,
+    },
+    message: String,
+
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: "medium",
+      index: true,
+    },
+
+    dueDate: Date,
+
+    status: {
+      type: String,
+      enum: ["active", "completed", "dismissed"],
+      default: "active",
+      index: true,
+    },
+
+    dismissedAt: Date,
+    completedAt: Date,
+  },
+  { timestamps: true }
+);
+
+// Helpful indexes
+alertSchema.index({ patient: 1, status: 1 });
+alertSchema.index({ assignedTo: 1, status: 1 });
+
+module.exports = mongoose.model("Alert", alertSchema);
