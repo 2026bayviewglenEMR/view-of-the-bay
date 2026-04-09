@@ -13,6 +13,16 @@ const router = createRouter({
       name: 'login',
       component: () => import('../views/Login.vue') 
     },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('../views/Dashboard.vue')
+    },
+    {
+      path: '/templates',
+      name: 'templates',
+      component: () => import('../views/Templates.vue')
+    },
   ]
 })
 
@@ -21,13 +31,13 @@ const openRoutes = [
   '/login'
 ]
 
-router.beforeEach((to, from, next) => {
-  //if the route requires a token, go to login
-  if (localStorage.getItem("token") || openRoutes.includes(to.path)) {
-    next();
-  } else {
-    next('/login');
-  }
-});
+// router.beforeEach((to, from, next) => {
+//   //if the route requires a token, go to login
+//   if (localStorage.getItem("token") || openRoutes.includes(to.path)) {
+//     next();
+//   } else {
+//     next('/login');
+//   }
+// });
 
 export default router
