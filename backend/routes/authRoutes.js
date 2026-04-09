@@ -16,6 +16,8 @@ const u = (username, password, role) => {
 const users = [
     u("Armaan", "password", ROLES.DOCTOR),
     u("Dlo", "password", ROLES.ADMINISTRATOR),
+    u("doctor", "password", ROLES.DOCTOR),
+    u("admin", "password", ROLES.ADMINISTRATOR)
 ]
 
 router.post('/signIn', (req, res) => {

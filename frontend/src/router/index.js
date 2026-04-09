@@ -18,6 +18,11 @@ const router = createRouter({
       name: 'dashboard',
       component: () => import('../views/Dashboard.vue')
     },
+    {
+      path: '/templates',
+      name: 'templates',
+      component: () => import('../views/Templates.vue')
+    },
   ]
 })
 
