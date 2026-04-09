@@ -56,8 +56,15 @@ const signIn = async () => {
     }
 }
 
-const forgotPassword = () => {
-    alert("TODO: implement forgot password");
+const forgotPassword = async () => {
+  try {
+    const res = await api.updatePassword("IMPLEMENT ME PASSWORD");
+    if (res) {
+      alert(JSON.stringify(res));
+    }
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+  }
 }
 
 const testServer = async () => {
