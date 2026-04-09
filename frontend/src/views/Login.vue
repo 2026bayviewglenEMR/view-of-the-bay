@@ -48,18 +48,23 @@ const signIn = async () => {
     try {
       const res = await api.signIn(username.value, password.value);
       if (res) {
-        console.log("Authenticated");
+        localStorage.setItem("token", res);
         router.push("/")
-      } else {
-        error.value = res.error
       }
     } catch (e) {
-      error.value = e?.response?.data?.message || e?.message || "An unexpected server error occurred.";
+      error.value = e?.response?.data?.message || e?.message || "An unexpected error occurred.";
     }
 }
 
-const forgotPassword = () => {
-    alert("TODO: implement forgot password");
+const forgotPassword = async () => {
+  try {
+    const res = await api.updatePassword("IMPLEMENT ME PASSWORD");
+    if (res) {
+      alert(JSON.stringify(res));
+    }
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+  }
 }
 
 const testServer = async () => {
