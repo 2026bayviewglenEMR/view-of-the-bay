@@ -16,4 +16,18 @@ const router = createRouter({
   ]
 })
 
+//list of routes accessible without a token
+const openRoutes = [
+  '/login'
+]
+
+router.beforeEach((to, from, next) => {
+  //if the route requires a token, go to login
+  if (localStorage.getItem("token") || openRoutes.includes(to.path)) {
+    next();
+  } else {
+    next('/login');
+  }
+});
+
 export default router
