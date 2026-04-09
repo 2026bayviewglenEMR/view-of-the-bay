@@ -5,4 +5,5 @@ export const api = {
 
     //auth
     signIn: (username, password) => http.post('/auth/signIn', {username, password}).then(r => r.data),
+    updatePassword: (newPassword) => http.post('/auth/updatePassword', {newPassword}).then(r => r.data),
 }
