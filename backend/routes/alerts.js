@@ -1,13 +1,19 @@
 const express = require('express')
 const router = express.Router()
+const alertsController = require('../controllers/alertsController')
 
-router.get('/patients/:patientId/alerts', async (req, res) => {
-    const alerts = await Alert.find({
-        patientId: req.params.patientId,
-        dismissedAt: null
-    });
-    res.json(alerts);
-});
+// TODO: Alerts, Reminders & Tasks
+// Features:
+// Patient-specific alerts (e.g., "discuss stress")
+// Screening reminders (overdue tests)
+// Personal task list for doctors
+// Task scheduling & completion tracking
 
-// modules.exports = router;
+router.get('/patients/:patientId/alerts', alertsController.getPatientAlerts);
+router.post('/alerts', alertsController.createAlert);
+router.patch('/alerts/:id/dismiss', alertsController.dismissAlert);
+router.patch('/alerts/:id/complete', alertsController.completeTask);
+router.get('/screening-reminders', alertsController.getScreeningReminders);
+router.get('/doctors/:doctorId/tasks', alertsController.getDoctorTasks);
 
+module.exports = router;
