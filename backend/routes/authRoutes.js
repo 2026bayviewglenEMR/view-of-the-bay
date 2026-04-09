@@ -31,7 +31,7 @@ router.post('/signIn', (req, res) => {
         console.log("Authenticated")
         return res.status(200).json(token);
     } else {
-        return res.status(401).json({ error: "Invalid username or password" });
+        return res.status(401).json({ message: "Invalid username or password" });
     }
     console.log("Authenticating", username, password)
 });
