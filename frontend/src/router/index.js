@@ -23,6 +23,11 @@ const router = createRouter({
       name: 'templates',
       component: () => import('../views/Templates.vue')
     },
+    {
+      path: '/messaging',
+      name: 'messaging',
+      component: () => import('../views/Messaging.vue')
+    }
   ]
 })
 

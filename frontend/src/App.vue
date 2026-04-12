@@ -7,6 +7,9 @@
       <div></div>
         <router-link to="/dashboard" class="nav-btn">- Dashboard</router-link>
       </div>
+      <div>
+        <router-link to="/messaging" class="nav-btn">- Messaging</router-link>
+      </div>
     </nav>
 
     <main class="page-content">
