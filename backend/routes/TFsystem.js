@@ -43,4 +43,24 @@ router.put('/templates/my/:id',
 );
 
 
+router.get('/templates/clinic',
+  requireAuth,
+  requireRole('DOCTOR', 'ADMINISTRATOR'),
+  getClinicTemplates
+);
+
+
+router.post('/templates/clinic',
+  requireAuth,
+  requireRole('ADMINISTRATOR'),
+  createClinicTemplate
+);
+
+
+router.put('/templates/clinic/:id',
+  requireAuth,
+  requireRole('ADMINISTRATOR'),
+  updateClinicTemplate
+);
+
 module.exports = router;
