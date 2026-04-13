@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
+const { authenticateToken, requireRole } = require("./verifyToken.js");
 
 const app = express();
 const PORT = 3000;
@@ -46,7 +47,7 @@ app.use('/api/comms', commsRouter);
 app.use('/api/fileUploads', fileUploadsRouter);
 app.use('/api/alerts', alertsRouter);
 
-app.get('/', (req, res) => {
+app.get('/api', authenticateToken, requireRole('doctor'), (req, res) => {
     return res.status(200).json({ message: "Server is live"})
 });
 

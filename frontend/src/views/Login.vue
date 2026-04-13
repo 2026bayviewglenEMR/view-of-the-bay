@@ -70,6 +70,7 @@ const forgotPassword = async () => {
 const testServer = async () => {
   alert("testing");
   const res = await api.testServer();
+  console.log("response", res);
   alert(JSON.stringify(res));
 }
 </script>
