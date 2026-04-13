@@ -25,8 +25,34 @@ const {
   deleteDocument,
 } = require('../controllers/patientRecordsController');
 
-const { requireAuth, requireRole } = require('../middleware/auth');
-const { upload } = require('../middleware/multer'); // multer instance for document uploads
+const { authenticateToken } = require('../verifyToken');
+
+const requireAuth = authenticateToken;
+
+const requireRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    authenticateToken(req, res, (err) => {
+      if (err) return res.status(401).json({ message: "Unauthorized" });
+      
+      if (!req.user || !req.user.role) {
+        return res.status(403).json({ message: "Access denied. No role information." });
+      }
+
+      const userRole = req.user.role.toLowerCase();
+      const hasPermission = allowedRoles.some(role => 
+        role.toLowerCase() === userRole
+      );
+
+      if (!hasPermission) {
+        return res.status(403).json({ message: "Access denied. Insufficient permissions." });
+      }
+
+      next();
+    });
+  };
+};
+
+const { upload } = require('../middleware/multer');
 
 // ─── Patient CRUD ────────────────────────────────────────────────────────────
 
