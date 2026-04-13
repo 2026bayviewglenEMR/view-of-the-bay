@@ -42,7 +42,7 @@ router.put('/templates/my/:id',
   updateMyTemplate
 );
 
-
+// added
 router.get('/templates/clinic',
   requireAuth,
   requireRole('DOCTOR', 'ADMINISTRATOR'),

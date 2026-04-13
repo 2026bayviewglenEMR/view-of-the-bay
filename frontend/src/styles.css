@@ -6,18 +6,20 @@
   /* ------------------------- */
   
   /* Backgrounds */
-  --color-bg: #f2f3f4;
-  --color-paper: #ffffff;
+  --color-bg: #f7f5da;
+  --color-bg-dark: #11270b;
+  --color-paper: #fff6d4;
+  --color-sidebar-dark: #8f5e36;
 
   /* Brand Colors */
-  --color-primary: #BEC5A4;
-  --color-primary-hover: #8A8E75;
-  --color-secondary: #D5C7AD;
+  --color-primary: #2D6A4F; 
+  --color-primary-hover: #1B4332; 
+  --color-secondary: #cbbc9f;
 
   /* Typography */
-  --color-text-1: #8A8E75;
-  --color-text-2: #BEC5A4;
-  --color-text-3: #D5C7AD;
+  --color-text-1: #16261A;
+  --color-text-2: #465348;
+  --color-text-3: #8C8271;
 
   /* Utility & State */
   --color-danger: #ff7070;
@@ -25,7 +27,7 @@
   --color-warning: #ffc800;
   
   /* UI Elements */
-  --color-border: #14080E;
+  --color-border: #2D6A4F;
 
 
   /* ------------------------- */
@@ -63,7 +65,7 @@ body {
 
 /* Optional: Make links match your primary color */
 a {
-  color: var(--color-primary-hover);
+  color: var(--color-text-2);
   text-decoration: none;
   transition: opacity 0.2s;
 }

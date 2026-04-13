@@ -1,58 +1,124 @@
 <template>
   <div class="dashboard-layout">
-    
     <header class="header">
-      <h1 class="title">System Overview</h1>
-      <p class="subtitle">This is some secondary text explaining what this page does.</p>
+      <div class="tutorial-badge">Raw HTML: &lt;h1&gt;</div>
+      <h1 class="title">Theme & Component Tutorial</h1>
+      <p class="tutorial-note">Applied: <code>color: var(--color-text-1)</code></p>
+
+      <div class="tutorial-badge" style="margin-top: 15px;">Raw HTML: &lt;p&gt;</div>
+      <p class="subtitle">
+        This page acts as a living style guide. Each section explains the HTML structure and the specific custom CSS variables driving its appearance.
+      </p>
+      <p class="tutorial-note">Applied: <code>color: var(--color-text-2)</code></p>
     </header>
 
     <div class="grid-container">
       
-      <section class="card">
-        <h2 class="card-title">Quick Actions</h2>
-        <p class="card-text">Here are some buttons you can click to do random things.</p>
+      <section class="custom-card">
+        <div class="tutorial-badge">Raw HTML: &lt;section&gt; (Custom Card)</div>
+        <p class="tutorial-note" style="margin-bottom: 20px;">
+          Applied:<br>
+          <code>background-color: var(--color-paper)</code><br>
+          <code>border: 1px solid var(--color-border)</code>
+        </p>
+
+        <div class="tutorial-badge">Raw HTML: &lt;h2&gt;</div>
+        <h2 class="card-title">Custom Typography</h2>
+        <p class="tutorial-note">Applied: <code>color: var(--color-text-1)</code></p>
+
+        <div class="tutorial-badge" style="margin-top: 15px;">Raw HTML: &lt;p&gt;</div>
+        <p class="body-text">
+          This text is highly legible and perfect for standard paragraph bodies.
+        </p>
+        <p class="tutorial-note">Applied: <code>color: var(--color-text-2)</code></p>
+
+        <div class="tutorial-badge" style="margin-top: 15px;">Raw HTML: &lt;p&gt;</div>
+        <p class="muted-text">
+          This text is slightly darker than the background, making it perfect for subtle muted notes or timestamps.
+        </p>
+        <p class="tutorial-note">Applied: <code>color: var(--color-text-3)</code></p>
         
-        <div class="button-group">
-          <button class="btn primary-btn">Deploy Server</button>
-          <button class="btn secondary-btn">Run Diagnostics</button>
-        </div>
+        <br />
         
-        <div class="divider"></div>
-        <p class="muted-note">Last deployed 2 hours ago.</p>
+        <div class="tutorial-badge">Raw HTML: &lt;button&gt;</div>
+        <button class="custom-secondary-btn">Run Diagnostics</button>
+        <p class="tutorial-note" style="margin-top: 5px;">
+          Applied:<br>
+          <code>background-color: var(--color-secondary)</code><br>
+          <code>color: var(--color-text-1)</code><br>
+          <code>border: 1px solid var(--color-border)</code>
+        </p>
       </section>
 
-      <section class="card">
-        <h2 class="card-title">Active Alerts</h2>
+      <el-card shadow="never" class="ep-demo-card">
+        <template #header>
+          <div class="card-header">
+            <div class="tutorial-badge">Element Plus: &lt;el-card&gt;</div>
+            <h2 class="card-title" style="margin-top: 5px;">Element Plus Overrides</h2>
+            <p class="tutorial-note">
+              This component automatically inherits root overrides:<br>
+              <code>--el-bg-color-overlay: var(--color-paper)</code><br>
+              <code>--el-border-color: var(--color-border)</code>
+            </p>
+          </div>
+        </template>
         
-        <div class="alert-list">
-          <div class="alert alert-danger">
-            <strong>Critical:</strong> Database connection lost in Region US-East.
-          </div>
-          
-          <div class="alert alert-warning">
-            <strong>Warning:</strong> Server capacity is currently at 89%.
-          </div>
-          
-          <div class="alert alert-success">
-            <strong>Resolved:</strong> Nightly backups completed successfully.
-          </div>
+        <div class="tutorial-badge">Element Plus: &lt;el-button&gt;</div>
+        <p class="body-text" style="margin-top: 5px; font-size: 14px;">
+          These buttons inherit standard Element variables mapped to your custom colors (e.g., <code>--el-color-primary: var(--color-primary)</code>).
+        </p>
+        
+        <div class="button-row">
+          <el-button type="primary">Button. Type: "primary"</el-button>
+          <el-button type="success">Button. Type: "success"</el-button>
+          <el-button type="warning">Button. Type: "warning"</el-button>
+          <el-button type="danger">Button. Type: "danger"</el-button>
         </div>
-      </section>
+
+        <div class="tutorial-badge" style="margin-top: 20px;">Element Plus: &lt;el-divider&gt;</div>
+        <el-divider />
+        <p class="tutorial-note">Inherits: <code>--el-border-color: var(--color-border)</code></p>
+
+        <div class="tutorial-badge" style="margin-top: 20px;">Element Plus: &lt;el-input&gt;</div>
+        <el-form label-position="top" style="margin-top: 10px;">
+          <el-form-item label="Username">
+            <el-input v-model="username" placeholder="Please enter your username" />
+          </el-form-item>
+          <p class="tutorial-note">
+            The input background, border, text, and placeholder automatically use the <code>--el-*</code> variables mapped in your root.
+          </p>
+          
+          <div class="tutorial-badge" style="margin-top: 20px;">Element Plus: &lt;el-alert&gt;</div>
+          <el-form-item style="margin-top: 5px;">
+            <el-alert 
+              title="Database Connection Stable" 
+              type="success" 
+              :closable="false" 
+              show-icon 
+            />
+          </el-form-item>
+           <p class="tutorial-note">
+            Alert backgrounds are automatically tinted by Element Plus based on your mapped <code>--el-color-success</code>.
+          </p>
+        </el-form>
+      </el-card>
 
     </div>
   </div>
 </template>
 
-<style scoped>
-/* Assuming your global.css is loaded, we just use the variables!
-*/
+<script setup>
+import { ref } from 'vue'
 
+const username = ref('')
+</script>
+
+<style scoped>
+/* Component-specific layout styles */
 .dashboard-layout {
-  /* Uses the main deep background */
-  background-color: var(--color-bg); 
-  min-height: 100vh;
-  padding: 40px;
-  font-family: sans-serif;
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
 }
 
 .header {
@@ -60,122 +126,101 @@
 }
 
 .title {
-  /* Brightest text for main headers */
-  color: var(--color-text-1); 
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
+  color: var(--color-text-1);
 }
 
 .subtitle {
-  /* Softer text for descriptions */
-  color: var(--color-text-2); 
-  margin: 0;
-  font-size: 16px;
+  margin: 0 0 4px 0;
+  color: var(--color-text-2);
 }
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
 }
 
-.card {
-  /* Slightly lighter background for elevation, with a subtle border */
-  background-color: var(--color-paper);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 24px;
-}
-
+/* Base text classes */
 .card-title {
+  margin: 0 0 4px 0;
+  font-size: 1.5em;
   color: var(--color-text-1);
-  margin-top: 0;
-  font-size: 18px;
 }
 
-.card-text {
+.body-text {
   color: var(--color-text-2);
   line-height: 1.5;
-  margin-bottom: 20px;
+  margin: 0 0 4px 0;
 }
 
-/* BUTTONS */
-.button-group {
-  display: flex;
-  gap: 12px;
+.muted-text {
+  color: var(--color-text-3);
+  font-size: 13px;
+  margin: 0 0 4px 0;
 }
 
-.btn {
+/* Custom Card (Raw HTML) */
+.custom-card {
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-border);
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.custom-secondary-btn {
+  background-color: var(--color-secondary);
+  color: var(--color-text-1);
+  border: 1px solid var(--color-border);
   padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 10px;
   transition: opacity 0.2s;
 }
 
-.primary-btn {
-  /* Primary color, plus hover state */
-  background-color: var(--color-primary);
-  color: #fff; /* Keeping white for strict contrast on the button */
-}
-.primary-btn:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.secondary-btn {
-  /* Secondary accent color */
-  background-color: var(--color-secondary);
-  color: #fff;
-}
-.secondary-btn:hover {
+.custom-secondary-btn:hover {
   opacity: 0.8;
 }
 
-/* DIVIDER & MUTED TEXT */
-.divider {
-  height: 1px;
-  background-color: var(--color-border);
-  margin: 20px 0;
+/* Element Plus Specific Layout Overrides for this demo */
+.ep-demo-card {
+  /* Note: Element Plus automatically applies --el-border-color and --el-bg-color-overlay
+     if mapped in the root, but we can enforce it here if needed */
+  border-color: var(--color-border);
+  background-color: var(--color-paper);
 }
 
-.muted-note {
-  /* The darkest/most subtle text color for tiny notes */
-  color: var(--color-text-3);
-  font-size: 12px;
-  margin: 0;
-}
-
-/* ALERTS */
-.alert-list {
+.button-row {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 12px;
+  margin-bottom: 10px;
 }
 
-.alert {
-  padding: 12px;
-  border-radius: 6px;
-  border-left: 4px solid;
-  font-size: 14px;
-  /* Using text-1 so it's readable over the dark tinted backgrounds */
-  color: var(--color-text-1); 
+/* --- TUTORIAL SPECIFIC STYLES --- */
+.tutorial-badge {
+  display: inline-block;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-bottom: 4px;
 }
 
-.alert-danger {
-  /* Tinting the background slightly red, keeping the bright border */
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: var(--color-danger);
-}
-
-.alert-warning {
-  /* Tinting the background slightly yellow, keeping the bright border */
-  background-color: rgba(245, 158, 11, 0.1);
-  border-color: var(--color-warning);
-}
-
-.alert-success {
-  /* Tinting the background slightly green, keeping the bright border */
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: var(--color-success);
+.tutorial-note {
+  font-size: 12px;
+  color: var(--color-text-3);
+  font-family: monospace;
+  margin: 0;
+  padding: 4px 8px;
+  background-color: rgba(0,0,0,0.03);
+  border-left: 2px solid var(--color-border);
+  border-radius: 2px;
 }
 </style>

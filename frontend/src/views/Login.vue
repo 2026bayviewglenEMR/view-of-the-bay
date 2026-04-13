@@ -7,22 +7,72 @@
 
       <el-form label-position="top">
         <el-form-item label="Username">
-          <el-input placeholder="Please enter your username" />
+          <el-input v-model="username" placeholder="Please enter your username" />
         </el-form-item>
 
         <el-form-item label="Password">
-          <el-input type="password" placeholder="Please enter password" show-password />
+          <el-input v-model="password" type="password" placeholder="Please enter password" show-password />
         </el-form-item>
 
-        <el-button type="primary" class="full-width">Log In</el-button>
+        <el-button @click.prevent @click="signIn" type="primary" class="full-width">Log In</el-button>
+        <el-button @click="testServer" type="primary" class="full-width">Test Server</el-button>
       </el-form>
       
       <div class="footer">
-        <el-link type="info">Forgot Password?</el-link>
+        <el-link @click="forgotPassword" type="info">Forgot Password?</el-link>
+        <el-alert
+          v-if="error"
+          title="Error"
+          type="error"
+          :description="error"
+          show-icon
+          :closable="true"
+        />
       </div>
     </el-card>
   </div>
 </template>
+
+<script setup>
+import { api } from './../api/api';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const username = ref("");
+const password = ref("");
+const error = ref("");
+
+const signIn = async () => {
+    console.log("signing in");
+    try {
+      const res = await api.signIn(username.value, password.value);
+      if (res) {
+        localStorage.setItem("token", res);
+        router.push("/")
+      }
+    } catch (e) {
+      error.value = e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+    }
+}
+
+const forgotPassword = async () => {
+  try {
+    const res = await api.updatePassword("IMPLEMENT ME PASSWORD");
+    if (res) {
+      alert(JSON.stringify(res));
+    }
+  } catch (e) {
+    error.value = e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+  }
+}
+
+const testServer = async () => {
+  alert("testing");
+  const res = await api.testServer();
+  alert(JSON.stringify(res));
+}
+</script>
 
 <style scoped>
 .login-container {
@@ -33,6 +83,7 @@
 }
 .login-card {
   width: 400px;
+  background-color: var(--color-paper)
 }
 .login-title {
   margin: 0;
