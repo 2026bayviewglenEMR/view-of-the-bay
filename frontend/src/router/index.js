@@ -14,10 +14,20 @@ const router = createRouter({
       component: () => import('../views/Login.vue') 
     },
     {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('../views/Dashboard.vue')
+    },
+    {
       path: '/templates',
       name: 'templates',
       component: () => import('../views/Templates.vue')
     },
+    {
+      path: '/messaging',
+      name: 'messaging',
+      component: () => import('../views/Messaging.vue')
+    }
   ]
 })
 
