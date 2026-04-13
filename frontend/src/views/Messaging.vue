@@ -25,7 +25,9 @@ const pastMessages = ref([])
 
 const sendMessage = async () => {
   try {
-    const res = await api.sendMessage(message.value);
+    const res = await api.sendMessage("user_123", "doctor_01", message.value);
+    console.log("Message sent!", res);
+    message.value = ""; // clear the input after sending
   }
   catch (err) {
     console.error("Failed to send message");
