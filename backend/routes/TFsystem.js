@@ -88,4 +88,30 @@ router.put('/templates/clinic/:id',
   updateClinicTemplate
 );
 
+router.get('/templates/:id/use',
+  requireAuth,
+  requireRole('DOCTOR', 'ADMINISTRATOR'),
+  useTemplate
+);
+
+
+router.get('/favorites',
+  requireAuth,
+  requireRole('DOCTOR'),
+  getFavorites
+);
+
+router.post('/favorites',
+  requireAuth,
+  requireRole('DOCTOR'),
+  createFavorite
+);
+
+
+router.delete('/favorites/:id',
+  requireAuth,
+  requireRole('DOCTOR'),
+  deleteFavorite
+);
+
 module.exports = router;
