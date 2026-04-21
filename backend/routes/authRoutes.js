@@ -7,16 +7,6 @@ const User = require("../models/User.js");
 
 const passwordSaltRounds = 10;
 
-const ROLES = {
-    DOCTOR: "doctor",
-    ADMINISTRATOR: "admin",
-}
-
-//TODO: connect to actual users database
-const u = (username, password, role) => {
-    return {username, password, role};
-}
-
 router.post('/signIn', async (req, res) => {
     const {username, password} = req.body;
 

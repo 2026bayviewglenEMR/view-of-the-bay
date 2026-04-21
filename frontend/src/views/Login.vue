@@ -46,7 +46,7 @@ const password = ref("");
 const error = ref("");
 
 const signIn = async () => {
-    console.log("signing in");
+    console.log("signing in 😊");
     try {
       const res = await api.signIn(username.value, password.value);
       if (res) {
