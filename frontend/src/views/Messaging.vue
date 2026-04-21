@@ -12,18 +12,7 @@
 
   <div class="input-bar">
     <el-form>
-      <el-form-item class="receiver-input">
-        <el-select v-model="receiver" placeholder="Select user">
-          <el-option
-            v-for="u in users"
-            :key="u.value"
-            :label="u.label"
-            :value="u.value"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item class="message-input">
+      <el-form-item>
         <el-input v-model="message" type="textarea" placeholder="Type message here" />
       </el-form-item>
 
@@ -34,7 +23,7 @@
 
 <script setup>
 import { api } from './../api/api.js';
-import { ref, onMounted, nextTick } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
@@ -67,13 +56,6 @@ const sendMessage = async () => {
   .input-bar {
     position: fixed;
     bottom: 0;
-  }
-  .receiver-input {
-    width: 200px;
-    margin-bottom: 10px;
-  }
-  .message-input {
-    width: 600px;
-    margin-bottom: 10px;
+    width: 90%;
   }
 </style>
