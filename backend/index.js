@@ -34,6 +34,8 @@ const labsRouter = require('./routes/labs');
 const commsRouter = require('./routes/comms');
 const fileUploadsRouter = require('./routes/fileUploads');
 const alertsRouter = require('./routes/alerts');
+const consultationsRouter = require('./routes/consultations');
+const tasksRouter = require('./routes/tasks');
 
 // 2. Mount the routes to their base URLs
 // If a request starts with '/api/patients', send it to Student 2's file
@@ -46,6 +48,8 @@ app.use('/api/labs', labsRouter);
 app.use('/api/comms', commsRouter);
 app.use('/api/fileUploads', fileUploadsRouter);
 app.use('/api/alerts', alertsRouter);
+app.use('/api/consultations', consultationsRouter);
+app.use('/api/tasks', tasksRouter);
 
 app.get('/api', (req, res) => {
     return res.status(200).json({ message: "Server is live"})
