@@ -29,9 +29,9 @@ const router = createRouter({
       component: () => import('../views/Messaging.vue')
     },
     {
-      path: '/waitingroom',
-      name: 'waitingroom',
-      component: () => import('../views/WaitingRoom.vue')
+      path: '/patients/:id',
+      name: 'patient-record',
+      component: () => import('../views/PatientRecord.vue')
     }
   ]
 })
