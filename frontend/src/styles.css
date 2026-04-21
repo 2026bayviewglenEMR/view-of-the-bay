@@ -20,6 +20,9 @@
   --color-text-1: #16261A;
   --color-text-2: #465348;
   --color-text-3: #8C8271;
+  --color-text-1-dark: #ffffff;
+  --color-text-2-dark: #fffcd8;
+  --color-text-3-dark: #f2efeb;
 
   /* Utility & State */
   --color-danger: #ff7070;

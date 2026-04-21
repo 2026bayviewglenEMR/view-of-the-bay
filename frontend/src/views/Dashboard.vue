@@ -103,6 +103,7 @@ const patients = ref([
 .title {
     margin: 0;
     font-size: 1.5rem;
+    color: var(--color-text-1-dark);
 }
 
 .sidebar {
