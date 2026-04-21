@@ -1,6 +1,13 @@
 <template>
   <div>
     <p>load past messages here</p>
+
+    // ignore this, had to commit to pull
+    <el-table :data="pastMessages" style="width: 100%">
+      <el-table-column prop="sender" label="" />
+      <el-table-column prop="age" label="Age" />
+      <el-table-column prop="city" label="City" />
+    </el-table> 
   </div>
 
   <div class="input-bar">
@@ -19,9 +26,19 @@ import { api } from './../api/api.js';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
-const message = ref("");
-const pastMessages = ref([])
+const router = useRouter()
+const scrollbarRef = ref(null)
+const message = ref("")
+const pastMessages = ref([
+  {value: "message content", sender:"user_123", receiver: "doctor_01"},
+  {value: "message content", sender:"user_123", receiver: "doctor_01"},
+])
+const users = ref([
+  {value: "user_123", label: "user_123"},
+  {value: "doctor_01", label: "doctor_01"}
+])
+const receiver = ref("")
+
 
 const sendMessage = async () => {
   try {
