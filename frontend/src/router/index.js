@@ -32,7 +32,12 @@ const router = createRouter({
       path: '/waitingroom',
       name: 'waitingroom',
       component: () => import('../views/WaitingRoom.vue')
-    }
+    },
+    {
+      path: '/patients/:id',
+      name: 'patient-record',
+      component: () => import('../views/PatientRecord.vue')
+}
   ]
 })
 
