@@ -29,6 +29,11 @@ const router = createRouter({
       component: () => import('../views/TemplateUse.vue')
     },
     {
+      path: '/diagnose/:patientId',
+      name: 'templateUse',
+      component: () => import('../views/TemplateUse.vue')
+    },
+    {
       path: '/messaging',
       name: 'messaging',
       component: () => import('../views/Messaging.vue')

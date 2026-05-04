@@ -1,32 +1,31 @@
 <template>
-  <textarea
+  <input
     :id="field.model"
+    type="text"
     :placeholder="field.placeholder || ''"
     :value="modelValue"
     @input="$emit('update:modelValue', $event.target.value)"
-    rows="5"
-  ></textarea>
+  />
 </template>
 
 <script setup>
 const props = defineProps({
   field: { type: Object, required: true },
-  modelValue: { type: String, default: "" },
+  modelValue: { type: [String, Number], default: "" },
 });
 
 const emit = defineEmits(["update:modelValue"]);
 </script>
 
 <style scoped>
-textarea {
+input {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #000000;
   padding: 10px;
   border-radius: 8px;
   font: inherit;
-  resize: vertical;
 }
-textarea:focus {
+input:focus {
   outline: 2px solid #93c5fd;
 }
 </style>

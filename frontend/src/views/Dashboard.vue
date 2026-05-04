@@ -2,7 +2,6 @@
     <div class="top-bar">
         <h1 class="title">Dashboard</h1>
         <div class="user-info">
-            <!-- Add user info or logout button here -->
         </div>
     </div>
     <div class="sidebar">
@@ -13,11 +12,9 @@
             <router-link to="/" class="nav-link">Home</router-link>
             <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
             <router-link to="/messaging" class="nav-link">Messaging</router-link>
-            <!-- Add more links as needed -->
         </nav>
     </div>
     <div class="main-content">
-        <!-- Main dashboard content goes here -->
         <div class="patients-list">
             <div class="patients-header">
                 <h2>Patients</h2>
@@ -62,9 +59,13 @@
 
 
 <script setup>
-import { ref } from 'vue';
+    import { ref } from 'vue';
+    import { useRouter } from 'vue-router';
 
-const patients = ref([
+    const router = useRouter();
+
+    // patients data
+    const patients = ref([
     {
         id: 1,
         name: 'John Doe',
@@ -89,7 +90,11 @@ const patients = ref([
         appointmentTime: '3:30 PM',
         status: 'Completed'
     }
-]);
+    ]);
+
+    const openTemplate = (id) => {
+    router.push(`/diagnose/${id}`);
+    };
 </script>
 
 
