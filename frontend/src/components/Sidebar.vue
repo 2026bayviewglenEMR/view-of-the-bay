@@ -35,7 +35,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    position: relative;
+    position: fixed;
 }
 
 .nav-link {
