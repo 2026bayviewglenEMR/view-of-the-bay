@@ -37,7 +37,10 @@
 
 <script setup>
 import { ref } from 'vue';
+import TopBar from '../components/TopBar.vue';
+import Sidebar from '../components/Sidebar.vue';
 
+const pageTitle = ref('Dashboard');
 const patients = ref([
     {
         id: 1,
