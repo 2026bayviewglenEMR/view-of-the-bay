@@ -26,6 +26,12 @@
                             <router-link :to="`/patient-details/${patient.id}`" class="details-btn">
                                 View Details
                             </router-link>
+                            <button
+                                class="template-btn"
+                                @click="openTemplate(patient.id)"
+                            >
+                                Diagnose Patient
+                            </button>
                         </div>
                     </div>
                 </div>
