@@ -1,4 +1,3 @@
-// models/Consultation.js
 const mongoose = require("mongoose");
 
 const consultationSchema = new mongoose.Schema(
@@ -6,7 +5,6 @@ const consultationSchema = new mongoose.Schema(
     appointmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Appointment",
-      required: true,
     },
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -23,59 +21,50 @@ const consultationSchema = new mongoose.Schema(
       required: true,
     },
     vitals: {
-      bloodPressure: {
-        type: String,
-        required: true,
-      },
-      heartRate: {
-        type: Number,
-        required: true,
-      },
-      temperature: {
-        type: Number,
-        required: true,
-      },
-      weight: {
-        type: Number,
-        required: true,
-      },
+      bloodPressure: String,
+      heartRate: Number,
+      temperature: Number,
+      weight: Number,
     },
     symptoms: {
       type: [String],
-      required: true,
     },
+    examFindings: String,
     diagnoses: {
       type: [String],
-      required: true,
     },
     prescriptions: [
       {
         medicationName: {
           type: String,
-          required: true,
         },
         dosage: {
           type: String,
-          required: true,
         },
         instructions: {
           type: String,
-          required: true,
         },
       },
     ],
-    treatmentPlan: {
-      type: String,
-      required: true,
-    },
+    treatmentPlan: String,
     status: {
       type: String,
-      required: true,
+      default: "in-progress",
     },
-    lockedAt: {
-      type: Date,
-      required: true,
+    skippedSteps: {
+      type: [String],
+      default: [],
     },
+    completedSteps: {
+      type: [String],
+      default: [],
+    },
+    currentStep: {
+      type: String,
+      default: "symptoms",
+    },
+    notes: String,
+    lockedAt: Date,
   },
   { timestamps: true }
 );

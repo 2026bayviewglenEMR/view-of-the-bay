@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+// models/User.js -Arees
+const mongoose = require('mongoose');
  
 const drugInteractionSchema = new mongoose.Schema({
   drug_id:     { type: String },
@@ -17,3 +18,4 @@ const drugSchema = new mongoose.Schema({
 drugSchema.index({ name: 1 });
  
 module.exports = mongoose.model("Drug", drugSchema, "drugs");
+ 

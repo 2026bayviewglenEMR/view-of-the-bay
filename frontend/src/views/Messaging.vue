@@ -2,27 +2,17 @@
   <div>
     <p>load past messages here</p>
 
-    <el-scrollbar ref="scrollbarRef" height="400px">
-        <div>
-          <div v-for="i in 50" :key="i">Message {{ i }}</div>
-        </div>
-    </el-scrollbar>
+    // ignore this, had to commit to pull
+    <el-table :data="pastMessages" style="width: 100%">
+      <el-table-column prop="sender" label="" />
+      <el-table-column prop="age" label="Age" />
+      <el-table-column prop="city" label="City" />
+    </el-table> 
   </div>
 
   <div class="input-bar">
     <el-form>
-      <el-form-item class="receiver-input">
-        <el-select v-model="receiver" placeholder="Select user">
-          <el-option
-            v-for="u in users"
-            :key="u.value"
-            :label="u.label"
-            :value="u.value"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item class="message-input">
+      <el-form-item>
         <el-input v-model="message" type="textarea" placeholder="Type message here" />
       </el-form-item>
 
@@ -33,25 +23,22 @@
 
 <script setup>
 import { api } from './../api/api.js';
-import { ref, onMounted, nextTick } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
 const scrollbarRef = ref(null)
 const message = ref("")
-const pastMessages = ref([])
+const pastMessages = ref([
+  {value: "message content", sender:"user_123", receiver: "doctor_01"},
+  {value: "message content", sender:"user_123", receiver: "doctor_01"},
+])
 const users = ref([
   {value: "user_123", label: "user_123"},
   {value: "doctor_01", label: "doctor_01"}
 ])
 const receiver = ref("")
 
-
-onMounted(async () => {
-  await nextTick()
-  const scrollbar = scrollbarRef.value.wrapRef
-  scrollbar.scrollTop = scrollbar.scrollHeight
-})
 
 const sendMessage = async () => {
   try {
@@ -69,13 +56,6 @@ const sendMessage = async () => {
   .input-bar {
     position: fixed;
     bottom: 0;
-  }
-  .receiver-input {
-    width: 200px;
-    margin-bottom: 10px;
-  }
-  .message-input {
-    width: 600px;
-    margin-bottom: 10px;
+    width: 90%;
   }
 </style>

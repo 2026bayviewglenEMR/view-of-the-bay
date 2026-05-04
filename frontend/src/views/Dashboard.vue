@@ -1,19 +1,6 @@
 <template>
-    <div class="top-bar">
-        <h1 class="title">Dashboard</h1>
-        <div class="user-info">
-        </div>
-    </div>
-    <div class="sidebar">
-        <div class="spacer-1">
-
-        </div>
-        <nav class="nav-menu">
-            <router-link to="/" class="nav-link">Home</router-link>
-            <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
-            <router-link to="/messaging" class="nav-link">Messaging</router-link>
-        </nav>
-    </div>
+    <TopBar :title="pageTitle" />
+    <Sidebar />
     <div class="main-content">
         <div class="patients-list">
             <div class="patients-header">
@@ -36,19 +23,9 @@
                             </span>
                         </div>
                         <div class="col-actions">
-                            <router-link
-                            :to="`/patient-details/${patient.id}`"
-                            class="details-btn"
-                                >
-                            View Details
-                        </router-link>
-
-                            <button
-                                class="template-btn"
-                                @click="openTemplate(patient.id)"
-                            >
-                                Diagnose Patient
-                            </button>
+                            <router-link :to="`/patient-details/${patient.id}`" class="details-btn">
+                                View Details
+                            </router-link>
                         </div>
                     </div>
                 </div>
@@ -59,13 +36,9 @@
 
 
 <script setup>
-    import { ref } from 'vue';
-    import { useRouter } from 'vue-router';
+import { ref } from 'vue';
 
-    const router = useRouter();
-
-    // patients data
-    const patients = ref([
+const patients = ref([
     {
         id: 1,
         name: 'John Doe',
@@ -99,67 +72,6 @@
 
 
 <style scoped>
-.top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background-color: var(--color-primary);
-    color: var(--color-text-1-dark);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    z-index: 1000;
-}
-
-.title {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 20vw;
-    height: 100vh;
-    background-color: var(--color-sidebar-dark);
-    color: var(--color-text-1-dark);
-    padding: 20px;
-    box-shadow: 2px 0 4px rgba(0,0,0,0.25);
-    z-index: 10;
-}
-
-.spacer-1 {
-    height: 50px;
-}
-
-.nav-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-}
-
-.nav-link {
-    color: var(--color-text-1-dark);
-    text-decoration: none;
-    padding: 10px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.nav-link.router-link-active {
-    background-color: var(--color-primary);
-}
-
 .main-content {
     margin-left: 25vw;
     padding-top: 40px;

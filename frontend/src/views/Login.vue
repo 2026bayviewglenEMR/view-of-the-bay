@@ -16,6 +16,8 @@
 
         <el-button @click.prevent @click="signIn" type="primary" class="full-width">Log In</el-button>
         <el-button @click="testServer" type="primary" class="full-width">Test Server</el-button>
+        <el-button @click="doctorOnly" type="primary" class="full-width">Test Server (doctor only)</el-button>
+        <el-button @click="adminOnly" type="primary" class="full-width">Test Server (admin only)</el-button>
       </el-form>
       
       <div class="footer">
@@ -44,7 +46,7 @@ const password = ref("");
 const error = ref("");
 
 const signIn = async () => {
-    console.log("signing in");
+    console.log("signing in 😊");
     try {
       const res = await api.signIn(username.value, password.value);
       if (res) {
@@ -70,6 +72,21 @@ const forgotPassword = async () => {
 const testServer = async () => {
   alert("testing");
   const res = await api.testServer();
+  console.log("response", res);
+  alert(JSON.stringify(res));
+}
+
+const doctorOnly = async () => {
+  alert("testing");
+  const res = await api.doctorOnly();
+  console.log("response", res);
+  alert(JSON.stringify(res));
+}
+
+const adminOnly = async () => {
+  alert("testing");
+  const res = await api.adminOnly();
+  console.log("response", res);
   alert(JSON.stringify(res));
 }
 </script>

@@ -23,13 +23,7 @@ const appointmentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["scheduled", "checked-in", "in-progress", "completed", "cancelled", "no-show"],
-      default: "scheduled",
-    },
-    appointmentType: {
-      type: String,
-      enum: ["telehealth", "in-person"],
-      default: "in-person",
+      required: true,
     },
     reasonForVisit: {
       type: String,
@@ -37,16 +31,14 @@ const appointmentSchema = new mongoose.Schema(
     },
     notes: {
       type: String,
-    },
-    roomNumber: {
-      type: String,
-    },
-    telehealth: {
-      joinUrl: String,
-      sessionId: String,
+      required: true,
     },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("Appointment", appointmentSchema);
+
+
+
+
