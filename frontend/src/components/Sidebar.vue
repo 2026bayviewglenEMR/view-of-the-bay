@@ -2,10 +2,24 @@
     <div class="sidebar">
         <div class="spacer-1"></div>
         <nav class="nav-menu">
-            <router-link to="/" class="nav-link">Home</router-link>
-            <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
-            <router-link to="/messaging" class="nav-link">Messaging</router-link>
-            <!-- Add more links as needed -->
+            <router-link to="/dashboard" class="nav-link">
+                <span class="icon">📊</span> Dashboard
+            </router-link>
+            <router-link to="/patients" class="nav-link">
+                <span class="icon">👥</span> Patient Records
+            </router-link>
+            <router-link to="/messaging" class="nav-link">
+                <span class="icon">💬</span> Messaging
+            </router-link>
+            <router-link to="/templates" class="nav-link">
+                <span class="icon">📋</span> Templates
+            </router-link>
+            <router-link to="/tasks" class="nav-link">
+                <span class="icon">✓</span> Tasks
+            </router-link>
+            <router-link to="/alerts" class="nav-link">
+                <span class="icon">🔔</span> Alerts
+            </router-link>
         </nav>
     </div>
 </template>
@@ -35,15 +49,19 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    position: fixed;
+    position: relative;
 }
 
 .nav-link {
     color: var(--color-text-1-dark);
     text-decoration: none;
-    padding: 10px;
+    padding: 12px 10px;
     border-radius: 4px;
     transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
 }
 
 .nav-link:hover {
@@ -52,5 +70,11 @@
 
 .nav-link.router-link-active {
     background-color: var(--color-primary);
+    font-weight: 600;
+}
+
+.icon {
+    font-size: 1.2rem;
+    min-width: 20px;
 }
 </style>
