@@ -24,11 +24,6 @@ const router = createRouter({
       component: () => import('../views/Templates.vue')
     },
     {
-      path: '/template/:patientId',
-      name: 'templateUse',
-      component: () => import('../views/TemplateUse.vue')
-    },
-    {
       path: '/diagnose/:patientId',
       name: 'templateUse',
       component: () => import('../views/TemplateUse.vue')
@@ -42,7 +37,8 @@ const router = createRouter({
       path: '/patients/:id',
       name: 'patient-record',
       component: () => import('../views/PatientRecord.vue')
-    },
+    }
+    
   ]
 })
 

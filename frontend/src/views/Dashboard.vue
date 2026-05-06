@@ -43,10 +43,14 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import TopBar from '../components/TopBar.vue';
 import Sidebar from '../components/Sidebar.vue';
 
+const router = useRouter();
+
 const pageTitle = ref('Dashboard');
+
 const patients = ref([
     {
         id: 1,
@@ -72,11 +76,11 @@ const patients = ref([
         appointmentTime: '3:30 PM',
         status: 'Completed'
     }
-    ]);
+]);
 
-    const openTemplate = (id) => {
+const openTemplate = (id) => {
     router.push(`/diagnose/${id}`);
-    };
+};
 </script>
 
 

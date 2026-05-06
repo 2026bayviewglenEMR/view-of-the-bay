@@ -78,7 +78,7 @@ function getComponent(type) {
 }
 
 label {
-  color: white;
+  color: black;
 }
 
 .toggle {
