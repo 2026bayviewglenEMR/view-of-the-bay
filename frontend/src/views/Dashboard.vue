@@ -23,14 +23,15 @@
                             </span>
                         </div>
                         <div class="col-actions">
-                            <router-link :to="`/patient-details/${patient.id}`" class="details-btn">
-                                View Details
+                            <router-link :to="`/patient-details/${patient.id}`" class="icon-btn" title="View Details">
+                                <View />
                             </router-link>
                             <button
-                                class="template-btn"
+                                class="icon-btn"
                                 @click="openTemplate(patient.id)"
+                                title="Diagnose Patient"
                             >
-                                Diagnose Patient
+                                <Edit />
                             </button>
                         </div>
                     </div>
@@ -43,9 +44,12 @@
 
 <script setup>
 import { ref } from 'vue';
+import { View, Edit } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
 import TopBar from '../components/TopBar.vue';
 import Sidebar from '../components/Sidebar.vue';
 
+const router = useRouter();
 const pageTitle = ref('Dashboard');
 const patients = ref([
     {
@@ -82,8 +86,9 @@ const patients = ref([
 
 <style scoped>
 .main-content {
-    margin-left: 25vw;
-    padding: 0px;
+    margin-left: 20vw;
+    margin-top: 60px;
+    padding: 20px;
     background-color: var(--color-bg);
     min-height: calc(100vh - 60px);
 }
@@ -190,6 +195,33 @@ const patients = ref([
     border-radius: 4px;
     transition: background-color 0.2s;
     text-align: center;
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+.icon-btn:hover {
+    background-color: var(--color-primary-dark, #0056b3);
+    transform: scale(1.1);
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
 .details-btn:hover {

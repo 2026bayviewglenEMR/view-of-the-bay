@@ -1,6 +1,5 @@
 <template>
     <div class="sidebar">
-        <div class="spacer-1"></div>
         <nav class="nav-menu">
             <router-link to="/dashboard" class="nav-link">
                 <span class="icon">📊</span> Dashboard
@@ -36,7 +35,7 @@
     height: 100vh;
     background-color: var(--color-sidebar-dark);
     color: var(--color-text-1-dark);
-    padding: 20px;
+    padding: 60px, 20px, 20px, 20px;
     box-shadow: 2px 0 4px rgba(0,0,0,0.25);
     z-index: 10;
 }

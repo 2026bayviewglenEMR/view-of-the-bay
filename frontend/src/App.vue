@@ -1,6 +1,6 @@
 <template>
   <div id="emr-app">
-    <nav class="dev-navigation">
+    <!-- <nav class="dev-navigation">
       <h3>EMR Dev Menu</h3>
       <div class="nav-links">
         <router-link to="/login" class="nav-btn">- Login</router-link>
@@ -16,7 +16,7 @@
       <div>
         <router-link to="/waitingroom" class="nav-btn">- Waiting Room</router-link>
       </div>
-    </nav>
+    </nav> -->
 
     <main class="page-content">
       <router-view />
