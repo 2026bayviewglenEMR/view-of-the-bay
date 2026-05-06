@@ -19,4 +19,22 @@ const authenticateToken = (req, res, next) => {
     })
 }
 
-module.exports = { authenticateToken };
+const requireRole = (requiredRole) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ error: "Unauthorized. Please log in." });
+        }
+
+        if (req.user.role.toLowerCase() !== requiredRole.toLowerCase()) {
+            return res.status(403).json({ 
+                error: `Access denied. This action requires ${requiredRole}.` 
+            });
+        }
+
+        next();
+    };
+};
+
+module.exports = { requireRole };
+
+module.exports = { authenticateToken, requireRole };

@@ -24,10 +24,25 @@ const router = createRouter({
       component: () => import('../views/Templates.vue')
     },
     {
+      path: '/template/:patientId',
+      name: 'templateUse',
+      component: () => import('../views/TemplateUse.vue')
+    },
+    {
+      path: '/diagnose/:patientId',
+      name: 'templateUse',
+      component: () => import('../views/TemplateUse.vue')
+    },
+    {
       path: '/messaging',
       name: 'messaging',
       component: () => import('../views/Messaging.vue')
-    }
+    },
+    {
+      path: '/patients/:id',
+      name: 'patient-record',
+      component: () => import('../views/PatientRecord.vue')
+    },
   ]
 })
 
@@ -36,13 +51,13 @@ const openRoutes = [
   '/login'
 ]
 
-router.beforeEach((to, from, next) => {
-  //if the route requires a token, go to login
-  if (localStorage.getItem("token") || openRoutes.includes(to.path)) {
-    next();
-  } else {
-    next('/login');
-  }
-});
+// router.beforeEach((to, from, next) => {
+//   //if the route requires a token, go to login
+//   if (localStorage.getItem("token") || openRoutes.includes(to.path)) {
+//     next();
+//   } else {
+//     next('/login');
+//   }
+// });
 
 export default router

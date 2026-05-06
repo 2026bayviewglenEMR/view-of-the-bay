@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
+const { authenticateToken, requireRole } = require("./verifyToken.js");
 
 const app = express();
 const PORT = 3000;
@@ -33,6 +34,8 @@ const labsRouter = require('./routes/labs');
 const commsRouter = require('./routes/comms');
 const fileUploadsRouter = require('./routes/fileUploads');
 const alertsRouter = require('./routes/alerts');
+const consultationsRouter = require('./routes/consultations');
+const tasksRouter = require('./routes/tasks');
 
 // 2. Mount the routes to their base URLs
 // If a request starts with '/api/patients', send it to Student 2's file
@@ -45,9 +48,19 @@ app.use('/api/labs', labsRouter);
 app.use('/api/comms', commsRouter);
 app.use('/api/fileUploads', fileUploadsRouter);
 app.use('/api/alerts', alertsRouter);
+app.use('/api/consultations', consultationsRouter);
+app.use('/api/tasks', tasksRouter);
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
     return res.status(200).json({ message: "Server is live"})
+});
+
+app.get('/api/doctorOnly', authenticateToken, requireRole('doctor'), (req, res) => {
+    return res.status(200).json({ message: "Doctor Only"})
+});
+
+app.get('/api/adminOnly', authenticateToken, requireRole('admin'), (req, res) => {
+    return res.status(200).json({ message: "Admin Only"})
 });
 
 // Fallback for 404s

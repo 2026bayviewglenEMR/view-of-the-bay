@@ -1,0 +1,259 @@
+<template>
+  <div class="patient-record-page">
+    <div class="patient-header">
+      <div>
+        <h1>{{ patient.name || 'Patient Record' }}</h1>
+        <p v-if="patient.id">Patient ID: {{ patient.id }}</p>
+      </div>
+
+      <div class="action-buttons">
+        <template v-if="role === 'doctor'">
+          <button @click="addDiagnosis">Add Diagnosis</button>
+          <button @click="updateMedications">Update Medications</button>
+          <button @click="editClinicalHistory">Edit Clinical History</button>
+          <button @click="startConsultation">Start Consultation</button>
+        </template>
+
+        <template v-else-if="role === 'admin'">
+          <button @click="editDemographics">Edit Demographics</button>
+        </template>
+      </div>
+    </div>
+
+    <div class="patient-layout">
+      <main class="main-content">
+        <section class="card">
+          <h2>Demographics</h2>
+          <div class="grid">
+            <p><strong>Date of Birth:</strong> {{ patient.dob || '—' }}</p>
+            <p><strong>Gender:</strong> {{ patient.gender || '—' }}</p>
+            <p><strong>Phone:</strong> {{ patient.phone || '—' }}</p>
+            <p><strong>Address:</strong> {{ patient.address || '—' }}</p>
+            <p><strong>Insurance:</strong> {{ patient.insurance || '—' }}</p>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Clinical History</h2>
+          <div v-if="role === 'admin'" class="readonly-note">
+            Read-only for administrators
+          </div>
+          <p><strong>Conditions:</strong> {{ clinicalHistory.conditions || '—' }}</p>
+          <p><strong>Surgeries:</strong> {{ clinicalHistory.surgeries || '—' }}</p>
+          <p><strong>Family History:</strong> {{ clinicalHistory.familyHistory || '—' }}</p>
+          <p><strong>Social History:</strong> {{ clinicalHistory.socialHistory || '—' }}</p>
+        </section>
+
+        <section class="card">
+          <h2>Visit Timeline</h2>
+          <div v-if="timeline.length">
+            <div v-for="visit in timeline" :key="visit.id" class="timeline-item">
+              <h3>{{ visit.date }} — {{ visit.reason }}</h3>
+              <p><strong>Doctor:</strong> {{ visit.doctor }}</p>
+              <p><strong>Diagnosis:</strong> {{ visit.diagnosis || '—' }}</p>
+              <p><strong>Notes:</strong> {{ visit.notes || '—' }}</p>
+            </div>
+          </div>
+          <p v-else>No visits yet.</p>
+        </section>
+      </main>
+
+      <aside class="summary-panel card">
+        <h2>Executive Summary</h2>
+
+        <div class="summary-photo-wrap">
+          <img
+            v-if="patient.photo"
+            :src="patient.photo"
+            alt="Patient photo"
+            class="summary-photo"
+          />
+          <div v-else class="photo-placeholder">No Photo</div>
+        </div>
+
+        <p><strong>Name:</strong> {{ patient.name || '—' }}</p>
+
+        <div class="summary-section">
+          <h3>Allergies</h3>
+          <ul v-if="allergies.length">
+            <li v-for="allergy in allergies" :key="allergy">{{ allergy }}</li>
+          </ul>
+          <p v-else>None listed</p>
+        </div>
+
+        <div class="summary-section">
+          <h3>Active Medications</h3>
+          <ul v-if="medications.length">
+            <li v-for="med in medications" :key="med">{{ med }}</li>
+          </ul>
+          <p v-else>None listed</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'PatientRecord',
+  data() {
+    return {
+      role: localStorage.getItem('role') || 'doctor',
+      patient: {
+        id: 'P-1001',
+        name: 'Jane Doe',
+        dob: '1991-03-14',
+        gender: 'Female',
+        phone: '(555) 123-4567',
+        address: '123 Main Street',
+        insurance: 'SunLife',
+        photo: ''
+      },
+      clinicalHistory: {
+        conditions: 'Type 2 Diabetes, Hypertension',
+        surgeries: 'Appendectomy (2018)',
+        familyHistory: 'Father: hypertension',
+        socialHistory: 'Non-smoker, occasional alcohol use'
+      },
+      allergies: ['Penicillin', 'Peanuts'],
+      medications: ['Metformin 500mg', 'Lisinopril 10mg'],
+      timeline: [
+        {
+          id: 1,
+          date: '2026-04-10',
+          reason: 'Follow-up',
+          doctor: 'Dr. Patel',
+          diagnosis: 'Stable blood pressure',
+          notes: 'Continue current medications'
+        },
+        {
+          id: 2,
+          date: '2026-02-18',
+          reason: 'Routine checkup',
+          doctor: 'Dr. Patel',
+          diagnosis: 'General wellness visit',
+          notes: 'Recommended annual bloodwork'
+        }
+      ]
+    }
+  },
+  methods: {
+    addDiagnosis() {
+      console.log('Add Diagnosis clicked')
+    },
+    updateMedications() {
+      console.log('Update Medications clicked')
+    },
+    editClinicalHistory() {
+      console.log('Edit Clinical History clicked')
+    },
+    editDemographics() {
+      console.log('Edit Demographics clicked')
+    },
+    startConsultation() {
+      this.$router.push('/dashboard')
+    }
+  }
+}
+</script>
+
+<style scoped>
+.patient-record-page {
+  padding: 24px;
+}
+
+.patient-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.patient-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.summary-panel {
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+.summary-photo-wrap {
+  margin-bottom: 16px;
+}
+
+.summary-photo,
+.photo-placeholder {
+  width: 100%;
+  max-width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-section {
+  margin-top: 18px;
+}
+
+.timeline-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.timeline-item:last-child {
+  border-bottom: none;
+}
+
+.readonly-note {
+  margin-bottom: 10px;
+  color: #666;
+  font-style: italic;
+}
+
+@media (max-width: 900px) {
+  .patient-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-panel {
+    position: static;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
