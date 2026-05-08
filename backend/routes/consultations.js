@@ -1,21 +1,21 @@
 const express = require("express");
 const router = express.Router();
 
+const { authenticateToken } = require("../middleware/auth");
+
 const {
   getFlowConfig,
   updateFlowConfig,
   createConsultation,
-  getConsultation,
+  getActiveConsultation,
   getConsultationByPatient,
+  getConsultation,
   switchPatient,
   updateConsultationStep,
   skipStep,
   unskipStep,
   completeConsultation,
-  getActiveConsultation,
 } = require("../controllers/consultationController");
-
-const { authenticateToken, requireRole } = require("../middleware/auth");
 
 router.get("/flow-config", authenticateToken, getFlowConfig);
 router.put("/flow-config", authenticateToken, updateFlowConfig);
