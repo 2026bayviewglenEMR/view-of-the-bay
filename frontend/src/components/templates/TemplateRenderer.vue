@@ -93,11 +93,14 @@ label {
 }
 
 .submit {
-  margin-top: 10px;
-  padding: 10px;
+  display: block;
+  width: fit-content;
+  margin: 30px auto 0 auto;
+  padding: 10px 20px;
   background: var(--primary-green-dark);
-  color: white;
-  border: none;
+  color: black;
+  border: 2px solid black;
   border-radius: 8px;
+  cursor: pointer;
 }
 </style>
