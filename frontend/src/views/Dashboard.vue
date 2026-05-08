@@ -2,37 +2,42 @@
     <TopBar :title="pageTitle" />
     <Sidebar />
     <div class="main-content">
-        <div class="patients-list">
-            <div class="patients-header">
-                <h2>Patients</h2>
+        <div class="dashboard-grid">
+            <div class="calendar-section">
+                <CalendarView />
             </div>
-            <div class="patients-table">
-                <div class="table-header">
-                    <div class="col-name">Patient Name</div>
-                    <div class="col-time">Appointment Time</div>
-                    <div class="col-status">Status</div>
-                    <div class="col-actions">Details</div>
+            <div class="patients-list">
+                <div class="patients-header">
+                    <h2>Patients</h2>
                 </div>
-                <div class="table-body">
-                    <div v-for="patient in patients" :key="patient.id" class="table-row">
-                        <div class="col-name">{{ patient.name }}</div>
-                        <div class="col-time">{{ patient.appointmentTime }}</div>
-                        <div class="col-status">
-                            <span :class="['status-badge', patient.status.toLowerCase()]">
-                                {{ patient.status }}
-                            </span>
-                        </div>
-                        <div class="col-actions">
-                            <router-link :to="`/patient-details/${patient.id}`" class="icon-btn" title="View Details">
-                                <View />
-                            </router-link>
-                            <button
-                                class="icon-btn"
-                                @click="openTemplate(patient.id)"
-                                title="Diagnose Patient"
-                            >
-                                <Edit />
-                            </button>
+                <div class="patients-table">
+                    <div class="table-header">
+                        <div class="col-name">Patient Name</div>
+                        <div class="col-time">Appointment Time</div>
+                        <div class="col-status">Status</div>
+                        <div class="col-actions">Details</div>
+                    </div>
+                    <div class="table-body">
+                        <div v-for="patient in patients" :key="patient.id" class="table-row">
+                            <div class="col-name">{{ patient.name }}</div>
+                            <div class="col-time">{{ patient.appointmentTime }}</div>
+                            <div class="col-status">
+                                <span :class="['status-badge', patient.status.toLowerCase()]">
+                                    {{ patient.status }}
+                                </span>
+                            </div>
+                            <div class="col-actions">
+                                <router-link :to="`/patient-details/${patient.id}`" class="icon-btn" title="View Details">
+                                    <View />
+                                </router-link>
+                                <button
+                                    class="icon-btn"
+                                    @click="openTemplate(patient.id)"
+                                    title="Diagnose Patient"
+                                >
+                                    <Edit />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -48,6 +53,7 @@ import { View, Edit } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import TopBar from '../components/TopBar.vue';
 import Sidebar from '../components/Sidebar.vue';
+import CalendarView from '../components/CalendarView.vue';
 
 const router = useRouter();
 const pageTitle = ref('Dashboard');
@@ -93,10 +99,24 @@ const patients = ref([
     min-height: calc(100vh - 60px);
 }
 
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.calendar-section {
+    background-color: var(--color-primary);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+}
+
 .patients-list {
     background-color: var(--color-primary);
     min-height: 20vh;
-    width: 35vw;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
