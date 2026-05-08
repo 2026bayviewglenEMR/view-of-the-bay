@@ -37,7 +37,12 @@ const router = createRouter({
       path: '/patients/:id',
       name: 'patient-record',
       component: () => import('../views/PatientRecord.vue')
-    }
+    },
+    {
+      path: '/patientPortal',
+      name: 'patientPortal',
+      component: () => import('../views/PatientPortal.vue')
+    },
     
   ]
 })
