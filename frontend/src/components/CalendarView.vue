@@ -1,9 +1,9 @@
-<!-- // node node_modules/vite/bin/vite.js -->
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Qalendar } from 'qalendar';
 import 'qalendar/dist/style.css';
 
+// Get today's date to send to the database
 const today = new Date().toISOString().split('T')[0];
 
 const config = ref({
@@ -13,66 +13,45 @@ const config = ref({
 });
 
 const events = ref([]);
-
 const isLoading = ref(true);
 
-const mockDatabaseResponse = [
-  {
-    title: "Edna Jane (In-Person)",
-    with: "Dr. Smith",
-    time: { start: `${today} 09:00`, end: `${today} 09:30` },
-    color: "blue",
-    isEditable: true,
-    id: "1",
-    description: "Status: Checked-in (10 min late)"
-  },
-  {
-    title: "Brian Smithers (Telehealth)",
-    with: "Dr. Smith",
-    time: { start: `${today} 09:30`, end: `${today} 10:00` },
-    color: "green",
-    isEditable: true,
-    id: "2",
-    description: "Status: Waiting (On time)"
-  },
-  {
-    title: "Lawrence Jones (In-Person)",
-    with: "Dr. Smith",
-    time: { start: `${today} 10:00`, end: `${today} 10:45` },
-    color: "yellow",
-    isEditable: true,
-    id: "3",
-    description: "Status: In Progress (On time)"
-  }
-];
-
+// GET ROUTE: Fetch the schedule when the page loads
 onMounted(async () => {
-  
-  setTimeout(() => {
-    events.value = mockDatabaseResponse; // Inject the JSON
-    isLoading.value = false;             // Turn off the loading screen
-  }, 1000);
-
-  /* === THE REAL CODE FOR LATER ===
-
   try {
-    // 1. Knock on the database door
-    const response = await fetch('http://localhost:3000/api/appointments'); 
+    const response = await fetch(`http://localhost:3000/api/appointments?date=${today}`); 
     
-    // 2. Convert the response to JSON
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
     const data = await response.json(); 
-    
-    // 3. Feed the JSON into Qalendar
+
     events.value = data; 
     
-    // 4. Turn off loading screen
-    isLoading.value = false; 
   } catch (error) {
-    console.error("Failed to fetch schedule from database!", error);
-    isLoading.value = false;
+    console.error("Failed to fetch schedule from database:", error);
+  } finally {
+    isLoading.value = false; 
   }
-  */
 });
+
+// PATCH ROUTE: let users change the status of an appointment
+const updateAppointmentStatus = async (id, newStatus) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/appointments/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update status');
+    }
+    console.log("Status updated successfully!");
+  } catch (error) {
+    console.error("Error updating appointment status:", error);
+  }
+};
 </script>
 
 <template>
