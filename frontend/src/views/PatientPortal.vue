@@ -384,6 +384,7 @@ input,
 select,
 textarea {
   width: 100%;
+  box-sizing: border-box;
   border: 2px solid var(--color-border);
   border-radius: 12px;
   padding: 12px 14px;
