@@ -58,17 +58,17 @@ app.get('/api', (req, res) => {
     return res.status(200).json({ message: "Server is live"})
 });
 
-app.get('/api/doctorOnly', authenticateToken, requireRole('doctor'), (req, res) => {
+app.get('/api/doctorOnly', authenticateToken, requireRole(['doctor']), (req, res) => {
     return res.status(200).json({ message: "Doctor Only"})
 });
 
-app.get('/api/adminOnly', authenticateToken, requireRole('admin'), (req, res) => {
+app.get('/api/adminOnly', authenticateToken, requireRole(['admin']), (req, res) => {
     return res.status(200).json({ message: "Admin Only"})
 });
 
-app.get('/api/patientOnly', authenticateToken, requireRole('patient', (req, res) => {
+app.get('/api/patientOnly', authenticateToken, requireRole(['patient']), (req, res) => {
     return res.status(200).json({ message: "Patient Only"})
-}))
+})
 
 // Fallback for 404s
 app.use((req, res) => {

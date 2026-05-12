@@ -26,40 +26,40 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 
 router.get('/templates/my',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   getMyTemplates
 );
 
 router.post('/templates/my',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   createMyTemplate
 );
 
 router.put('/templates/my/:id',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   updateMyTemplate
 );
 
 // added
 router.get('/templates/clinic',
   requireAuth,
-  requireRole('DOCTOR', 'ADMINISTRATOR'),
+  requireRole(['doctor', 'admin']),
   getClinicTemplates
 );
 
 
 router.post('/templates/clinic',
   requireAuth,
-  requireRole('ADMINISTRATOR'),
+  requireRole(['admin']),
   createClinicTemplate
 );
 
 
 router.put('/templates/clinic/:id',
   requireAuth,
-  requireRole('ADMINISTRATOR'),
+  requireRole(['admin']),
   updateClinicTemplate
 );
 
