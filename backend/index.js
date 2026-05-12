@@ -12,7 +12,8 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/emr';
+const MONGO_URI = process.env.MONGO_URI.trim().replace(/['"]+/g, '');;
+console.log(`MURI: [${MONGO_URI}]`);
 mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('MongoDB connection error:', err));
@@ -62,6 +63,10 @@ app.get('/api/doctorOnly', authenticateToken, requireRole('doctor'), (req, res) 
 app.get('/api/adminOnly', authenticateToken, requireRole('admin'), (req, res) => {
     return res.status(200).json({ message: "Admin Only"})
 });
+
+app.get('/api/patientOnly', authenticateToken, requireRole('patient', (req, res) => {
+    return res.status(200).json({ message: "Patient Only"})
+}))
 
 // Fallback for 404s
 app.use((req, res) => {
