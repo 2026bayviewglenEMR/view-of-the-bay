@@ -256,17 +256,17 @@ function getDay(dateString) {
 .patient-portal {
   min-height: 100vh;
   padding: 32px;
-  background: #f4f7fb;
-  color: #172033;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-1);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .hero-card,
 .card {
-  background: #ffffff;
-  border: 1px solid #e4e9f2;
-  border-radius: 24px;
-  box-shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
+  background: var(--color-paper);
+  border: 2px solid var(--color-border);
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(22, 38, 26, 0.12);
 }
 
 .hero-card {
@@ -276,14 +276,14 @@ function getDay(dateString) {
   gap: 24px;
   padding: 32px;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #ffffff, #eef6ff);
+  background: linear-gradient(135deg, var(--color-paper), var(--color-secondary));
 }
 
 .eyebrow {
   margin: 0 0 6px;
-  color: #3b82f6;
+  color: var(--color-primary);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -298,19 +298,19 @@ p {
 h1 {
   margin-bottom: 8px;
   font-size: 2.4rem;
-  line-height: 1.1;
+  color: var(--color-text-1);
 }
 
 h2 {
   margin-bottom: 0;
   font-size: 1.35rem;
+  color: var(--color-text-1);
 }
 
 .subtitle {
   max-width: 620px;
   margin-bottom: 0;
-  color: #5b667a;
-  font-size: 1rem;
+  color: var(--color-text-2);
 }
 
 .hero-stats {
@@ -321,22 +321,22 @@ h2 {
 .hero-stats div {
   min-width: 110px;
   padding: 18px;
-  border-radius: 18px;
-  background: #ffffff;
+  border-radius: 16px;
+  background: var(--color-bg);
   text-align: center;
-  border: 1px solid #dce6f5;
+  border: 2px solid var(--color-primary);
 }
 
 .hero-stats span {
   display: block;
   font-size: 2rem;
   font-weight: 800;
-  color: #2563eb;
+  color: var(--color-primary);
 }
 
 .hero-stats p {
   margin-bottom: 0;
-  color: #667085;
+  color: var(--color-text-2);
   font-size: 0.9rem;
 }
 
@@ -375,7 +375,7 @@ h2 {
 }
 
 label {
-  color: #344054;
+  color: var(--color-text-1);
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -384,21 +384,20 @@ input,
 select,
 textarea {
   width: 100%;
-  border: 1px solid #d0d7e2;
-  border-radius: 14px;
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
   padding: 12px 14px;
-  background: #ffffff;
-  color: #172033;
+  background: #fffdf0;
+  color: var(--color-text-1);
   font: inherit;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  border-color: var(--color-primary-hover);
+  box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.18);
 }
 
 textarea {
@@ -407,27 +406,25 @@ textarea {
 
 .primary-btn {
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 13px 18px;
-  background: #2563eb;
+  background: var(--color-primary);
   color: white;
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .primary-btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
+  background: var(--color-primary-hover);
 }
 
 .success-message {
   margin-bottom: 0;
   padding: 12px 14px;
-  border-radius: 14px;
-  background: #ecfdf3;
-  color: #027a48;
+  border-radius: 12px;
+  background: var(--color-success);
+  color: var(--color-text-1);
   font-weight: 700;
 }
 
@@ -450,9 +447,9 @@ textarea {
   grid-template-columns: 72px 1fr;
   gap: 18px;
   padding: 18px;
-  border: 1px solid #e4e9f2;
-  border-radius: 20px;
-  background: #fbfcff;
+  border: 2px solid var(--color-secondary);
+  border-radius: 16px;
+  background: #fffdf0;
 }
 
 .date-box {
@@ -460,9 +457,9 @@ textarea {
   place-items: center;
   align-self: start;
   padding: 12px 8px;
-  border-radius: 18px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-radius: 14px;
+  background: var(--color-primary);
+  color: white;
 }
 
 .date-box span {
@@ -488,18 +485,19 @@ textarea {
 .appointment-topline h3 {
   margin-bottom: 0;
   font-size: 1.05rem;
+  color: var(--color-text-1);
 }
 
 .doctor-name {
   margin-bottom: 4px;
-  color: #344054;
+  color: var(--color-text-1);
   font-weight: 700;
 }
 
 .appointment-meta,
 .appointment-notes {
   margin-bottom: 0;
-  color: #667085;
+  color: var(--color-text-2);
   font-size: 0.92rem;
 }
 
@@ -516,31 +514,31 @@ textarea {
 }
 
 .status-pill.confirmed {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--color-success);
+  color: var(--color-text-1);
 }
 
 .status-pill.pending {
-  background: #fffaeb;
-  color: #b54708;
+  background: var(--color-warning);
+  color: var(--color-text-1);
 }
 
 .status-pill.completed {
-  background: #f2f4f7;
-  color: #475467;
+  background: var(--color-secondary);
+  color: var(--color-text-1);
 }
 
 .empty-state {
   padding: 42px 20px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 20px;
+  border: 2px dashed var(--color-border);
+  border-radius: 16px;
   text-align: center;
-  color: #667085;
+  color: var(--color-text-2);
 }
 
 .empty-state h3 {
   margin-bottom: 6px;
-  color: #172033;
+  color: var(--color-text-1);
 }
 
 .empty-state p {
@@ -548,8 +546,7 @@ textarea {
 }
 
 @media (max-width: 900px) {
-  .layout-grid,
-  .hero-card {
+  .layout-grid {
     grid-template-columns: 1fr;
   }
 
@@ -575,7 +572,6 @@ textarea {
   .hero-card,
   .card {
     padding: 22px;
-    border-radius: 20px;
   }
 
   .form-row,
