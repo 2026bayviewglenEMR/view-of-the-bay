@@ -24,16 +24,17 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 router.get(
   '/doctor',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   getDoctorDashboard
 );
 
 // GET /api/dashboard/nurse
 // Waiting room queue, vitals pending, medication tasks, flagged patients.
+// THERE IS NO NURS3E ROLE. UPDATE PLZ
 router.get(
   '/nurse',
   requireAuth,
-  requireRole('NURSE'),
+  requireRole('NURS3E'),
   getNurseDashboard
 );
 
@@ -42,12 +43,13 @@ router.get(
 router.get(
   '/admin',
   requireAuth,
-  requireRole('ADMIN'),
+  requireRole(['admin']),
   getAdminDashboard
 );
 
 // GET /api/dashboard/receptionist
 // Today's schedule, check-in queue, unconfirmed appointments, incoming calls log.
+// THERE IS NO RECEPTIONIST ROLE. UPDATE PLZ
 router.get(
   '/receptionist',
   requireAuth,
@@ -64,7 +66,7 @@ router.get(
 router.get(
   '/appointments/today',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'ADMIN', 'RECEPTIONIST'),
+  requireRole('DOCTOR', 'NURS3E', 'ADMIN', 'RECEPTIONIST'), //NO NURSE/RECEPTIONIST ROLE
   getTodaysAppointments
 );
 
@@ -74,7 +76,7 @@ router.get(
 router.get(
   '/tasks',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST ROLE
   getPendingTasks
 );
 
@@ -83,7 +85,7 @@ router.get(
 router.patch(
   '/tasks/:taskId/complete',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST ROLE
   completeTask
 );
 
@@ -93,7 +95,7 @@ router.patch(
 router.get(
   '/activity',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST ROLE
   getRecentActivity
 );
 
@@ -106,7 +108,7 @@ router.get(
 router.get(
   '/metrics',
   requireAuth,
-  requireRole('ADMIN'),
+  requireRole(['admin']),
   getClinicMetrics
 );
 
@@ -117,7 +119,7 @@ router.get(
 router.get(
   '/workload',
   requireAuth,
-  requireRole('ADMIN'),
+  requireRole(['admin']),
   getProviderWorkload
 );
 

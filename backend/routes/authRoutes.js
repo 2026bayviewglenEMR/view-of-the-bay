@@ -11,7 +11,6 @@ router.post('/signIn', async (req, res) => {
     const {username, password} = req.body;
 
     const user = await User.findOne({ username });
-    console.log(user);
     if (!user) return res.status(401).json({ message: "Invalid username or password" });
     const isMatch = await bcrypt.compare(password, user.password);
     if (user && isMatch) {
@@ -27,7 +26,15 @@ router.post('/signIn', async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '8h' }
         );
-        return res.status(200).json(token);
+        const userToReturn = {
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            id: user.id,
+            email: user.email,
+            role: user.role
+        }
+        return res.status(200).json({token, user: userToReturn});
     } else {
         return res.status(401).json({ message: "Invalid username or password" });
     }

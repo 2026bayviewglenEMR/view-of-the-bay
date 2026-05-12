@@ -18,26 +18,28 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 router.get(
   '/:patientId',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getExecutiveSummary
 );
 
 // POST /api/summary/:patientId/generate
 // Triggers a fresh AI-assisted or rule-based summary generation and saves it
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 router.post(
   '/:patientId/generate',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE'),
+  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   generateSummary
 );
 
 // PATCH /api/summary/:patientId/note
 // Allows a clinician to add or update a free-text clinical note on the summary
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 // Body: { note: String }
 router.patch(
   '/:patientId/note',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE'),
+  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   updateSummaryNote
 );
 
@@ -46,7 +48,7 @@ router.patch(
 router.get(
   '/:patientId/history',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'ADMIN'),//NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getSummaryHistory
 );
 
@@ -55,25 +57,27 @@ router.get(
 router.get(
   '/:patientId/export',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   exportSummaryPDF
 );
 
 // GET /api/summary/:patientId/alerts
 // Returns active clinical alerts (drug interactions, overdue screenings, abnormal labs)
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 router.get(
   '/:patientId/alerts',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE'),
+  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getSummaryAlerts
 );
 
 // PATCH /api/summary/:patientId/alerts/:alertId/dismiss
 // Marks a specific alert as acknowledged by the current user
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 router.patch(
   '/:patientId/alerts/:alertId/dismiss',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE'),
+  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   dismissAlert
 );
 
