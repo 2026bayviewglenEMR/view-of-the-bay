@@ -11,6 +11,9 @@
         <router-link to="/consultation" class="nav-btn">- Consultation</router-link>
       </div>
       <div>
+        <router-link to="/PatientPortal" class="nav-btn">- Patient Portal</router-link>
+      </div>
+      <div>
         <router-link to="/messaging" class="nav-btn">- Messaging</router-link>
       </div>
       <div>
