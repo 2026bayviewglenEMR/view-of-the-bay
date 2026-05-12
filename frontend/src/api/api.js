@@ -6,6 +6,8 @@ export const api = {
     doctorOnly: () => http.get('/doctorOnly').then(r => r.data),
     adminOnly: () => http.get('/adminOnly').then(r => r.data),
 
+    getDoctors: () => http.get('/doctors').then(r => r.data),
+
     //auth
     signIn: (username, password) => http.post('/auth/signIn', {username, password}).then(r => r.data),
     updatePassword: (newPassword) => http.post('/auth/updatePassword', {newPassword}).then(r => r.data),
