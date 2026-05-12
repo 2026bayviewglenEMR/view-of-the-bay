@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const { authenticateToken, requireRole } = require("./verifyToken.js");
 
+const User = require("./models/User.js");
+
 const app = express();
 const PORT = 3000;
 
@@ -53,6 +55,11 @@ app.use('/api/alerts', alertsRouter);
 app.use('/api/consultations', consultationsRouter);
 app.use('/api/tasks', tasksRouter);
 app.use("/api/patient-portal", patientPortalRoutes);
+
+app.get('/api/doctors', authenticateToken, async (req, res) => {
+    const doctors = await User.find({ role: 'doctor' });
+    return res.status(200).json(doctors);
+});
 
 app.get('/api', (req, res) => {
     return res.status(200).json({ message: "Server is live"})
