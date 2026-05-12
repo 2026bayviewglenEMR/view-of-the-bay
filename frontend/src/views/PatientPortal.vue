@@ -138,10 +138,19 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
-const filter = ref('upcoming')
+const PATIENT_ID = '69d84d5bee928eae07281c9c'
+const API_URL = `http://localhost:3000/api/patient-portal/${PATIENT_ID}`
+
+const filter = ref('all')
 const confirmationMessage = ref('')
+const loading = ref(true)
+const errorMessage = ref('')
+
+const patient = ref(null)
+const consultations = ref([])
+const appointments = ref([])
 
 const newAppointment = reactive({
   doctor: '',
@@ -151,35 +160,46 @@ const newAppointment = reactive({
   notes: ''
 })
 
-const appointments = ref([
-  {
-    id: 1,
-    doctor: 'Dr. Sarah Chen',
-    date: '2026-05-14',
-    time: '10:30',
-    reason: 'Annual checkup',
-    notes: 'Bring recent blood pressure readings.',
-    status: 'Confirmed'
-  },
-  {
-    id: 2,
-    doctor: 'Dr. Michael Patel',
-    date: '2026-05-22',
-    time: '14:00',
-    reason: 'Prescription refill',
-    notes: 'Review current medication dosage.',
-    status: 'Pending'
-  },
-  {
-    id: 3,
-    doctor: 'Dr. Emily Johnson',
-    date: '2026-04-18',
-    time: '09:15',
-    reason: 'Follow-up visit',
-    notes: 'Discuss recovery progress.',
-    status: 'Completed'
+onMounted(async () => {
+  await loadPatientPortalData()
+})
+
+async function loadPatientPortalData() {
+  try {
+    loading.value = true
+    errorMessage.value = ''
+
+    const response = await fetch(API_URL)
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    patient.value = data.patient
+    consultations.value = data.consultations || []
+
+    appointments.value = (data.appointments || []).map((appointment) => {
+      const startDate = new Date(appointment.scheduledStartTime)
+
+      return {
+        id: appointment._id,
+        doctor: appointment.doctorId || 'Doctor assigned',
+        date: startDate.toISOString().split('T')[0],
+        time: startDate.toTimeString().slice(0, 5),
+        reason: appointment.reasonForVisit || 'Appointment',
+        notes: appointment.notes || '',
+        status: formatStatus(appointment.status)
+      }
+    })
+  } catch (error) {
+    console.error('Error loading patient portal data:', error)
+    errorMessage.value = 'Unable to load patient portal data.'
+  } finally {
+    loading.value = false
   }
-])
+}
 
 const today = new Date()
 today.setHours(0, 0, 0, 0)
@@ -221,6 +241,12 @@ function scheduleAppointment() {
   setTimeout(() => {
     confirmationMessage.value = ''
   }, 3000)
+}
+
+function formatStatus(status) {
+  if (!status) return 'Pending'
+
+  return status.charAt(0).toUpperCase() + status.slice(1)
 }
 
 function formatDate(dateString) {
@@ -520,6 +546,11 @@ textarea {
 }
 
 .status-pill.pending {
+  background: var(--color-warning);
+  color: var(--color-text-1);
+}
+
+.status-pill.scheduled {
   background: var(--color-warning);
   color: var(--color-text-1);
 }
