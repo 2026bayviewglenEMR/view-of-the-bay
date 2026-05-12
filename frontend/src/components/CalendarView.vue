@@ -9,7 +9,7 @@ const today = new Date().toISOString().split('T')[0];
 const config = ref({
   defaultMode: 'day', 
   showCurrentTime: true,
-  colorScheme: 'light'
+  colorScheme: 'dark'
 });
 
 const events = ref([]);
@@ -77,11 +77,11 @@ onMounted(async () => {
 
 <template>
   <div class="box shadow-sm">
-    <h2 class="title is-5 mb-4">Today's Schedule</h2>
+    <h2 class="schedule-title">Today's Schedule</h2>
     
-    <div v-if="isLoading" class="has-text-centered p-6">
-      <div class="button is-loading is-white is-large mb-3"></div>
-      <p class="has-text-grey">Fetching schedule from database...</p>
+    <div v-if="isLoading" class="loading-container">
+      <div class="spinner"></div>
+      <p class="loading-text">Fetching schedule from database...</p>
     </div>
 
     <div v-else class="calendar-wrapper fade-in">
@@ -97,6 +97,39 @@ onMounted(async () => {
 <style scoped>
 .shadow-sm {
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.schedule-title {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-text-1-dark);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-text {
+  color: var(--color-text-1-dark);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .calendar-wrapper {
@@ -115,5 +148,16 @@ onMounted(async () => {
 
 :deep(.calendar-root) {
   font-family: inherit;
+}
+
+:deep(.calendar-root .date),
+:deep(.calendar-root .calendar-date),
+:deep(.calendar-root [class*="date"]) {
+  color: var(--color-text-1-dark);
+}
+
+:deep(.calendar-root .icon),
+:deep(.calendar-root [class*="icon"]) {
+  color: var(--color-text-1-dark);
 }
 </style>
