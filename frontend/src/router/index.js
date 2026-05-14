@@ -58,6 +58,11 @@ const router = createRouter({
       name: 'profile',
       component: () => import('../views/Profile.vue')
     },
+    {
+      path: '/patientPortal',
+      name: "Patient Portal",
+      component: () => import('../views/PatientPortal.vue')
+    }
 ]})
 
 //list of routes accessible without a token
