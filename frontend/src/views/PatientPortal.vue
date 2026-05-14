@@ -56,26 +56,19 @@
 
           <div class="form-group">
             <label for="reason">Reason for visit</label>
-            <input
-              id="reason"
-              type="text"
-              v-model="newAppointment.reason"
-              placeholder="Example: Follow-up, checkup, prescription refill"
-              required
-            />
+            <input id="reason" type="text" v-model="newAppointment.reason"
+              placeholder="Example: Follow-up, checkup, prescription refill" required />
           </div>
 
           <div class="form-group">
             <label for="notes">Additional notes</label>
-            <textarea
-              id="notes"
-              v-model="newAppointment.notes"
-              rows="4"
-              placeholder="Optional symptoms, concerns, or details for the doctor"
-            ></textarea>
+            <textarea id="notes" v-model="newAppointment.notes" rows="4"
+              placeholder="Optional symptoms, concerns, or details for the doctor"></textarea>
           </div>
 
-          <button type="submit" class="primary-btn">Schedule Appointment</button>
+          <button type="submit" class="primary-btn">
+            {{ editingAppointmentId ? 'Update Appointment' : 'Schedule Appointment' }}
+          </button>
 
           <p v-if="confirmationMessage" class="success-message">
             {{ confirmationMessage }}
@@ -99,11 +92,7 @@
         </div>
 
         <div v-if="filteredAppointments.length" class="appointment-list">
-          <article
-            v-for="appointment in filteredAppointments"
-            :key="appointment.id"
-            class="appointment-item"
-          >
+          <article v-for="appointment in filteredAppointments" :key="appointment.id" class="appointment-item">
             <div class="date-box">
               <span>{{ getMonth(appointment.date) }}</span>
               <strong>{{ getDay(appointment.date) }}</strong>
@@ -124,6 +113,15 @@
               <p v-if="appointment.notes" class="appointment-notes">
                 {{ appointment.notes }}
               </p>
+              <div class="appointment-actions">
+                <button type="button" class="secondary-btn" @click="startReschedule(appointment)">
+                  Reschedule
+                </button>
+
+                <button type="button" class="delete-btn" @click="deleteAppointment(appointment.id)">
+                  Delete
+                </button>
+              </div>
             </div>
           </article>
         </div>
@@ -151,6 +149,7 @@ const errorMessage = ref('')
 const patient = ref(null)
 const consultations = ref([])
 const appointments = ref([])
+const editingAppointmentId = ref(null)
 
 const newAppointment = reactive({
   doctor: '',
@@ -217,17 +216,49 @@ const filteredAppointments = computed(() => {
   if (filter.value === 'past') return pastAppointments.value
   return appointments.value
 })
+function deleteAppointment(id) {
+  appointments.value = appointments.value.filter(
+    app => app.id !== id
+  )
+}
 
+function startReschedule(appointment) {
+  editingAppointmentId.value = appointment.id
+
+  newAppointment.doctor = appointment.doctor
+  newAppointment.date = appointment.date
+  newAppointment.time = appointment.time
+  newAppointment.reason = appointment.reason
+  newAppointment.notes = appointment.notes
+}
 function scheduleAppointment() {
-  appointments.value.unshift({
-    id: Date.now(),
-    doctor: newAppointment.doctor,
-    date: newAppointment.date,
-    time: newAppointment.time,
-    reason: newAppointment.reason,
-    notes: newAppointment.notes,
-    status: 'Pending'
-  })
+
+  if (editingAppointmentId.value) {
+    appointments.value = appointments.value.map(app =>
+      app.id === editingAppointmentId.value
+        ? {
+          ...app,
+          doctor: newAppointment.doctor,
+          date: newAppointment.date,
+          time: newAppointment.time,
+          reason: newAppointment.reason,
+          notes: newAppointment.notes
+        }
+        : app
+    )
+
+    editingAppointmentId.value = null
+  } else {
+    appointments.value.unshift({
+      id: Date.now(),
+      doctor: newAppointment.doctor,
+      date: newAppointment.date,
+      time: newAppointment.time,
+      reason: newAppointment.reason,
+      notes: newAppointment.notes,
+      status: 'Pending'
+    })
+  }
 
   confirmationMessage.value = 'Appointment request submitted successfully.'
   filter.value = 'upcoming'
@@ -575,6 +606,31 @@ textarea {
 
 .empty-state p {
   margin-bottom: 0;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.secondary-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: var(--color-secondary);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.delete-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #dc3545;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
 }
 
 @media (max-width: 900px) {
