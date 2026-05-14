@@ -1,23 +1,7 @@
 <template>
-    <div class="top-bar">
-        <h1 class="title">Dashboard</h1>
-        <div class="user-info">
-            <!-- Add user info or logout button here -->
-        </div>
-    </div>
-    <div class="sidebar">
-        <div class="spacer-1">
-
-        </div>
-        <nav class="nav-menu">
-            <router-link to="/" class="nav-link">Home</router-link>
-            <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
-            <router-link to="/messaging" class="nav-link">Messaging</router-link>
-            <!-- Add more links as needed -->
-        </nav>
-    </div>
+    <TopBar :title="pageTitle" />
+    <Sidebar />
     <div class="main-content">
-        <!-- Main dashboard content goes here -->
         <div class="patients-list">
             <div class="patients-header">
                 <h2>Patients</h2>
@@ -42,6 +26,12 @@
                             <router-link :to="`/patient-details/${patient.id}`" class="details-btn">
                                 View Details
                             </router-link>
+                            <button
+                                class="template-btn"
+                                @click="openTemplate(patient.id)"
+                            >
+                                Diagnose Patient
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -53,6 +43,13 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import TopBar from '../components/TopBar.vue';
+import Sidebar from '../components/Sidebar.vue';
+
+const router = useRouter();
+
+const pageTitle = ref('Dashboard');
 
 const patients = ref([
     {
@@ -80,84 +77,25 @@ const patients = ref([
         status: 'Completed'
     }
 ]);
+
+const openTemplate = (id) => {
+    router.push(`/diagnose/${id}`);
+};
 </script>
 
 
 <style scoped>
-.top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background-color: var(--color-primary);
-    color: var(--color-text-1-dark);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    z-index: 1000;
-}
-
-.title {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 20vw;
-    height: 100vh;
-    background-color: var(--color-sidebar-dark);
-    color: var(--color-text-1-dark);
-    padding: 20px;
-    box-shadow: 2px 0 4px rgba(0,0,0,0.25);
-    z-index: 10;
-}
-
-.spacer-1 {
-    height: 50px;
-}
-
-.nav-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-}
-
-.nav-link {
-    color: var(--color-text-1-dark);
-    text-decoration: none;
-    padding: 10px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.nav-link.router-link-active {
-    background-color: var(--color-primary);
-}
-
 .main-content {
     margin-left: 25vw;
-    padding-top: 40px;
-    padding: 80px 20px 20px 20px;
+    padding: 0px;
     background-color: var(--color-bg);
     min-height: calc(100vh - 60px);
-    position: relative;
 }
 
 .patients-list {
     background-color: var(--color-primary);
     min-height: 20vh;
-    width: calc(80vw/2);
+    width: 35vw;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

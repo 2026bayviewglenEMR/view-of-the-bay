@@ -46,11 +46,14 @@ const password = ref("");
 const error = ref("");
 
 const signIn = async () => {
-    console.log("signing in 😊");
+    console.log("signing in");
     try {
       const res = await api.signIn(username.value, password.value);
       if (res) {
-        localStorage.setItem("token", res);
+        localStorage.setItem("token", res.token);
+        console.log(res.user)
+        localStorage.setItem("user", JSON.stringify(res.user));
+
         router.push("/")
       }
     } catch (e) {

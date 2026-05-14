@@ -29,7 +29,7 @@ const taskSchema = new mongoose.Schema(
     completedAt: Date,
     type: {
       type: String,
-      enum: ["follow-up", " lab-order", "referral", "notes", "other"],
+      enum: ["follow-up", "lab-order", "referral", "notes", "other"],
       default: "other",
     },
     priority: {

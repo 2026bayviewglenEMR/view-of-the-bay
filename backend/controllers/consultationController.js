@@ -1,183 +1,315 @@
 const Consultation = require("../models/Consultations");
 
+const flowConfig = {
+  steps: ["symptoms", "vitals", "diagnoses", "prescriptions", "treatmentPlan"],
+  defaultStep: "symptoms",
+};
+
 const getFlowConfig = async (req, res) => {
   try {
-    const defaultFlow = {
-      steps: [
-        { id: "symptoms", label: "Symptoms", required: false, enabled: true },
-        { id: "exam", label: "Physical Exam", required: false, enabled: true },
-        { id: "vitals", label: "Vitals", required: true, enabled: true },
-        { id: "diagnosis", label: "Diagnosis", required: true, enabled: true },
-        { id: "treatment", label: "Treatment Plan", required: true, enabled: true },
-      ],
-      defaultOrder: ["symptoms", "exam", "vitals", "diagnosis", "treatment"],
-    };
-    res.json(defaultFlow);
+    return res.status(200).json(flowConfig);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while loading flow config.",
+      error: error.message,
+    });
   }
 };
 
 const updateFlowConfig = async (req, res) => {
   try {
-    const { steps, defaultOrder } = req.body;
-    res.json({ steps, defaultOrder, message: "Flow config updated" });
+    const { steps, defaultStep } = req.body;
+
+    if (steps) {
+      flowConfig.steps = steps;
+    }
+
+    if (defaultStep) {
+      flowConfig.defaultStep = defaultStep;
+    }
+
+    return res.status(200).json({
+      message: "Flow config updated successfully.",
+      flowConfig,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while updating flow config.",
+      error: error.message,
+    });
   }
 };
 
 const createConsultation = async (req, res) => {
   try {
-    const { patientId, doctorId, appointmentId } = req.body;
-    const consultation = new Consultation({
+    const {
+      appointmentId,
       patientId,
       doctorId,
+      dateOfVisit,
+      vitals,
+      symptoms,
+      examFindings,
+      diagnoses,
+      prescriptions,
+      treatmentPlan,
+      notes,
+    } = req.body;
+
+    if (!patientId) {
+      return res.status(400).json({
+        message: "patientId is required.",
+      });
+    }
+
+    const consultation = await Consultation.create({
       appointmentId,
-      dateOfVisit: new Date(),
+      patientId,
+      doctorId: doctorId || req.user.id,
+      dateOfVisit: dateOfVisit || new Date(),
+      vitals: vitals || {},
+      symptoms: symptoms || [],
+      examFindings,
+      diagnoses: diagnoses || [],
+      prescriptions: prescriptions || [],
+      treatmentPlan,
+      notes,
       status: "in-progress",
-      skippedSteps: [],
-      completedSteps: [],
       currentStep: "symptoms",
+      completedSteps: [],
+      skippedSteps: [],
     });
-    await consultation.save();
-    res.status(201).json(consultation);
+
+    return res.status(201).json({
+      message: "Consultation created successfully.",
+      consultation,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while creating consultation.",
+      error: error.message,
+    });
   }
 };
 
-const getConsultation = async (req, res) => {
+const getActiveConsultation = async (req, res) => {
   try {
-    const consultation = await Consultation.findById(req.params.id);
-    if (!consultation) {
-      return res.status(404).json({ message: "Consultation not found" });
-    }
-    res.json(consultation);
+    const consultation = await Consultation.findOne({
+      doctorId: req.user.id,
+      status: "in-progress",
+    })
+      .populate("patientId")
+      .populate("doctorId")
+      .sort({ updatedAt: -1 });
+
+    return res.status(200).json({
+      consultation,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while getting active consultation.",
+      error: error.message,
+    });
   }
 };
 
 const getConsultationByPatient = async (req, res) => {
   try {
-    const consultation = await Consultation.findOne({
-      patientId: req.params.patientId,
-      status: "in-progress",
-    }).sort({ createdAt: -1 });
-    if (!consultation) {
-      return res.status(404).json({ message: "No active consultation found" });
-    }
-    res.json(consultation);
+    const { patientId } = req.params;
+
+    const consultations = await Consultation.find({ patientId })
+      .populate("patientId")
+      .populate("doctorId")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      consultations,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while getting patient consultations.",
+      error: error.message,
+    });
+  }
+};
+
+const getConsultation = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const consultation = await Consultation.findById(id)
+      .populate("patientId")
+      .populate("doctorId");
+
+    if (!consultation) {
+      return res.status(404).json({
+        message: "Consultation not found.",
+      });
+    }
+
+    return res.status(200).json({
+      consultation,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while getting consultation.",
+      error: error.message,
+    });
   }
 };
 
 const switchPatient = async (req, res) => {
   try {
-    const { consultationId, newPatientId, appointmentId } = req.body;
+    const { patientId } = req.body;
 
-    const currentConsultation = await Consultation.findById(consultationId);
-    if (currentConsultation) {
-      currentConsultation.status = "paused";
-      await currentConsultation.save();
+    if (!patientId) {
+      return res.status(400).json({
+        message: "patientId is required.",
+      });
     }
 
-    let newConsultation = await Consultation.findOne({
-      patientId: newPatientId,
+    let consultation = await Consultation.findOne({
+      patientId,
+      doctorId: req.user.id,
       status: "in-progress",
     });
 
-    if (!newConsultation) {
-      newConsultation = new Consultation({
-        patientId: newPatientId,
-        doctorId: req.body.doctorId,
-        appointmentId,
+    if (!consultation) {
+      consultation = await Consultation.create({
+        patientId,
+        doctorId: req.user.id,
         dateOfVisit: new Date(),
         status: "in-progress",
-        skippedSteps: [],
-        completedSteps: [],
         currentStep: "symptoms",
+        completedSteps: [],
+        skippedSteps: [],
       });
-      await newConsultation.save();
     }
 
-    res.json(newConsultation);
+    return res.status(200).json({
+      message: "Patient switched successfully.",
+      consultation,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while switching patient.",
+      error: error.message,
+    });
   }
 };
 
 const updateConsultationStep = async (req, res) => {
   try {
     const { id } = req.params;
-    const { currentStep, skippedSteps, completedSteps, stepData } = req.body;
+    const { currentStep, completedStep, data } = req.body;
 
     const consultation = await Consultation.findById(id);
+
     if (!consultation) {
-      return res.status(404).json({ message: "Consultation not found" });
+      return res.status(404).json({
+        message: "Consultation not found.",
+      });
     }
 
-    if (currentStep) consultation.currentStep = currentStep;
-    if (skippedSteps) consultation.skippedSteps = skippedSteps;
-    if (completedSteps) consultation.completedSteps = completedSteps;
+    if (currentStep) {
+      consultation.currentStep = currentStep;
+    }
 
-    if (stepData) {
-      if (stepData.symptoms) consultation.symptoms = stepData.symptoms;
-      if (stepData.examFindings) consultation.examFindings = stepData.examFindings;
-      if (stepData.vitals) consultation.vitals = stepData.vitals;
-      if (stepData.diagnoses) consultation.diagnoses = stepData.diagnoses;
-      if (stepData.treatmentPlan) consultation.treatmentPlan = stepData.treatmentPlan;
-      if (stepData.notes) consultation.notes = stepData.notes;
+    if (completedStep && !consultation.completedSteps.includes(completedStep)) {
+      consultation.completedSteps.push(completedStep);
+    }
+
+    if (data && typeof data === "object") {
+      Object.keys(data).forEach((key) => {
+        consultation[key] = data[key];
+      });
     }
 
     await consultation.save();
-    res.json(consultation);
+
+    return res.status(200).json({
+      message: "Consultation step updated successfully.",
+      consultation,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while updating consultation step.",
+      error: error.message,
+    });
   }
 };
 
 const skipStep = async (req, res) => {
   try {
     const { id } = req.params;
-    const { stepId } = req.body;
+    const { step } = req.body;
 
-    const consultation = await Consultation.findById(id);
-    if (!consultation) {
-      return res.status(404).json({ message: "Consultation not found" });
+    if (!step) {
+      return res.status(400).json({
+        message: "step is required.",
+      });
     }
 
-    if (!consultation.skippedSteps.includes(stepId)) {
-      consultation.skippedSteps.push(stepId);
+    const consultation = await Consultation.findById(id);
+
+    if (!consultation) {
+      return res.status(404).json({
+        message: "Consultation not found.",
+      });
+    }
+
+    if (!consultation.skippedSteps.includes(step)) {
+      consultation.skippedSteps.push(step);
     }
 
     await consultation.save();
-    res.json(consultation);
+
+    return res.status(200).json({
+      message: "Step skipped successfully.",
+      consultation,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while skipping step.",
+      error: error.message,
+    });
   }
 };
 
 const unskipStep = async (req, res) => {
   try {
     const { id } = req.params;
-    const { stepId } = req.body;
+    const { step } = req.body;
+
+    if (!step) {
+      return res.status(400).json({
+        message: "step is required.",
+      });
+    }
 
     const consultation = await Consultation.findById(id);
+
     if (!consultation) {
-      return res.status(404).json({ message: "Consultation not found" });
+      return res.status(404).json({
+        message: "Consultation not found.",
+      });
     }
 
     consultation.skippedSteps = consultation.skippedSteps.filter(
-      (s) => s !== stepId
+      (skippedStep) => skippedStep !== step
     );
 
     await consultation.save();
-    res.json(consultation);
+
+    return res.status(200).json({
+      message: "Step unskipped successfully.",
+      consultation,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while unskipping step.",
+      error: error.message,
+    });
   }
 };
 
@@ -186,31 +318,31 @@ const completeConsultation = async (req, res) => {
     const { id } = req.params;
 
     const consultation = await Consultation.findById(id);
+
     if (!consultation) {
-      return res.status(404).json({ message: "Consultation not found" });
+      return res.status(404).json({
+        message: "Consultation not found.",
+      });
     }
 
     consultation.status = "completed";
     consultation.lockedAt = new Date();
+
+    if (!consultation.completedSteps.includes("complete")) {
+      consultation.completedSteps.push("complete");
+    }
+
     await consultation.save();
 
-    res.json(consultation);
+    return res.status(200).json({
+      message: "Consultation completed successfully.",
+      consultation,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const getActiveConsultation = async (req, res) => {
-  try {
-    const doctorId = req.user?.id || req.query.doctorId;
-    const consultation = await Consultation.findOne({
-      doctorId,
-      status: { $in: ["in-progress", "paused"] },
-    }).sort({ updatedAt: -1 });
-
-    res.json(consultation || null);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: "Server error while completing consultation.",
+      error: error.message,
+    });
   }
 };
 
@@ -218,12 +350,12 @@ module.exports = {
   getFlowConfig,
   updateFlowConfig,
   createConsultation,
-  getConsultation,
+  getActiveConsultation,
   getConsultationByPatient,
+  getConsultation,
   switchPatient,
   updateConsultationStep,
   skipStep,
   unskipStep,
   completeConsultation,
-  getActiveConsultation,
 };
