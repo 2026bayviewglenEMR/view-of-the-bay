@@ -1,142 +1,146 @@
 <template>
-  <main class="patient-portal">
-    <section class="hero-card">
-      <div>
-        <p class="eyebrow">Patient Portal</p>
-        <h1>Appointments</h1>
-        <p class="subtitle">
-          Schedule new appointments and view upcoming or past visits from one simple dashboard.
-        </p>
-      </div>
-
-      <div class="hero-stats">
+  <div class="patient-page">
+    <Sidebar />
+    <main class="patient-portal">
+      <section class="hero-card">
         <div>
-          <span>{{ upcomingAppointments.length }}</span>
-          <p>Upcoming</p>
+          <p class="eyebrow">Patient Portal</p>
+          <h1>Appointments</h1>
+          <p class="subtitle">
+            Schedule new appointments and view upcoming or past visits from one simple dashboard.
+          </p>
         </div>
-        <div>
-          <span>{{ pastAppointments.length }}</span>
-          <p>Past</p>
-        </div>
-      </div>
-    </section>
 
-    <section class="layout-grid">
-      <!-- Schedule Appointment -->
-      <div class="card schedule-card">
-        <div class="card-header">
+        <div class="hero-stats">
           <div>
-            <p class="eyebrow">Schedule</p>
-            <h2>Book an appointment</h2>
+            <span>{{ upcomingAppointments.length }}</span>
+            <p>Upcoming</p>
+          </div>
+          <div>
+            <span>{{ pastAppointments.length }}</span>
+            <p>Past</p>
           </div>
         </div>
+      </section>
 
-        <form @submit.prevent="scheduleAppointment" class="appointment-form">
-          <div class="form-group">
-            <label for="doctor">Doctor</label>
-            <select id="doctor" v-model="newAppointment.doctor" required>
-              <option disabled value="">Select a doctor</option>
-              <option>Dr. Sarah Chen</option>
-              <option>Dr. Michael Patel</option>
-              <option>Dr. Emily Johnson</option>
+      <section class="layout-grid">
+        <!-- Schedule Appointment -->
+        <div class="card schedule-card">
+          <div class="card-header">
+            <div>
+              <p class="eyebrow">Schedule</p>
+              <h2>Book an appointment</h2>
+            </div>
+          </div>
+
+          <form @submit.prevent="scheduleAppointment" class="appointment-form">
+            <div class="form-group">
+              <label for="doctor">Doctor</label>
+              <select id="doctor" v-model="newAppointment.doctor" required>
+                <option disabled value="">Select a doctor</option>
+                <option>Dr. Sarah Chen</option>
+                <option>Dr. Michael Patel</option>
+                <option>Dr. Emily Johnson</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="date">Date</label>
+                <input id="date" type="date" v-model="newAppointment.date" required />
+              </div>
+
+              <div class="form-group">
+                <label for="time">Time</label>
+                <input id="time" type="time" v-model="newAppointment.time" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="reason">Reason for visit</label>
+              <input id="reason" type="text" v-model="newAppointment.reason"
+                placeholder="Example: Follow-up, checkup, prescription refill" required />
+            </div>
+
+            <div class="form-group">
+              <label for="notes">Additional notes</label>
+              <textarea id="notes" v-model="newAppointment.notes" rows="4"
+                placeholder="Optional symptoms, concerns, or details for the doctor"></textarea>
+            </div>
+
+            <button type="submit" class="primary-btn">
+              {{ editingAppointmentId ? 'Update Appointment' : 'Schedule Appointment' }}
+            </button>
+
+            <p v-if="confirmationMessage" class="success-message">
+              {{ confirmationMessage }}
+            </p>
+          </form>
+        </div>
+
+        <!-- View Appointments -->
+        <div class="card appointments-card">
+          <div class="card-header appointments-header">
+            <div>
+              <p class="eyebrow">View</p>
+              <h2>Your appointments</h2>
+            </div>
+
+            <select v-model="filter" class="filter-select" aria-label="Filter appointments">
+              <option value="upcoming">Upcoming</option>
+              <option value="past">Past</option>
+              <option value="all">All</option>
             </select>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="date">Date</label>
-              <input id="date" type="date" v-model="newAppointment.date" required />
-            </div>
-
-            <div class="form-group">
-              <label for="time">Time</label>
-              <input id="time" type="time" v-model="newAppointment.time" required />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="reason">Reason for visit</label>
-            <input id="reason" type="text" v-model="newAppointment.reason"
-              placeholder="Example: Follow-up, checkup, prescription refill" required />
-          </div>
-
-          <div class="form-group">
-            <label for="notes">Additional notes</label>
-            <textarea id="notes" v-model="newAppointment.notes" rows="4"
-              placeholder="Optional symptoms, concerns, or details for the doctor"></textarea>
-          </div>
-
-          <button type="submit" class="primary-btn">
-            {{ editingAppointmentId ? 'Update Appointment' : 'Schedule Appointment' }}
-          </button>
-
-          <p v-if="confirmationMessage" class="success-message">
-            {{ confirmationMessage }}
-          </p>
-        </form>
-      </div>
-
-      <!-- View Appointments -->
-      <div class="card appointments-card">
-        <div class="card-header appointments-header">
-          <div>
-            <p class="eyebrow">View</p>
-            <h2>Your appointments</h2>
-          </div>
-
-          <select v-model="filter" class="filter-select" aria-label="Filter appointments">
-            <option value="upcoming">Upcoming</option>
-            <option value="past">Past</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-
-        <div v-if="filteredAppointments.length" class="appointment-list">
-          <article v-for="appointment in filteredAppointments" :key="appointment.id" class="appointment-item">
-            <div class="date-box">
-              <span>{{ getMonth(appointment.date) }}</span>
-              <strong>{{ getDay(appointment.date) }}</strong>
-            </div>
-
-            <div class="appointment-details">
-              <div class="appointment-topline">
-                <h3>{{ appointment.reason }}</h3>
-                <span :class="['status-pill', appointment.status.toLowerCase()]">
-                  {{ appointment.status }}
-                </span>
+          <div v-if="filteredAppointments.length" class="appointment-list">
+            <article v-for="appointment in filteredAppointments" :key="appointment.id" class="appointment-item">
+              <div class="date-box">
+                <span>{{ getMonth(appointment.date) }}</span>
+                <strong>{{ getDay(appointment.date) }}</strong>
               </div>
 
-              <p class="doctor-name">{{ appointment.doctor }}</p>
-              <p class="appointment-meta">
-                {{ formatDate(appointment.date) }} at {{ formatTime(appointment.time) }}
-              </p>
-              <p v-if="appointment.notes" class="appointment-notes">
-                {{ appointment.notes }}
-              </p>
-              <div class="appointment-actions">
-                <button type="button" class="secondary-btn" @click="startReschedule(appointment)">
-                  Reschedule
-                </button>
+              <div class="appointment-details">
+                <div class="appointment-topline">
+                  <h3>{{ appointment.reason }}</h3>
+                  <span :class="['status-pill', appointment.status.toLowerCase()]">
+                    {{ appointment.status }}
+                  </span>
+                </div>
 
-                <button type="button" class="delete-btn" @click="deleteAppointment(appointment.id)">
-                  Delete
-                </button>
+                <p class="doctor-name">{{ appointment.doctor }}</p>
+                <p class="appointment-meta">
+                  {{ formatDate(appointment.date) }} at {{ formatTime(appointment.time) }}
+                </p>
+                <p v-if="appointment.notes" class="appointment-notes">
+                  {{ appointment.notes }}
+                </p>
+                <div class="appointment-actions">
+                  <button type="button" class="secondary-btn" @click="startReschedule(appointment)">
+                    Reschedule
+                  </button>
+
+                  <button type="button" class="delete-btn" @click="deleteAppointment(appointment.id)">
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          </article>
-        </div>
+            </article>
+          </div>
 
-        <div v-else class="empty-state">
-          <h3>No appointments found</h3>
-          <p>Appointments you schedule will appear here.</p>
+          <div v-else class="empty-state">
+            <h3>No appointments found</h3>
+            <p>Appointments you schedule will appear here.</p>
+          </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import Sidebar from '../components/Sidebar.vue';
 
 const PATIENT_ID = '69d84d5bee928eae07281c9c'
 const API_URL = `http://localhost:3000/api/patient-portal/${PATIENT_ID}`
@@ -633,6 +637,21 @@ textarea {
   font-weight: 700;
 }
 
+.patient-page {
+  width: 100%;
+}
+
+.patient-portal {
+  min-height: 100vh;
+  margin-left: 20vw;
+  width: calc(100vw - 20vw);
+  padding: 32px;
+  box-sizing: border-box;
+  background: var(--color-bg);
+  color: var(--color-text-1);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 @media (max-width: 900px) {
   .layout-grid {
     grid-template-columns: 1fr;
@@ -679,5 +698,6 @@ textarea {
   .filter-select {
     width: 100%;
   }
+
 }
 </style>

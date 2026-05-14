@@ -28,6 +28,10 @@
                 <span class="icon">🔔</span>
                 <span class="label">Alerts</span>
             </router-link>
+            <router-link to="/PatientPortal" class="nav-link">
+                <span class="icon">🌀</span>
+                <span class="label">Patient Portal</span>
+            </router-link>
         </nav>
     </div>
 </template>
@@ -44,11 +48,12 @@ function toggleSidebar() {
 
 <style scoped>
 .sidebar {
-    position: fixed;
+    position: fixed; 
     left: 0;
     top: 0;
     width: 20vw;
     height: 100vh;
+    box-sizing: border-box;
     background-color: var(--color-sidebar-dark);
     color: var(--color-text-1-dark);
     padding: 60px 0px 20px 0px;
