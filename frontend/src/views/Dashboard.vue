@@ -57,6 +57,7 @@ import CalendarView from '../components/CalendarView.vue';
 
 const router = useRouter();
 const pageTitle = ref('Dashboard');
+
 const patients = ref([
     {
         id: 1,
@@ -82,11 +83,11 @@ const patients = ref([
         appointmentTime: '3:30 PM',
         status: 'Completed'
     }
-    ]);
+]);
 
-    const openTemplate = (id) => {
+const openTemplate = (id) => {
     router.push(`/diagnose/${id}`);
-    };
+};
 </script>
 
 

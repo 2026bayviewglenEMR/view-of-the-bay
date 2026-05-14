@@ -20,19 +20,21 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 // GET /api/waiting-room
 // Returns the full current waiting room queue, ordered by check-in time.
 // Optional query params: status (waiting|in-progress|called), providerId
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 router.get(
   '/',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'RECEPTIONIST', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'RECEPTIONIST', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getWaitingRoom
 );
 
 // GET /api/waiting-room/stats
 // Aggregate stats: avg wait time today, # waiting, # in-progress, longest wait
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 router.get(
   '/stats',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'RECEPTIONIST', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'RECEPTIONIST', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getWaitingRoomStats
 );
 
@@ -41,19 +43,21 @@ router.get(
 // POST /api/waiting-room/check-in
 // Adds a patient to the waiting room queue on arrival.
 // Body: { patientId, appointmentId?, chiefComplaint, providerId?, priority }
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 router.post(
   '/check-in',
   requireAuth,
-  requireRole('RECEPTIONIST', 'NURSE', 'ADMIN'),
+  requireRole('RECEPTIONIST', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   checkInPatient
 );
 
 // PATCH /api/waiting-room/:queueEntryId/check-out
 // Removes a patient from the queue when their encounter is complete.
+// THERE IS NO NURSE ROLE. UPDATE PLZ
 router.patch(
   '/:queueEntryId/check-out',
   requireAuth,
-  requireRole('RECEPTIONIST', 'NURSE', 'ADMIN'),
+  requireRole('RECEPTIONIST', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   checkOutPatient
 );
 
@@ -61,30 +65,33 @@ router.patch(
 
 // GET /api/waiting-room/:queueEntryId/position
 // Returns the patient's current position in queue and estimated wait time
+// THERE IS NO NURSE OR RECEPTIONIST ROLE. UPDATE PLZ
 router.get(
   '/:queueEntryId/position',
   requireAuth,
-  requireRole('DOCTOR', 'NURSE', 'RECEPTIONIST', 'ADMIN'),
+  requireRole('DOCTOR', 'NURS3E', 'RECEPTIONIST', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getQueuePosition
 );
 
 // PATCH /api/waiting-room/:queueEntryId/status
 // Update status: 'waiting' | 'called' | 'in-progress' | 'no-show' | 'completed'
 // Body: { status: String }
+// THERE IS NO NURSE OR RECEPTIONIST ROLE. UPDATE PLZ
 router.patch(
   '/:queueEntryId/status',
   requireAuth,
-  requireRole('NURSE', 'RECEPTIONIST', 'ADMIN'),
+  requireRole('NURS3E', 'RECEPTIONIST', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   updateWaitingRoomStatus
 );
 
 // PATCH /api/waiting-room/:queueEntryId/assign-room
 // Assigns an exam room to the patient when called back
 // Body: { roomNumber: String }
+// THERE IS NO NURSE OR RECEPTIONIST ROLE. UPDATE PLZ
 router.patch(
   '/:queueEntryId/assign-room',
   requireAuth,
-  requireRole('NURSE', 'RECEPTIONIST', 'ADMIN'),
+  requireRole('NURS3E', 'RECEPTIONIST', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   assignRoom
 );
 
@@ -94,7 +101,7 @@ router.patch(
 router.patch(
   '/:queueEntryId/flag-urgent',
   requireAuth,
-  requireRole('NURSE', 'DOCTOR'),
+  requireRole('NURS3E', 'DOCTOR'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   flagUrgent
 );
 
@@ -107,7 +114,7 @@ router.patch(
 router.put(
   '/reorder',
   requireAuth,
-  requireRole('NURSE', 'ADMIN'),
+  requireRole('NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   reorderQueue
 );
 
