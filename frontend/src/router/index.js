@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/Login.vue') 
+      component: () => import('../views/Login.vue')
     },
     {
       path: '/dashboard',
@@ -49,6 +49,11 @@ const router = createRouter({
       component: () => import('../views/Tasks.vue')
     },
     {
+      path: '/patientPortal',
+      name: 'patientPortal',
+      component: () => import('../views/PatientPortal.vue')
+    },
+    {
       path: '/alerts',
       name: 'alerts',
       component: () => import('../views/Alerts.vue')
@@ -58,7 +63,8 @@ const router = createRouter({
       name: 'profile',
       component: () => import('../views/Profile.vue')
     },
-]})
+  ]
+})
 
 //list of routes accessible without a token
 const openRoutes = [
@@ -69,7 +75,7 @@ const routesConfig = {
   '/': {
     patientRedirect: '/patientPortal',
     doctorRedirect: '/dashboard',
-    adminRedirect: '/dashboard',    
+    adminRedirect: '/dashboard',
   }
 }
 
