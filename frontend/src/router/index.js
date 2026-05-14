@@ -24,6 +24,11 @@ const router = createRouter({
       component: () => import('../views/Templates.vue')
     },
     {
+      path: '/diagnose/:patientId',
+      name: 'templateUse',
+      component: () => import('../views/TemplateUse.vue')
+    },
+    {
       path: '/messaging',
       name: 'messaging',
       component: () => import('../views/Messaging.vue')
@@ -34,10 +39,16 @@ const router = createRouter({
       component: () => import('../views/PatientRecord.vue')
     },
     {
-      path: '/consultation',
-      name: 'consultation',
-      component: () => import('../views/Consultation.vue')
+      path: '/patientPortal',
+      name: 'patientPortal',
+      component: () => import('../views/PatientPortal.vue')
+    },
+    {
+      path: '/waitingroom',
+      name: 'waitingroom',
+      component: () => import('../views/WaitingRoom.vue')
     }
+    
   ]
 })
 
@@ -46,9 +57,20 @@ const openRoutes = [
   '/login'
 ]
 
+const routesConfig = {
+  '/': {
+    patientRedirect: '/patientPortal',
+    doctorRedirect: '/dashboard',
+    adminRedirect: '/dashboard',    
+  }
+}
+
 router.beforeEach((to, from, next) => {
   //if the route requires a token, go to login
   if (localStorage.getItem("token") || openRoutes.includes(to.path)) {
+    if (routesConfig[to.path]) {
+      next(routesConfig[to.path][JSON.parse(localStorage.getItem("user")).role + "Redirect"])
+    }
     next();
   } else {
     next('/login');
