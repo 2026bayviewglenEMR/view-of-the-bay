@@ -260,7 +260,7 @@ function scheduleAppointment() {
       time: newAppointment.time,
       reason: newAppointment.reason,
       notes: newAppointment.notes,
-      status: 'Pending'
+      status: getAppointmentStatus(newAppointment.date)
     })
   }
 
@@ -279,7 +279,7 @@ function scheduleAppointment() {
 }
 
 function formatStatus(status) {
-  if (!status) return 'Pending'
+  if (!status) return 'Scheduled'
 
   return status.charAt(0).toUpperCase() + status.slice(1)
 }
@@ -291,6 +291,19 @@ function formatDate(dateString) {
     day: 'numeric',
     year: 'numeric'
   })
+}
+function getAppointmentStatus(dateString) {
+  const appointmentDate = new Date(dateString)
+  appointmentDate.setHours(0, 0, 0, 0)
+
+  const currentDate = new Date()
+  currentDate.setHours(0, 0, 0, 0)
+
+  if (appointmentDate < currentDate) {
+    return 'Completed'
+  }
+
+  return 'Scheduled'
 }
 
 function formatTime(timeString) {
