@@ -1,6 +1,7 @@
 <template>
   <div class="patient-page">
     <Sidebar />
+    <TopBar title="Patient Portal" />
     <main class="patient-portal">
       <section class="hero-card">
         <div>
@@ -87,9 +88,9 @@
             </div>
 
             <select v-model="filter" class="filter-select" aria-label="Filter appointments">
+              <option value="all">All</option>
               <option value="upcoming">Upcoming</option>
               <option value="past">Past</option>
-              <option value="all">All</option>
             </select>
           </div>
 
@@ -116,7 +117,8 @@
                   {{ appointment.notes }}
                 </p>
                 <div class="appointment-actions">
-                  <button type="button" class="secondary-btn" @click="startReschedule(appointment)">
+                  <button v-if="canReschedule(appointment)" type="button" class="secondary-btn"
+                    @click="startReschedule(appointment)">
                     Reschedule
                   </button>
 
@@ -141,6 +143,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import Sidebar from '../components/Sidebar.vue';
+import TopBar from '../components/TopBar.vue';
 
 const PATIENT_ID = '69d84d5bee928eae07281c9c'
 const API_URL = `http://localhost:3000/api/patient-portal/${PATIENT_ID}`
@@ -220,6 +223,11 @@ const filteredAppointments = computed(() => {
   if (filter.value === 'past') return pastAppointments.value
   return appointments.value
 })
+function canReschedule(appointment) {
+  return appointment.status !== 'Completed' &&
+    new Date(appointment.date) >= today
+}
+
 function deleteAppointment(id) {
   appointments.value = appointments.value.filter(
     app => app.id !== id
@@ -227,6 +235,10 @@ function deleteAppointment(id) {
 }
 
 function startReschedule(appointment) {
+  if (!canReschedule(appointment)) {
+    return
+  }
+
   editingAppointmentId.value = appointment.id
 
   newAppointment.doctor = appointment.doctor
@@ -658,7 +670,7 @@ textarea {
   min-height: 100vh;
   margin-left: 20vw;
   width: calc(100vw - 20vw);
-  padding: 32px;
+  padding: 92px 32px 32px;
   box-sizing: border-box;
   background: var(--color-bg);
   color: var(--color-text-1);
