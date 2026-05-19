@@ -227,7 +227,7 @@ const handleSearch = (event) => {
 <style scoped>
 /* EXISTING TOP BAR STYLES */
 .top-bar {
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;

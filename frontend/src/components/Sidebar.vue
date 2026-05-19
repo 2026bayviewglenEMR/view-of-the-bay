@@ -39,10 +39,16 @@
 <script setup>
 import { ref } from 'vue';
 
+// 1. Define the event we want to emit
+const emit = defineEmits(['toggle']);
+
 const isOpen = ref(true);
 
 function toggleSidebar() {
     isOpen.value = !isOpen.value;
+    
+    // 2. Announce the new state to the parent component
+    emit('toggle', isOpen.value);
 }
 </script>
 

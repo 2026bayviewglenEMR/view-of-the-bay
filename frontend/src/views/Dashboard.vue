@@ -1,7 +1,5 @@
 <template>
-    <TopBar :title="pageTitle" />
-    <Sidebar />
-    <div class="main-content">
+    <MainLayout >
         <div class="dashboard-grid">
             <div class="calendar-section">
                 <CalendarView />
@@ -43,7 +41,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </MainLayout>
 </template>
 
 
@@ -51,8 +49,7 @@
 import { ref } from 'vue';
 import { View, Edit } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
-import TopBar from '../components/TopBar.vue';
-import Sidebar from '../components/Sidebar.vue';
+import MainLayout from '../components/MainLayout.vue';
 import CalendarView from '../components/CalendarView.vue';
 
 const router = useRouter();
@@ -92,14 +89,6 @@ const openTemplate = (id) => {
 
 
 <style scoped>
-.main-content {
-    margin-left: 20vw;
-    margin-top: 60px;
-    padding: 20px;
-    background-color: var(--color-bg);
-    min-height: calc(100vh - 60px);
-}
-
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

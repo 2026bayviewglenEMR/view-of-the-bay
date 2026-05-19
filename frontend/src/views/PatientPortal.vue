@@ -1,8 +1,5 @@
 <template>
-  <div class="patient-page">
-    <Sidebar />
-    <TopBar title="Patient Portal" />
-    <main class="patient-portal">
+  <MainLayout>
       <section class="hero-card">
         <div>
           <p class="eyebrow">Patient Portal</p>
@@ -136,14 +133,12 @@
           </div>
         </div>
       </section>
-    </main>
-  </div>
+  </MainLayout>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import Sidebar from '../components/Sidebar.vue';
-import TopBar from '../components/TopBar.vue';
+import MainLayout from '../components/MainLayout.vue';
 
 const PATIENT_ID = '69d84d5bee928eae07281c9c'
 const API_URL = `http://localhost:3000/api/patient-portal/${PATIENT_ID}`
