@@ -24,6 +24,7 @@
                 <div v-if="menuOpen" class="dropdown-menu">
                     <a href="#" class="menu-item" @click.prevent="goToProfile">Profile</a>
                     <a href="#" class="menu-item" @click.prevent="logout">Logout</a>
+                    <a href="#" class="menu-item" @click.prevent="updatePassword">Update Password</a>
                 </div>
             </div>
         </div>
@@ -33,6 +34,7 @@
 <script setup>
 import { defineProps, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { api } from '../api/api.js';
 
 const props = defineProps({
     title: {
@@ -62,9 +64,30 @@ const goToProfile = () => {
 const logout = () => {
     // Clear auth data
     localStorage.removeItem('token');
-    localStorage.removeItem('userName');
+    localStorage.removeItem('user');
     menuOpen.value = false;
     router.push('/login');
+};
+
+const updatePassword = async () => {
+    const newPassword = window.prompt("Enter your new password:");
+
+    if (!newPassword || newPassword.trim() === "") {
+        menuOpen.value = false;
+        return; 
+    }
+
+    try {
+        const result = await api.updatePassword(newPassword);
+
+        alert(result.message);
+    } catch (error) {
+        console.error("Failed to update password:", error);
+        const errorMessage = error.response?.data?.message || "An unexpected error occurred.";
+        alert(`Error: ${errorMessage}`);
+    } finally {
+        menuOpen.value = false;
+    }
 };
 
 const handleSearch = (event) => {

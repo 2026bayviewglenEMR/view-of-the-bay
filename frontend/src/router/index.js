@@ -63,6 +63,11 @@ const router = createRouter({
       name: 'profile',
       component: () => import('../views/Profile.vue')
     },
+    {
+      path: '/waitingroom',
+      name: 'Waiting Room',
+      component: () => import('../views/WaitingRoom.vue')
+    },
   ]
 })
 
