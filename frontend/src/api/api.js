@@ -11,6 +11,7 @@ export const api = {
     //auth
     signIn: (username, password) => http.post('/auth/signIn', {username, password}).then(r => r.data),
     updatePassword: (newPassword) => http.post('/auth/updatePassword', {newPassword}).then(r => r.data),
+    createUser: ({username, password, firstName, lastName, email, role}) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
 
     // comms
     sendMessage: (senderId, receiverId, message) => http.post('/comms/send', {senderId, receiverId, message}).then(r => r.data),
