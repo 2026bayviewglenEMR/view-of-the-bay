@@ -19,19 +19,15 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Accepts one or more roles: requireRole('admin') or requireRole('doctor', 'admin')
-const requireRole = (...requiredRoles) => {
+const requireRole = (requiredRole) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized. Please log in." });
     }
 
-    const userRole = req.user.role.toLowerCase();
-    const allowed = requiredRoles.map(r => r.toLowerCase());
-
-    if (!allowed.includes(userRole)) {
+    if (req.user.role.toLowerCase() !== requiredRole.toLowerCase()) {
       return res.status(403).json({
-        error: `Access denied. Required role: ${requiredRoles.join(' or ')}.`,
+        error: `Access denied. This action requires ${requiredRole}.`,
       });
     }
 

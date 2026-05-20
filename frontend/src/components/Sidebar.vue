@@ -1,43 +1,32 @@
 <template>
-    <div
-        class="sidebar"
-        :class="{ collapsed: !isOpen }"
-        @mouseenter="expandSidebar"
-        @mouseleave="collapseSidebar"
-    >
+    <div class="sidebar" :class="{ collapsed: !isOpen }">
+        <button class="toggle-btn" @click="toggleSidebar" :title="isOpen ? 'Collapse' : 'Expand'">
+            <span class="toggle-icon">{{ isOpen ? '◀' : '▶' }}</span>
+        </button>
         <nav class="nav-menu">
             <router-link to="/dashboard" class="nav-link">
                 <span class="icon">📊</span>
                 <span class="label">Dashboard</span>
             </router-link>
-
             <router-link to="/patients" class="nav-link">
                 <span class="icon">👥</span>
                 <span class="label">Patient Records</span>
             </router-link>
-
             <router-link to="/messaging" class="nav-link">
                 <span class="icon">💬</span>
                 <span class="label">Messaging</span>
             </router-link>
-
             <router-link to="/templates" class="nav-link">
                 <span class="icon">📋</span>
                 <span class="label">Templates</span>
             </router-link>
-
             <router-link to="/tasks" class="nav-link">
                 <span class="icon">✓</span>
                 <span class="label">Tasks</span>
             </router-link>
-
             <router-link to="/alerts" class="nav-link">
                 <span class="icon">🔔</span>
                 <span class="label">Alerts</span>
-            </router-link>
-            <router-link to="/waitingroom" class="nav-link">
-                <span class="icon">🪑</span>
-                <span class="label">Waiting Room</span>
             </router-link>
             <router-link to="/PatientPortal" class="nav-link">
                 <span class="icon">🌀</span>
@@ -48,43 +37,68 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-const emit = defineEmits(['toggle'])
+// 1. Define the event we want to emit
+const emit = defineEmits(['toggle']);
 
-const isOpen = ref(false)
+const isOpen = ref(true);
 
-function expandSidebar() {
-    isOpen.value = true
-    emit('toggle', true)
-}
-
-function collapseSidebar() {
-    isOpen.value = false
-    emit('toggle', false)
+function toggleSidebar() {
+    isOpen.value = !isOpen.value;
+    
+    // 2. Announce the new state to the parent component
+    emit('toggle', isOpen.value);
 }
 </script>
 
 <style scoped>
 .sidebar {
-    position: fixed;
+    position: fixed; 
     left: 0;
-    top: 12px;
+    top: 0;
     width: 20vw;
-    height: calc(100vh - 24px);
+    height: 100vh;
     box-sizing: border-box;
     background-color: var(--color-sidebar-dark);
     color: var(--color-text-1-dark);
     padding: 60px 0px 20px 0px;
-    box-shadow: 2px 0 12px rgba(0,0,0,0.25);
+    box-shadow: 2px 0 4px rgba(0,0,0,0.25);
     z-index: 10;
     transition: width 0.3s ease;
     overflow: hidden;
-    border-radius: 0 18px 18px 0;
 }
 
 .sidebar.collapsed {
     width: 70px;
+}
+
+.toggle-btn {
+    position: absolute;
+    bottom: 100px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--color-text-1-dark);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    z-index: 20;
+}
+
+.toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.toggle-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.spacer-1 {
+    height: 50px;
 }
 
 .nav-menu {

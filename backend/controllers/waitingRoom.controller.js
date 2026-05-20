@@ -1,3 +1,4 @@
+console.log("Waiting room controller loaded");
 const WaitingRoom = require("../models/waitingRoom.model");
 const Appointment = require("../models/Appointment");
 const Patient = require("../models/Patient");

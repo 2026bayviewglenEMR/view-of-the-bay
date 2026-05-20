@@ -1,65 +1,57 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 
 const isDropdownOpen = ref(false);
-const patientAlerts = ref([]);
-const baseURL = 'http://localhost:3000'; // Change this if your backend port changes
 
-// 1. GET /alerts
-onMounted(async () => {
-  try {
-    const response = await fetch(`${baseURL}/alerts`);
-    if (response.ok) {
-      patientAlerts.value = await response.json(); 
-    }
-  } catch (error) {
-    console.error("Error fetching alerts from database:", error);
-  }
-});
+const patientAlerts = ref([
+  { id: 1, type: 'screening', text: 'Total Cholesterol test overdue (1 Jun 2017)', done: false },
+  { id: 2, type: 'screening', text: 'Colonoscopy overdue (4 May 2015)', done: false },
+  { id: 3, type: 'alert', text: 'Speak about stress & work', done: false }
+]);
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-// 2. DELETE /alerts/:id
-const dismissAlert = async (id) => {
-  // Optimistic UI update: instantly remove from screen
+const dismissAlert = (id) => {
   patientAlerts.value = patientAlerts.value.filter(alert => alert.id !== id);
-  
-  try {
-    await fetch(`${baseURL}/alerts/${id}`, { 
-      method: 'DELETE' 
-    });
-  } catch (error) {
-    console.error("Error deleting the alert:", error);
-  }
 };
 </script>
 
 <template>
-  <div style="position: relative; display: inline-block;">
+  <div class="dropdown is-right" :class="{ 'is-active': isDropdownOpen }">
     
-    <button @click="toggleDropdown" style="background: transparent; border: none; cursor: pointer; padding: 0; position: relative;">
-      <span style="font-size: 1.5rem;">🔔</span>
-      <span v-if="patientAlerts.length > 0" style="position: absolute; top: -5px; right: -5px; background-color: #f14668; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold;">
-        {{ patientAlerts.length }}
-      </span>
-    </button>
+    <div class="dropdown-trigger">
+      <button class="button is-white" @click="toggleDropdown" style="position: relative; background-color: transparent;">
+        <span class="icon is-large" style="font-size: 1.5rem;">🔔</span>
+        <span v-if="patientAlerts.length > 0" class="tag is-danger is-rounded" style="position: absolute; top: -5px; right: -5px;">
+          {{ patientAlerts.length }}
+        </span>
+      </button>
+    </div>
 
-    <div v-show="isDropdownOpen" style="position: absolute; top: 120%; right: 0; width: 320px; background-color: white; border: 1px solid #e5e5e5; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 9999; padding: 1rem; text-align: left;">
-      <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 8px;">Patient Alerts</h3>
-      
-      <div v-if="patientAlerts.length > 0" style="display: flex; flex-direction: column; gap: 10px;">
-        <div v-for="alert in patientAlerts" :key="alert.id" style="display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px; border-radius: 4px;">
-          <span style="font-size: 0.9rem;">{{ alert.text }}</span>
-          <button @click.stop="dismissAlert(alert.id)" style="background: #effaf3; border: 1px solid #48c774; color: #48c774; border-radius: 4px; cursor: pointer;">✔️</button>
+    <div class="dropdown-menu" role="menu" style="min-width: 350px;">
+      <div class="dropdown-content shadow-lg">
+        
+        <div class="dropdown-item">
+          <p class="has-text-weight-bold is-size-5 mb-0">Patient Alerts</p>
         </div>
-      </div>
-      
-      <div v-else style="text-align: center; color: #888; font-size: 0.9rem; padding: 10px 0;">
-        <p>No active alerts.</p>
+        <hr class="dropdown-divider">
+        
+        <div v-if="patientAlerts.length > 0">
+          <div v-for="alert in patientAlerts" :key="alert.id" class="dropdown-item is-flex is-justify-content-space-between is-align-items-center">
+            <span class="mr-4">{{ alert.text }}</span>
+            <button class="button is-small is-success is-light is-rounded" @click.stop="dismissAlert(alert.id)">
+              ✔️
+            </button>
+          </div>
+        </div>
+        
+        <div v-else class="dropdown-item has-text-centered has-text-grey">
+          <p>No active alerts for this patient.</p>
+        </div>
+
       </div>
     </div>
-    
   </div>
 </template>
