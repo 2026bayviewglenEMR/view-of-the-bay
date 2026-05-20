@@ -138,7 +138,11 @@ const checkInPatient = async (req, res) => {
         message: "Patient is already in the waiting room",
       });
     }
+    console.log("Searching for appointment:", appointmentId);
 
+    const allAppointments = await Appointment.find();
+    console.log("All appointments:", allAppointments);
+    
     // Verify the appointment exists and pull the patient for allergy check
     const appt = await Appointment.findById(appointmentId).populate(
       "patientId"

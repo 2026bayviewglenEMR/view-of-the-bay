@@ -20,6 +20,11 @@ mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('MongoDB connection error:', err));
 
+mongoose.connection.once("open", () => {
+  console.log("DB NAME:", mongoose.connection.name);
+  console.log("HOST:", mongoose.connection.host);
+});
+
 //middleware to log requests
 app.use((req, res, next) => {
     const time = new Date().toLocaleTimeString();
