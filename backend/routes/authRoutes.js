@@ -21,7 +21,8 @@ router.post('/signIn', async (req, res) => {
                 lastName: user.lastName,
                 id: user.id,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                patientId: user.patientId ?? null
             },
             process.env.JWT_SECRET,
             { expiresIn: '8h' }
@@ -32,7 +33,8 @@ router.post('/signIn', async (req, res) => {
             lastName: user.lastName,
             id: user.id,
             email: user.email,
-            role: user.role
+            role: user.role,
+            patientId: user.patientId ?? null
         }
         return res.status(200).json({token, user: userToReturn});
     } else {
@@ -41,7 +43,7 @@ router.post('/signIn', async (req, res) => {
 });
 
 router.post('/createUser', authenticateToken, async (req, res) => {
-    const { username, password, firstName, lastName, email, role } = req.body;
+    const { username, password, firstName, lastName, email, role, patientId } = req.body;
 
     try {
 
@@ -54,6 +56,7 @@ router.post('/createUser', authenticateToken, async (req, res) => {
         firstName,
         lastName,
         email,
+        patientId: patientId || null,
     });
     const savedUser = await newUser.save();
     return res.status(201).json(savedUser)

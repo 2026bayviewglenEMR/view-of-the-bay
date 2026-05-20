@@ -84,9 +84,67 @@ const debugDatabase = async (req, res) => {
   }
 };
 
+const createAppointment = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const { doctorId, scheduledStartTime, scheduledEndTime, reasonForVisit, notes } = req.body;
+
+    const patient = await Patient.findById(patientId);
+    if (!patient) return res.status(404).json({ message: "Patient not found." });
+
+    const appointment = new Appointment({
+      patientId,
+      doctorId,
+      scheduledStartTime,
+      scheduledEndTime,
+      status: "scheduled",
+      reasonForVisit,
+      notes: notes || "",
+    });
+
+    const saved = await appointment.save();
+    return res.status(201).json(saved);
+  } catch (error) {
+    return res.status(500).json({ message: "Error creating appointment.", error: error.message });
+  }
+};
+
+const updateAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { doctorId, scheduledStartTime, scheduledEndTime, reasonForVisit, notes } = req.body;
+
+    const updated = await Appointment.findByIdAndUpdate(
+      appointmentId,
+      { doctorId, scheduledStartTime, scheduledEndTime, reasonForVisit, notes },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ message: "Appointment not found." });
+    return res.status(200).json(updated);
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating appointment.", error: error.message });
+  }
+};
+
+const deleteAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+
+    const deleted = await Appointment.findByIdAndDelete(appointmentId);
+    if (!deleted) return res.status(404).json({ message: "Appointment not found." });
+    return res.status(200).json({ message: "Appointment deleted." });
+  } catch (error) {
+    return res.status(500).json({ message: "Error deleting appointment.", error: error.message });
+  }
+};
+
 module.exports = {
   getPatientPortalData,
   listPatientsForTesting,
   debugDatabase,
+  createAppointment,
+  updateAppointment,
+  deleteAppointment,
 };
 

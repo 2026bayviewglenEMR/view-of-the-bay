@@ -20,11 +20,16 @@ const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   email: String,
-  isActive: { 
-    type: Boolean, 
-    default: true 
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  patientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patient',
+    default: null
   }
-}, { 
+}, {
   timestamps: true // Automatically adds 'createdAt' and 'updatedAt' fields!
 });
 

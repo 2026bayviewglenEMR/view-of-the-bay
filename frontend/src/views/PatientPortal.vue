@@ -21,6 +21,8 @@
       </div>
     </section>
 
+    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
     <section class="layout-grid">
       <!-- Schedule Appointment -->
       <div class="card schedule-card">
@@ -34,11 +36,11 @@
         <form @submit.prevent="scheduleAppointment" class="appointment-form">
           <div class="form-group">
             <label for="doctor">Doctor</label>
-            <select id="doctor" v-model="newAppointment.doctor" required>
+            <select id="doctor" v-model="newAppointment.doctorId" required>
               <option disabled value="">Select a doctor</option>
-              <option>Dr. Sarah Chen</option>
-              <option>Dr. Michael Patel</option>
-              <option>Dr. Emily Johnson</option>
+              <option v-for="doc in doctors" :key="doc._id" :value="doc._id">
+                Dr. {{ doc.firstName }} {{ doc.lastName }}
+              </option>
             </select>
           </div>
 
@@ -117,13 +119,18 @@
                 </span>
               </div>
 
-              <p class="doctor-name">{{ appointment.doctor }}</p>
+              <p class="doctor-name">{{ getDoctorName(appointment.doctorId) }}</p>
               <p class="appointment-meta">
                 {{ formatDate(appointment.date) }} at {{ formatTime(appointment.time) }}
               </p>
               <p v-if="appointment.notes" class="appointment-notes">
                 {{ appointment.notes }}
               </p>
+              <button
+                v-if="appointment.status.toLowerCase() !== 'completed'"
+                class="delete-btn"
+                @click="deleteAppointment(appointment.id)"
+              >Cancel</button>
             </div>
           </article>
         </div>
@@ -139,9 +146,10 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { api } from '../api/api'
 
-const PATIENT_ID = '69d84d5bee928eae07281c9c'
-const API_URL = `http://localhost:3000/api/patient-portal/${PATIENT_ID}`
+const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+const patientId = storedUser.patientId ?? null
 
 const filter = ref('all')
 const confirmationMessage = ref('')
@@ -151,9 +159,10 @@ const errorMessage = ref('')
 const patient = ref(null)
 const consultations = ref([])
 const appointments = ref([])
+const doctors = ref([])
 
 const newAppointment = reactive({
-  doctor: '',
+  doctorId: '',
   date: '',
   time: '',
   reason: '',
@@ -161,31 +170,37 @@ const newAppointment = reactive({
 })
 
 onMounted(async () => {
-  await loadPatientPortalData()
+  await Promise.all([loadPatientPortalData(), loadDoctors()])
 })
 
+async function loadDoctors() {
+  try {
+    doctors.value = await api.getDoctors()
+  } catch (error) {
+    console.error('Error loading doctors:', error)
+  }
+}
+
 async function loadPatientPortalData() {
+  if (!patientId) {
+    errorMessage.value = 'No patient record linked to your account. Please contact your clinic.'
+    loading.value = false
+    return
+  }
   try {
     loading.value = true
     errorMessage.value = ''
 
-    const response = await fetch(API_URL)
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`)
-    }
-
-    const data = await response.json()
+    const data = await api.getPortalData(patientId)
 
     patient.value = data.patient
     consultations.value = data.consultations || []
 
     appointments.value = (data.appointments || []).map((appointment) => {
       const startDate = new Date(appointment.scheduledStartTime)
-
       return {
         id: appointment._id,
-        doctor: appointment.doctorId || 'Doctor assigned',
+        doctorId: appointment.doctorId,
         date: startDate.toISOString().split('T')[0],
         time: startDate.toTimeString().slice(0, 5),
         reason: appointment.reasonForVisit || 'Appointment',
@@ -218,34 +233,63 @@ const filteredAppointments = computed(() => {
   return appointments.value
 })
 
-function scheduleAppointment() {
-  appointments.value.unshift({
-    id: Date.now(),
-    doctor: newAppointment.doctor,
-    date: newAppointment.date,
-    time: newAppointment.time,
-    reason: newAppointment.reason,
-    notes: newAppointment.notes,
-    status: 'Pending'
-  })
+async function scheduleAppointment() {
+  try {
+    const startDateTime = new Date(`${newAppointment.date}T${newAppointment.time}`)
+    const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000)
 
-  confirmationMessage.value = 'Appointment request submitted successfully.'
-  filter.value = 'upcoming'
+    const created = await api.createAppointment(patientId, {
+      doctorId: newAppointment.doctorId,
+      scheduledStartTime: startDateTime.toISOString(),
+      scheduledEndTime: endDateTime.toISOString(),
+      reasonForVisit: newAppointment.reason,
+      notes: newAppointment.notes || ''
+    })
 
-  newAppointment.doctor = ''
-  newAppointment.date = ''
-  newAppointment.time = ''
-  newAppointment.reason = ''
-  newAppointment.notes = ''
+    appointments.value.unshift({
+      id: created._id,
+      doctorId: created.doctorId,
+      date: newAppointment.date,
+      time: newAppointment.time,
+      reason: created.reasonForVisit,
+      notes: created.notes,
+      status: formatStatus(created.status)
+    })
 
-  setTimeout(() => {
-    confirmationMessage.value = ''
-  }, 3000)
+    confirmationMessage.value = 'Appointment scheduled successfully.'
+    filter.value = 'upcoming'
+
+    newAppointment.doctorId = ''
+    newAppointment.date = ''
+    newAppointment.time = ''
+    newAppointment.reason = ''
+    newAppointment.notes = ''
+
+    setTimeout(() => { confirmationMessage.value = '' }, 3000)
+  } catch (error) {
+    console.error('Error creating appointment:', error)
+    errorMessage.value = 'Failed to schedule appointment. Please try again.'
+  }
+}
+
+async function deleteAppointment(id) {
+  try {
+    await api.deleteAppointment(patientId, id)
+    appointments.value = appointments.value.filter(app => app.id !== id)
+  } catch (error) {
+    console.error('Error deleting appointment:', error)
+    errorMessage.value = 'Failed to cancel appointment.'
+  }
+}
+
+function getDoctorName(doctorId) {
+  const doc = doctors.value.find(d => d._id === doctorId || d.id === doctorId)
+  if (!doc) return 'Doctor assigned'
+  return `Dr. ${doc.firstName} ${doc.lastName}`
 }
 
 function formatStatus(status) {
   if (!status) return 'Pending'
-
   return status.charAt(0).toUpperCase() + status.slice(1)
 }
 
@@ -262,11 +306,7 @@ function formatTime(timeString) {
   const [hours, minutes] = timeString.split(':')
   const date = new Date()
   date.setHours(Number(hours), Number(minutes))
-
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit'
-  })
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 }
 
 function getMonth(dateString) {
@@ -558,6 +598,32 @@ textarea {
 .status-pill.completed {
   background: var(--color-secondary);
   color: var(--color-text-1);
+}
+
+.error-message {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fde8e8;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.delete-btn {
+  margin-top: 10px;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  border-color: #b91c1c;
+  color: #b91c1c;
 }
 
 .empty-state {
