@@ -1,4 +1,4 @@
-const WaitingRoom = require("./waitingRoom.model");
+const WaitingRoom = require("../models/waitingRoom.model");
 const Appointment = require("../models/Appointment");
 const Patient = require("../models/Patient");
 const User = require("../models/User");
