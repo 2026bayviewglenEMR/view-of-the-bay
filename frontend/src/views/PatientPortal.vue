@@ -108,6 +108,7 @@
                 </span>
               </div>
 
+              <p class="patient-name">Patient: {{ patientName }}</p>
               <p class="doctor-name">{{ getDoctorName(appointment.doctorId) }}</p>
               <p class="appointment-meta">
                 {{ formatDate(appointment.date) }} at {{ formatTime(appointment.time) }}
@@ -151,6 +152,10 @@ const loading = ref(true)
 const errorMessage = ref('')
 
 const patient = ref(null)
+const patientName = computed(() => {
+  if (!patient.value) return 'Unknown Patient'
+  return `${patient.value.firstName} ${patient.value.lastName}`
+})
 const consultations = ref([])
 const appointments = ref([])
 const doctors = ref([])
@@ -606,6 +611,12 @@ textarea {
   margin-bottom: 0;
   font-size: 1.05rem;
   color: var(--color-text-1);
+}
+
+.patient-name {
+  margin-bottom: 4px;
+  color: var(--color-text-1);
+  font-weight: 700;
 }
 
 .doctor-name {
