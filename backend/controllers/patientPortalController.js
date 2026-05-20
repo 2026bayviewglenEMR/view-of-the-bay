@@ -16,8 +16,19 @@ const getPatientPortalData = async (req, res) => {
       });
     }
 
+    await Appointment.updateMany(
+      {
+        patientId,
+        status: "scheduled",
+        scheduledStartTime: { $lt: new Date() },
+      },
+      {
+        $set: { status: "completed" },
+      }
+    );
+
     const appointments = await Appointment.find({ patientId }).sort({
-      date: -1,
+      scheduledStartTime: -1,
     });
 
     const consultations = await Consultation.find({ patientId }).sort({
@@ -92,12 +103,14 @@ const createAppointment = async (req, res) => {
     const patient = await Patient.findById(patientId);
     if (!patient) return res.status(404).json({ message: "Patient not found." });
 
+    const startDate = new Date(scheduledStartTime);
+
     const appointment = new Appointment({
       patientId,
       doctorId,
       scheduledStartTime,
       scheduledEndTime,
-      status: "scheduled",
+      status: startDate < new Date() ? "completed" : "scheduled",
       reasonForVisit,
       notes: notes || "",
     });
@@ -114,9 +127,18 @@ const updateAppointment = async (req, res) => {
     const { appointmentId } = req.params;
     const { doctorId, scheduledStartTime, scheduledEndTime, reasonForVisit, notes } = req.body;
 
+    const startDate = new Date(scheduledStartTime);
+
     const updated = await Appointment.findByIdAndUpdate(
       appointmentId,
-      { doctorId, scheduledStartTime, scheduledEndTime, reasonForVisit, notes },
+      {
+        doctorId,
+        scheduledStartTime,
+        scheduledEndTime,
+        reasonForVisit,
+        notes,
+        status: startDate < new Date() ? "completed" : "scheduled",
+      },
       { new: true }
     );
 

@@ -103,8 +103,8 @@
             <div class="appointment-details">
               <div class="appointment-topline">
                 <h3>{{ appointment.reason }}</h3>
-                <span :class="['status-pill', appointment.status.toLowerCase()]">
-                  {{ appointment.status }}
+                <span :class="['status-pill', getDisplayStatus(appointment).toLowerCase()]">
+                  {{ getDisplayStatus(appointment) }}
                 </span>
               </div>
 
@@ -211,15 +211,18 @@ async function loadPatientPortalData() {
   }
 }
 
-const today = new Date()
-today.setHours(0, 0, 0, 0)
+function getToday() {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return today
+}
 
 const upcomingAppointments = computed(() =>
-  appointments.value.filter((appointment) => new Date(appointment.date) >= today)
+  appointments.value.filter((appointment) => getAppointmentDateTime(appointment) >= new Date())
 )
 
 const pastAppointments = computed(() =>
-  appointments.value.filter((appointment) => new Date(appointment.date) < today)
+  appointments.value.filter((appointment) => getAppointmentDateTime(appointment) < new Date())
 )
 
 const filteredAppointments = computed(() => {
@@ -229,7 +232,7 @@ const filteredAppointments = computed(() => {
 })
 
 function canReschedule(appointment) {
-  return appointment.status !== 'Completed' && new Date(appointment.date) >= today
+  return getDisplayStatus(appointment) !== 'Completed'
 }
 
 function startReschedule(appointment) {
@@ -252,7 +255,8 @@ async function scheduleAppointment() {
       scheduledStartTime: startDateTime.toISOString(),
       scheduledEndTime: endDateTime.toISOString(),
       reasonForVisit: newAppointment.reason,
-      notes: newAppointment.notes || ''
+      notes: newAppointment.notes || '',
+      status: startDateTime < new Date() ? 'completed' : 'scheduled'
     }
 
     if (editingAppointmentId.value) {
@@ -315,6 +319,19 @@ function getDoctorName(doctorId) {
   const doc = doctors.value.find(d => d._id === doctorId || d.id === doctorId)
   if (!doc) return 'Doctor assigned'
   return `Dr. ${doc.firstName} ${doc.lastName}`
+}
+function getAppointmentDateTime(appointment) {
+  return new Date(`${appointment.date}T${appointment.time}`)
+}
+
+function getDisplayStatus(appointment) {
+  const appointmentDateTime = getAppointmentDateTime(appointment)
+
+  if (appointmentDateTime < new Date()) {
+    return 'Completed'
+  }
+
+  return appointment.status || 'Scheduled'
 }
 
 function formatStatus(status) {
@@ -381,7 +398,10 @@ function getDay(dateString) {
   text-transform: uppercase;
 }
 
-h1, h2, h3, p {
+h1,
+h2,
+h3,
+p {
   margin-top: 0;
 }
 
@@ -470,7 +490,9 @@ label {
   font-weight: 700;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   width: 100%;
   box-sizing: border-box;
   border: 2px solid var(--color-border);
@@ -482,7 +504,9 @@ input, select, textarea {
   outline: none;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--color-primary-hover);
   box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.18);
 }
@@ -695,6 +719,7 @@ textarea {
 }
 
 @media (max-width: 600px) {
+
   .hero-card,
   .card {
     padding: 22px;
