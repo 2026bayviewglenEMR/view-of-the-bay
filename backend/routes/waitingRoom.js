@@ -3,23 +3,16 @@ const router = express.Router();
 
 const {
   getWaitingRoom,
+  getDoctorsOverview,
   checkInPatient,
-  checkOutPatient,
-  updateWaitingRoomStatus,
-  getQueuePosition,
-  reorderQueue,
-  getWaitingRoomStats,
-  assignRoom,
-  flagUrgent,
-} = require('../controllers/waitingRoomController');
+  updatePatientStatus,
+  removePatient,
+  getPatientDetails,
+} = require('../controllers/waitingRoom.controller');
 
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
-// ─── Queue Overview ───────────────────────────────────────────────────────────
-
-// GET /api/waiting-room
-// Returns the full current waiting room queue, ordered by check-in time.
-// Optional query params: status (waiting|in-progress|called), providerId
+// GET /api/waiting-room — full queue for today
 router.get(
   '/',
   authenticateToken,
@@ -27,20 +20,16 @@ router.get(
   getWaitingRoom
 );
 
-// GET /api/waiting-room/stats
-// Aggregate stats: avg wait time today, # waiting, # in-progress, longest wait
+// GET /api/waiting-room/doctors — clinic overview (doctor statuses + queues)
 router.get(
-  '/stats',
+  '/doctors',
   authenticateToken,
   requireRole('doctor', 'admin'),
-  getWaitingRoomStats
+  getDoctorsOverview
 );
 
-// ─── Patient Check-in / Check-out ─────────────────────────────────────────────
-
-// POST /api/waiting-room/check-in
-// Adds a patient to the waiting room queue on arrival.
-// Body: { patientId, appointmentId?, chiefComplaint, providerId?, priority }
+// POST /api/waiting-room/check-in — check a patient in
+// Body: { appointmentId, note?, flag? }
 router.post(
   '/check-in',
   authenticateToken,
@@ -48,66 +37,29 @@ router.post(
   checkInPatient
 );
 
-// PATCH /api/waiting-room/:queueEntryId/check-out
-// Removes a patient from the queue when their encounter is complete.
+// PATCH /api/waiting-room/:id/status — update patient status
+// Body: { status: 'Checked-in' | 'Waiting' | 'In consultation' }
 router.patch(
-  '/:queueEntryId/check-out',
+  '/:id/status',
   authenticateToken,
-  requireRole('admin'),
-  checkOutPatient
+  requireRole('doctor', 'admin'),
+  updatePatientStatus
 );
 
-// ─── Queue Entry Management ───────────────────────────────────────────────────
+// DELETE /api/waiting-room/:id — remove patient from queue
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole('doctor', 'admin'),
+  removePatient
+);
 
-// GET /api/waiting-room/:queueEntryId/position
-// Returns the patient's current position in queue and estimated wait time
+// GET /api/waiting-room/patient/:id — full patient record for Open button
 router.get(
-  '/:queueEntryId/position',
+  '/patient/:id',
   authenticateToken,
   requireRole('doctor', 'admin'),
-  getQueuePosition
-);
-
-// PATCH /api/waiting-room/:queueEntryId/status
-// Update status: 'waiting' | 'called' | 'in-progress' | 'no-show' | 'completed'
-// Body: { status: String }
-router.patch(
-  '/:queueEntryId/status',
-  authenticateToken,
-  requireRole('admin'),
-  updateWaitingRoomStatus
-);
-
-// PATCH /api/waiting-room/:queueEntryId/assign-room
-// Assigns an exam room to the patient when called back
-// Body: { roomNumber: String }
-router.patch(
-  '/:queueEntryId/assign-room',
-  authenticateToken,
-  requireRole('admin'),
-  assignRoom
-);
-
-// PATCH /api/waiting-room/:queueEntryId/flag-urgent
-// Elevates a patient to urgent/priority in the queue
-// Body: { reason: String }
-router.patch(
-  '/:queueEntryId/flag-urgent',
-  authenticateToken,
-  requireRole('doctor', 'admin'),
-  flagUrgent
-);
-
-// ─── Queue Reordering ─────────────────────────────────────────────────────────
-
-// PUT /api/waiting-room/reorder
-// Accepts an ordered array of queueEntryIds and persists the new order.
-// Body: { orderedIds: [String] }
-router.put(
-  '/reorder',
-  authenticateToken,
-  requireRole('admin'),
-  reorderQueue
+  getPatientDetails
 );
 
 module.exports = router;
