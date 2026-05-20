@@ -8,7 +8,7 @@ const drugInteractionSchema = new mongoose.Schema({
 });
  
 const drugSchema = new mongoose.Schema({
-  id:                { type: String, required: true, unique: true },
+  id:                { type: String, required: true, unique: true, index: true },
   name:              { type: String, required: true },
   description:       { type: String },
   drug_interactions: [drugInteractionSchema],
