@@ -2,50 +2,15 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Qalendar } from 'qalendar';
-import 'qalendar/dist/style.css';
-
-const today = new Date().toISOString().split('T')[0];
-
-const config = ref({
-  defaultMode: 'day', 
-  showCurrentTime: true,
-  colorScheme: 'dark'
-});
 
 const events = ref([]);
+const config = ref({
+  defaultMode: 'week',
+  // You can add more qalendar config options here
+});
+const baseURL = 'http://localhost:3000';
 
-const isLoading = ref(true);
-
-const mockDatabaseResponse = [
-  {
-    title: "Edna Jane (In-Person)",
-    with: "Dr. Smith",
-    time: { start: `${today} 09:00`, end: `${today} 09:30` },
-    color: "blue",
-    isEditable: true,
-    id: "1",
-    description: "Status: Checked-in (10 min late)"
-  },
-  {
-    title: "Brian Smithers (Telehealth)",
-    with: "Dr. Smith",
-    time: { start: `${today} 09:30`, end: `${today} 10:00` },
-    color: "green",
-    isEditable: true,
-    id: "2",
-    description: "Status: Waiting (On time)"
-  },
-  {
-    title: "Lawrence Jones (In-Person)",
-    with: "Dr. Smith",
-    time: { start: `${today} 10:00`, end: `${today} 10:45` },
-    color: "yellow",
-    isEditable: true,
-    id: "3",
-    description: "Status: In Progress (On time)"
-  }
-];
-
+// 1. GET /api/appointments
 onMounted(async () => {
   
   setTimeout(() => {
@@ -53,101 +18,59 @@ onMounted(async () => {
     isLoading.value = false;             // Turn off the loading screen
   }, 1000);
 
-  /* === THE REAL CODE FOR LATER ===
+  // === THE REAL CODE FOR LATER ===
 
   try {
-    // 1. Knock on the database door
-    const response = await fetch('http://localhost:3000/api/appointments'); 
-    
-    // 2. Convert the response to JSON
-    const data = await response.json(); 
-    
-    // 3. Feed the JSON into Qalendar
-    events.value = data; 
-    
-    // 4. Turn off loading screen
-    isLoading.value = false; 
+    const response = await fetch(`${baseURL}/api/appointments`);
+    if (response.ok) {
+      events.value = await response.json();
+    }
   } catch (error) {
-    console.error("Failed to fetch schedule from database!", error);
-    isLoading.value = false;
+    console.error("Error fetching appointments:", error);
   }
-  */
 });
+
+// 2. PATCH /api/appointments/:id
+// This triggers automatically if someone drags/drops or resizes an event in Qalendar
+const updateAppointment = async (updatedEvent) => {
+  try {
+    await fetch(`${baseURL}/api/appointments/${updatedEvent.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedEvent)
+    });
+  } catch (error) {
+    console.error("Error updating appointment time:", error);
+  }
+};
 </script>
 
 <template>
-  <div class="box shadow-sm">
-    <h2 class="schedule-title">Today's Schedule</h2>
-    
-    <div v-if="isLoading" class="loading-container">
-      <div class="spinner"></div>
-      <p class="loading-text">Fetching schedule from database...</p>
-    </div>
-
-    <div v-else class="calendar-wrapper fade-in">
-      <Qalendar 
-        :events="events" 
-        :config="config" 
-      />
-    </div>
-    
+  <div class="calendar-wrapper">
+    <Qalendar 
+      :events="events" 
+      :config="config" 
+      @event-was-updated="updateAppointment" 
+    />
   </div>
 </template>
 
 <style scoped>
-.shadow-sm {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.schedule-title {
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: var(--color-text-1-dark);
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-.loading-text {
-  color: var(--color-text-1-dark);
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
+/* Includes the custom Portal colors we set up earlier */
 .calendar-wrapper {
-  height: 600px; 
-  width: 100%;
+  background-color: #f5f3e6;
+  border: 2px solid #2e6d4f;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-:deep(.calendar-root) {
-  font-family: inherit;
+:deep(.qalendar-is-light-mode) {
+  --qalendar-theme-color: #2e6d4f; 
+  --qalendar-paper: #f5f3e6; 
+  --qalendar-border-color: rgba(46, 109, 79, 0.2); 
+  --qalendar-heading-color: #2e6d4f;
+  --qalendar-base-color: #333333;
 }
 
 :deep(.calendar-root .date),
