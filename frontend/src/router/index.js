@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/Login.vue') 
+      component: () => import('../views/Login.vue')
     },
     {
       path: '/dashboard',
@@ -39,16 +39,35 @@ const router = createRouter({
       component: () => import('../views/PatientRecord.vue')
     },
     {
+      path: '/patients',
+      name: 'patients',
+      component: () => import('../views/PatientRecord.vue')
+    },
+    {
+      path: '/tasks',
+      name: 'tasks',
+      component: () => import('../views/Tasks.vue')
+    },
+    {
       path: '/patientPortal',
       name: 'patientPortal',
       component: () => import('../views/PatientPortal.vue')
     },
     {
+      path: '/alerts',
+      name: 'alerts',
+      component: () => import('../views/Alerts.vue')
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/Profile.vue')
+    },
+    {
       path: '/waitingroom',
-      name: 'waitingroom',
+      name: 'Waiting Room',
       component: () => import('../views/WaitingRoom.vue')
-    }
-    
+    },
   ]
 })
 
@@ -61,7 +80,7 @@ const routesConfig = {
   '/': {
     patientRedirect: '/patientPortal',
     doctorRedirect: '/dashboard',
-    adminRedirect: '/dashboard',    
+    adminRedirect: '/dashboard',
   }
 }
 

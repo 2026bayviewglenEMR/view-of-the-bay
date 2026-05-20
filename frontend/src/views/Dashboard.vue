@@ -1,54 +1,58 @@
 <template>
-    <TopBar :title="pageTitle" />
-    <Sidebar />
-    <div class="main-content">
-        <div class="patients-list">
-            <div class="patients-header">
-                <h2>Patients</h2>
+    <MainLayout >
+        <div class="dashboard-grid">
+            <div class="calendar-section">
+                <CalendarView />
             </div>
-            <div class="patients-table">
-                <div class="table-header">
-                    <div class="col-name">Patient Name</div>
-                    <div class="col-time">Appointment Time</div>
-                    <div class="col-status">Status</div>
-                    <div class="col-actions">Details</div>
+            <div class="patients-list">
+                <div class="patients-header">
+                    <h2>Patients</h2>
                 </div>
-                <div class="table-body">
-                    <div v-for="patient in patients" :key="patient.id" class="table-row">
-                        <div class="col-name">{{ patient.name }}</div>
-                        <div class="col-time">{{ patient.appointmentTime }}</div>
-                        <div class="col-status">
-                            <span :class="['status-badge', patient.status.toLowerCase()]">
-                                {{ patient.status }}
-                            </span>
-                        </div>
-                        <div class="col-actions">
-                            <router-link :to="`/patient-details/${patient.id}`" class="details-btn">
-                                View Details
-                            </router-link>
-                            <button
-                                class="template-btn"
-                                @click="openTemplate(patient.id)"
-                            >
-                                Diagnose Patient
-                            </button>
+                <div class="patients-table">
+                    <div class="table-header">
+                        <div class="col-name">Patient Name</div>
+                        <div class="col-time">Appointment Time</div>
+                        <div class="col-status">Status</div>
+                        <div class="col-actions">Details</div>
+                    </div>
+                    <div class="table-body">
+                        <div v-for="patient in patients" :key="patient.id" class="table-row">
+                            <div class="col-name">{{ patient.name }}</div>
+                            <div class="col-time">{{ patient.appointmentTime }}</div>
+                            <div class="col-status">
+                                <span :class="['status-badge', patient.status.toLowerCase()]">
+                                    {{ patient.status }}
+                                </span>
+                            </div>
+                            <div class="col-actions">
+                                <router-link :to="`/patient-details/${patient.id}`" class="icon-btn" title="View Details">
+                                    <View />
+                                </router-link>
+                                <button
+                                    class="icon-btn"
+                                    @click="openTemplate(patient.id)"
+                                    title="Diagnose Patient"
+                                >
+                                    <Edit />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </MainLayout>
 </template>
 
 
 <script setup>
 import { ref } from 'vue';
+import { View, Edit } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
-import TopBar from '../components/TopBar.vue';
-import Sidebar from '../components/Sidebar.vue';
+import MainLayout from '../components/MainLayout.vue';
+import CalendarView from '../components/CalendarView.vue';
 
 const router = useRouter();
-
 const pageTitle = ref('Dashboard');
 
 const patients = ref([
@@ -85,17 +89,24 @@ const openTemplate = (id) => {
 
 
 <style scoped>
-.main-content {
-    margin-left: 25vw;
-    padding: 0px;
-    background-color: var(--color-bg);
-    min-height: calc(100vh - 60px);
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.calendar-section {
+    background-color: var(--color-primary);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: fit-content;
 }
 
 .patients-list {
     background-color: var(--color-primary);
     min-height: 20vh;
-    width: 35vw;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -194,6 +205,33 @@ const openTemplate = (id) => {
     border-radius: 4px;
     transition: background-color 0.2s;
     text-align: center;
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+.icon-btn:hover {
+    background-color: var(--color-primary-dark, #0056b3);
+    transform: scale(1.1);
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
 .details-btn:hover {

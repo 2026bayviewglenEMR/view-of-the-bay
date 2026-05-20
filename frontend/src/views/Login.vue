@@ -112,6 +112,7 @@ const adminOnly = async () => {
 .full-width {
   width: 100%;
   margin-top: 10px;
+  margin-left: 0;
 }
 .footer {
   margin-top: 20px;

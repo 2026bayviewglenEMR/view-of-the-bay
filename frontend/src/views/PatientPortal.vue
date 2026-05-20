@@ -1,5 +1,5 @@
 <template>
-  <main class="patient-portal">
+  <MainLayout>
     <section class="hero-card">
       <div>
         <p class="eyebrow">Patient Portal</p>
@@ -58,26 +58,19 @@
 
           <div class="form-group">
             <label for="reason">Reason for visit</label>
-            <input
-              id="reason"
-              type="text"
-              v-model="newAppointment.reason"
-              placeholder="Example: Follow-up, checkup, prescription refill"
-              required
-            />
+            <input id="reason" type="text" v-model="newAppointment.reason"
+              placeholder="Example: Follow-up, checkup, prescription refill" required />
           </div>
 
           <div class="form-group">
             <label for="notes">Additional notes</label>
-            <textarea
-              id="notes"
-              v-model="newAppointment.notes"
-              rows="4"
-              placeholder="Optional symptoms, concerns, or details for the doctor"
-            ></textarea>
+            <textarea id="notes" v-model="newAppointment.notes" rows="4"
+              placeholder="Optional symptoms, concerns, or details for the doctor"></textarea>
           </div>
 
-          <button type="submit" class="primary-btn">Schedule Appointment</button>
+          <button type="submit" class="primary-btn">
+            {{ editingAppointmentId ? 'Update Appointment' : 'Schedule Appointment' }}
+          </button>
 
           <p v-if="confirmationMessage" class="success-message">
             {{ confirmationMessage }}
@@ -94,18 +87,14 @@
           </div>
 
           <select v-model="filter" class="filter-select" aria-label="Filter appointments">
+            <option value="all">All</option>
             <option value="upcoming">Upcoming</option>
             <option value="past">Past</option>
-            <option value="all">All</option>
           </select>
         </div>
 
         <div v-if="filteredAppointments.length" class="appointment-list">
-          <article
-            v-for="appointment in filteredAppointments"
-            :key="appointment.id"
-            class="appointment-item"
-          >
+          <article v-for="appointment in filteredAppointments" :key="appointment.id" class="appointment-item">
             <div class="date-box">
               <span>{{ getMonth(appointment.date) }}</span>
               <strong>{{ getDay(appointment.date) }}</strong>
@@ -126,11 +115,15 @@
               <p v-if="appointment.notes" class="appointment-notes">
                 {{ appointment.notes }}
               </p>
-              <button
-                v-if="appointment.status.toLowerCase() !== 'completed'"
-                class="delete-btn"
-                @click="deleteAppointment(appointment.id)"
-              >Cancel</button>
+              <div class="appointment-actions">
+                <button v-if="canReschedule(appointment)" type="button" class="secondary-btn"
+                  @click="startReschedule(appointment)">
+                  Reschedule
+                </button>
+                <button type="button" class="delete-btn" @click="deleteAppointment(appointment.id)">
+                  Delete
+                </button>
+              </div>
             </div>
           </article>
         </div>
@@ -141,12 +134,13 @@
         </div>
       </div>
     </section>
-  </main>
+  </MainLayout>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api/api'
+import MainLayout from '../components/MainLayout.vue'
 
 const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
 const patientId = storedUser.patientId ?? null
@@ -160,6 +154,7 @@ const patient = ref(null)
 const consultations = ref([])
 const appointments = ref([])
 const doctors = ref([])
+const editingAppointmentId = ref(null)
 
 const newAppointment = reactive({
   doctorId: '',
@@ -233,30 +228,64 @@ const filteredAppointments = computed(() => {
   return appointments.value
 })
 
+function canReschedule(appointment) {
+  return appointment.status !== 'Completed' && new Date(appointment.date) >= today
+}
+
+function startReschedule(appointment) {
+  if (!canReschedule(appointment)) return
+  editingAppointmentId.value = appointment.id
+  newAppointment.doctorId = appointment.doctorId
+  newAppointment.date = appointment.date
+  newAppointment.time = appointment.time
+  newAppointment.reason = appointment.reason
+  newAppointment.notes = appointment.notes
+}
+
 async function scheduleAppointment() {
   try {
     const startDateTime = new Date(`${newAppointment.date}T${newAppointment.time}`)
     const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000)
 
-    const created = await api.createAppointment(patientId, {
+    const payload = {
       doctorId: newAppointment.doctorId,
       scheduledStartTime: startDateTime.toISOString(),
       scheduledEndTime: endDateTime.toISOString(),
       reasonForVisit: newAppointment.reason,
       notes: newAppointment.notes || ''
-    })
+    }
 
-    appointments.value.unshift({
-      id: created._id,
-      doctorId: created.doctorId,
-      date: newAppointment.date,
-      time: newAppointment.time,
-      reason: created.reasonForVisit,
-      notes: created.notes,
-      status: formatStatus(created.status)
-    })
+    if (editingAppointmentId.value) {
+      const updated = await api.updateAppointment(patientId, editingAppointmentId.value, payload)
+      appointments.value = appointments.value.map(app =>
+        app.id === editingAppointmentId.value
+          ? {
+            ...app,
+            doctorId: updated.doctorId,
+            date: newAppointment.date,
+            time: newAppointment.time,
+            reason: updated.reasonForVisit,
+            notes: updated.notes
+          }
+          : app
+      )
+      editingAppointmentId.value = null
+    } else {
+      const created = await api.createAppointment(patientId, payload)
+      appointments.value.unshift({
+        id: created._id,
+        doctorId: created.doctorId,
+        date: newAppointment.date,
+        time: newAppointment.time,
+        reason: created.reasonForVisit,
+        notes: created.notes,
+        status: formatStatus(created.status)
+      })
+    }
 
-    confirmationMessage.value = 'Appointment scheduled successfully.'
+    confirmationMessage.value = editingAppointmentId.value
+      ? 'Appointment updated successfully.'
+      : 'Appointment scheduled successfully.'
     filter.value = 'upcoming'
 
     newAppointment.doctorId = ''
@@ -267,8 +296,8 @@ async function scheduleAppointment() {
 
     setTimeout(() => { confirmationMessage.value = '' }, 3000)
   } catch (error) {
-    console.error('Error creating appointment:', error)
-    errorMessage.value = 'Failed to schedule appointment. Please try again.'
+    console.error('Error saving appointment:', error)
+    errorMessage.value = 'Failed to save appointment. Please try again.'
   }
 }
 
@@ -278,7 +307,7 @@ async function deleteAppointment(id) {
     appointments.value = appointments.value.filter(app => app.id !== id)
   } catch (error) {
     console.error('Error deleting appointment:', error)
-    errorMessage.value = 'Failed to cancel appointment.'
+    errorMessage.value = 'Failed to delete appointment.'
   }
 }
 
@@ -289,8 +318,14 @@ function getDoctorName(doctorId) {
 }
 
 function formatStatus(status) {
-  if (!status) return 'Pending'
+  if (!status) return 'Scheduled'
   return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
+function getAppointmentStatus(dateString) {
+  const appointmentDate = new Date(dateString)
+  appointmentDate.setHours(0, 0, 0, 0)
+  return appointmentDate < today ? 'Completed' : 'Scheduled'
 }
 
 function formatDate(dateString) {
@@ -319,14 +354,6 @@ function getDay(dateString) {
 </script>
 
 <style scoped>
-.patient-portal {
-  min-height: 100vh;
-  padding: 32px;
-  background: var(--color-bg);
-  color: var(--color-text-1);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
 .hero-card,
 .card {
   background: var(--color-paper);
@@ -354,10 +381,7 @@ function getDay(dateString) {
   text-transform: uppercase;
 }
 
-h1,
-h2,
-h3,
-p {
+h1, h2, h3, p {
   margin-top: 0;
 }
 
@@ -446,9 +470,7 @@ label {
   font-weight: 700;
 }
 
-input,
-select,
-textarea {
+input, select, textarea {
   width: 100%;
   box-sizing: border-box;
   border: 2px solid var(--color-border);
@@ -460,9 +482,7 @@ textarea {
   outline: none;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary-hover);
   box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.18);
 }
@@ -492,6 +512,15 @@ textarea {
   border-radius: 12px;
   background: var(--color-success);
   color: var(--color-text-1);
+  font-weight: 700;
+}
+
+.error-message {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fde8e8;
+  color: #b91c1c;
   font-weight: 700;
 }
 
@@ -600,30 +629,33 @@ textarea {
   color: var(--color-text-1);
 }
 
-.error-message {
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: #fde8e8;
-  color: #b91c1c;
+.appointment-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.secondary-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: var(--color-secondary);
+  cursor: pointer;
   font-weight: 700;
 }
 
 .delete-btn {
-  margin-top: 10px;
-  border: 2px solid var(--color-border);
+  border: none;
   border-radius: 10px;
-  padding: 6px 14px;
-  background: transparent;
-  color: var(--color-text-2);
-  font-size: 0.85rem;
-  font-weight: 700;
+  padding: 8px 12px;
+  background: #dc3545;
+  color: white;
   cursor: pointer;
+  font-weight: 700;
 }
 
 .delete-btn:hover {
-  border-color: #b91c1c;
-  color: #b91c1c;
+  background: #b91c1c;
 }
 
 .empty-state {
@@ -663,10 +695,6 @@ textarea {
 }
 
 @media (max-width: 600px) {
-  .patient-portal {
-    padding: 18px;
-  }
-
   .hero-card,
   .card {
     padding: 22px;
