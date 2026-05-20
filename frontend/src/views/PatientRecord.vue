@@ -20,6 +20,24 @@
       </div>
     </div>
 
+    
+
+    <div class="risk-banner-container">
+      <div class="risk-banner critical">
+        ⚠ Penicillin Allergy
+      </div>
+
+      <div class="risk-banner warning">
+        ⚠ High Fall Risk
+      </div>
+
+      <div class="risk-banner info">
+        ℹ Diabetic Patient
+      </div>
+    </div>
+
+    <div class="patient-layout">
+
     <div class="patient-layout">
       <main class="main-content">
         <section class="card">
@@ -92,6 +110,8 @@
     </div>
   </div>
 </template>
+
+
 
 <script>
 export default {
