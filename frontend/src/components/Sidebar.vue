@@ -35,7 +35,10 @@
                 <span class="icon">🔔</span>
                 <span class="label">Alerts</span>
             </router-link>
-
+            <router-link to="/waitingroom" class="nav-link">
+                <span class="icon">🪑</span>
+                <span class="label">Waiting Room</span>
+            </router-link>
             <router-link to="/PatientPortal" class="nav-link">
                 <span class="icon">🌀</span>
                 <span class="label">Patient Portal</span>
