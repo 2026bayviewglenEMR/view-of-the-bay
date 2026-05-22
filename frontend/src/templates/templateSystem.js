@@ -52,343 +52,402 @@ export function getTemplates() {
     },
 
     /* Examination form */
-{
-  id: "basic_diagnosis",
-
-  name: "Examination",
-
-  fields: [
-
     {
-      id: "chief_complaint",
+      id: "basic_diagnosis",
 
-      label: "Chief Complaint",
+      name: "Examination",
 
-      type: "text",
+      fields: [
 
-      default: ""
+        {
+          id: "chief_complaint",
+
+          label: "Chief Complaint",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "diagnosis",
+
+          label: "Diagnosis",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "pain_level",
+
+          label: "Pain Level (1-10)",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "symptom_duration",
+
+          label: "Symptom Duration",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "allergies",
+
+          label: "Allergies",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "current_medications",
+
+          label: "Current Medications",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "physical_exam",
+
+          label: "Physical Examination Findings",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "treatment_plan",
+
+          label: "Treatment Plan",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "additional_notes",
+
+          label: "Additional Notes",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "follow_up",
+
+          label: "Follow-up Needed",
+
+          type: "boolean",
+
+          default: ""
+        }
+      ]
     },
 
+    /* Vitals form */
     {
-      id: "diagnosis",
+      id: "vitals_check",
 
-      label: "Diagnosis",
+      name: "Vitals Check",
 
-      type: "text",
+      fields: [
 
-      default: ""
+        {
+          id: "temperature",
+
+          label: "Temperature (°C)",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "heart_rate",
+
+          label: "Heart Rate (bpm)",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "blood_pressure",
+
+          label: "Blood Pressure",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "respiratory_rate",
+
+          label: "Respiratory Rate",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "height",
+
+          label: "Height",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "weight",
+
+          label: "Weight",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "bmi",
+
+          label: "BMI",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "mobility_status",
+
+          label: "Mobility Status",
+
+          type: "text",
+
+          default: ""
+        },
+
+        {
+          id: "additional_notes",
+
+          label: "Additional Notes",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "follow_up",
+
+          label: "Follow-up Needed",
+
+          type: "boolean",
+
+          default: ""
+        }
+      ]
     },
 
+    /* Mental health form */
     {
-      id: "pain_level",
+      id: "mental_health",
 
-      label: "Pain Level (1-10)",
+      name: "Mental Health Check",
 
-      type: "text",
+      fields: [
 
-      default: ""
-    },
+        {
+          id: "current_mood",
 
-    {
-      id: "symptom_duration",
+          label: "Current Mood",
 
-      label: "Symptom Duration",
+          type: "text",
 
-      type: "text",
+          default: ""
+        },
 
-      default: ""
-    },
+        {
+          id: "stress_level",
 
-    {
-      id: "allergies",
+          label: "Stress Level",
 
-      label: "Allergies",
+          type: "text",
 
-      type: "text",
+          default: ""
+        },
 
-      default: ""
-    },
+        {
+          id: "sleep_quality",
 
-    {
-      id: "current_medications",
+          label: "Sleep Quality",
 
-      label: "Current Medications",
+          type: "text",
 
-      type: "textarea",
+          default: ""
+        },
 
-      default: ""
-    },
+        {
+          id: "energy_level",
 
-    {
-      id: "physical_exam",
+          label: "Energy Level",
 
-      label: "Physical Examination Findings",
+          type: "text",
 
-      type: "textarea",
+          default: ""
+        },
 
-      default: ""
-    },
+        {
+          id: "appetite",
 
-    {
-      id: "treatment_plan",
+          label: "Appetite Changes",
 
-      label: "Treatment Plan",
+          type: "text",
 
-      type: "textarea",
+          default: ""
+        },
 
-      default: ""
-    },
+        {
+          id: "anxiety_level",
 
-    {
-      id: "additional_notes",
+          label: "Anxiety Level",
 
-      label: "Additional Notes",
+          type: "text",
 
-      type: "textarea",
+          default: ""
+        },
 
-      default: ""
-    },
+        {
+          id: "depression_symptoms",
 
-    {
-      id: "follow_up",
+          label: "Depression Symptoms",
 
-      label: "Follow-up Needed",
+          type: "textarea",
 
-      type: "boolean",
+          default: ""
+        },
 
-      default: ""
+        {
+          id: "social_support",
+
+          label: "Social Support System",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "coping_methods",
+
+          label: "Current Coping Methods",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "additional_notes",
+
+          label: "Additional Notes",
+
+          type: "textarea",
+
+          default: ""
+        },
+
+        {
+          id: "follow_up",
+
+          label: "Follow-up Needed",
+
+          type: "boolean",
+
+          default: ""
+        }
+      ]
     }
-  ]
-},
+    ,
 
-/* Vitals form */
-{
-  id: "vitals_check",
-
-  name: "Vitals Check",
-
-  fields: [
-
+    /* Prescribe medication form */
     {
-      id: "temperature",
+      id: "prescribe_medication",
 
-      label: "Temperature (°C)",
+      name: "Prescribe Medication",
 
-      type: "text",
+      fields: [
+        {
+          id: "patient_name",
+          label: "Patient Name",
+          type: "text",
+          default: "Emma Johnson"
+        },
 
-      default: ""
-    },
+        {
+          id: "allergies",
+          label: "Allergies",
+          type: "text",
+          default: "Penicillin"
+        },
 
-    {
-      id: "heart_rate",
+        {
+          id: "current_medications",
+          label: "Current Medications",
+          type: "textarea",
+          default: "Warfarin 5mg Daily\nIbuprofen 400mg As needed"
+        },
 
-      label: "Heart Rate (bpm)",
+        {
+          id: "medication",
+          label: "Medication Search",
+          type: "text",
+          default: ""
+        },
 
-      type: "text",
+        {
+          id: "dosage",
+          label: "Dosage",
+          type: "text",
+          default: ""
+        },
 
-      default: ""
-    },
+        {
+          id: "frequency",
+          label: "Frequency",
+          type: "text",
+          default: ""
+        },
 
-    {
-      id: "blood_pressure",
-
-      label: "Blood Pressure",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "respiratory_rate",
-
-      label: "Respiratory Rate",
-
-      type: "text",
-
-      default: ""
-    },
-    
-    {
-      id: "height",
-
-      label: "Height",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "weight",
-
-      label: "Weight",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "bmi",
-
-      label: "BMI",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "mobility_status",
-
-      label: "Mobility Status",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "additional_notes",
-
-      label: "Additional Notes",
-
-      type: "textarea",
-
-      default: ""
-    },
-
-    {
-      id: "follow_up",
-
-      label: "Follow-up Needed",
-
-      type: "boolean",
-
-      default: ""
+        {
+          id: "instructions",
+          label: "Instructions",
+          type: "textarea",
+          default: ""
+        }
+      ]
     }
-  ]
-},
-
-/* Mental health form */
-{
-  id: "mental_health",
-
-  name: "Mental Health Check",
-
-  fields: [
-
-    {
-      id: "current_mood",
-
-      label: "Current Mood",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "stress_level",
-
-      label: "Stress Level",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "sleep_quality",
-
-      label: "Sleep Quality",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "energy_level",
-
-      label: "Energy Level",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "appetite",
-
-      label: "Appetite Changes",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "anxiety_level",
-
-      label: "Anxiety Level",
-
-      type: "text",
-
-      default: ""
-    },
-
-    {
-      id: "depression_symptoms",
-
-      label: "Depression Symptoms",
-
-      type: "textarea",
-
-      default: ""
-    },
-
-    {
-      id: "social_support",
-
-      label: "Social Support System",
-
-      type: "textarea",
-
-      default: ""
-    },
-
-    {
-      id: "coping_methods",
-
-      label: "Current Coping Methods",
-
-      type: "textarea",
-
-      default: ""
-    },
-
-    {
-      id: "additional_notes",
-
-      label: "Additional Notes",
-
-      type: "textarea",
-
-      default: ""
-    },
-
-    {
-      id: "follow_up",
-
-      label: "Follow-up Needed",
-
-      type: "boolean",
-
-      default: ""
-    }
-  ]
-}
   ];
 }
