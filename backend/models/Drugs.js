@@ -1,4 +1,4 @@
-// models/User.js -Arees
+// models/Drugs.js -Arees
 const mongoose = require('mongoose');
  
 const drugInteractionSchema = new mongoose.Schema({

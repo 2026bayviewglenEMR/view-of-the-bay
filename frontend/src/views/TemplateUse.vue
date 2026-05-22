@@ -38,7 +38,7 @@
         :disabled="!canGoNext"
         @click="saveAllForms"
       >
-        Save Examination
+        Save Consultation
       </button>
 
     </div>
