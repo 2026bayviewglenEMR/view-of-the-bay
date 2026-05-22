@@ -1,6 +1,6 @@
-import Template from "../models/Templates.js";
+const Template = require("../models/Templates.js");
 
-export const getTemplates = async(req, res) =>{
+const getTemplates = async(req, res) =>{
   try {
     const userId = req.user.id;
 
@@ -15,3 +15,5 @@ export const getTemplates = async(req, res) =>{
     res.status(500).json({ error: err.message });
   }
 }
+
+module.exports = { getTemplates }

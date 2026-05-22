@@ -47,7 +47,7 @@ const tasksRouter = require('./routes/tasks');
 const patientPortalRoutes = require("./routes/patientPortal");
 const drugsRoutes = require("./routes/drugsRoutes")
 const waitingRoomRouter = require('./routes/waitingRoom');
-const templatesRouter = require('./routes/consultationTemplates.js');
+const templatesRoutes = require('./routes/templatesRoutes.js');
 const patientRoutes = require("./routes/patients.routes");
 const userRoutes = require("./routes/users.routes");
 
@@ -68,7 +68,7 @@ app.use('/api/tasks', tasksRouter);
 app.use("/api/patient-portal", patientPortalRoutes);
 app.use("/api/drugs", drugsRoutes)
 app.use('/api/waiting-room', waitingRoomRouter);
-app.use('/api/templates', templatesRouter);
+app.use('/api/templates', templatesRoutes);
 app.use("/api/users", userRoutes);
 
 app.get('/api/doctors', authenticateToken, async (req, res) => {
