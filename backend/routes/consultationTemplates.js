@@ -46,7 +46,7 @@ router.get(
 router.post(
   '/consultation/complete',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   saveAndCompleteVisit
 );
 
@@ -54,28 +54,28 @@ router.post(
 router.get(
   '/templates/my',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   getMyTemplates
 );
 
 router.post(
   '/templates/my',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   createMyTemplate
 );
 
 router.put(
   '/templates/my/:id',
   requireAuth,
-  requireRole('DOCTOR'),
+  requireRole(['doctor']),
   updateMyTemplate
 );
 
 router.get(
   '/templates/clinic',
   requireAuth,
-  requireRole('ADMINISTRATOR'),
+  requireRole(['admin']),
   getClinicTemplates
 );
 

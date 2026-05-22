@@ -11,7 +11,6 @@ router.post('/signIn', async (req, res) => {
     const {username, password} = req.body;
 
     const user = await User.findOne({ username });
-    console.log(user);
     if (!user) return res.status(401).json({ message: "Invalid username or password" });
     const isMatch = await bcrypt.compare(password, user.password);
     if (user && isMatch) {
@@ -22,19 +21,29 @@ router.post('/signIn', async (req, res) => {
                 lastName: user.lastName,
                 id: user.id,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                patientId: user.patientId ?? null
             },
             process.env.JWT_SECRET,
             { expiresIn: '8h' }
         );
-        return res.status(200).json(token);
+        const userToReturn = {
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            patientId: user.patientId ?? null
+        }
+        return res.status(200).json({token, user: userToReturn});
     } else {
         return res.status(401).json({ message: "Invalid username or password" });
     }
 });
 
 router.post('/createUser', authenticateToken, async (req, res) => {
-    const { username, password, firstName, lastName, email, role } = req.body;
+    const { username, password, firstName, lastName, email, role, patientId } = req.body;
 
     try {
 
@@ -47,6 +56,7 @@ router.post('/createUser', authenticateToken, async (req, res) => {
         firstName,
         lastName,
         email,
+        patientId: patientId || null,
     });
     const savedUser = await newUser.save();
     return res.status(201).json(savedUser)
@@ -56,13 +66,39 @@ router.post('/createUser', authenticateToken, async (req, res) => {
     }
 });
 
-router.post('/updatePassword', authenticateToken, (req, res) => {
-    const user = req.user;
-    const { newPassword } = req.body;
-    console.log("new Password", newPassword);
-    console.log("u", user);
-    //TODO: implement
-    return res.status(200).json({ message: "UNIMPLEMENTED" })
+router.post('/updatePassword', authenticateToken, async (req, res) => {
+    try {
+        // req.user comes from your authenticateToken middleware
+        const userId = req.user.id; 
+        const { newPassword } = req.body;
+
+        // 1. Validation check
+        if (!newPassword) {
+            return res.status(400).json({ message: "New password is required" });
+        }
+
+        // 2. Hash the new password
+        const hashedNewPassword = await bcrypt.hash(newPassword, passwordSaltRounds);
+
+        // 3. Update the user in the database
+        // We use findByIdAndUpdate to target the specific user by their ID
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            { password: hashedNewPassword },
+            { new: true } // This option returns the updated document
+        );
+
+        // 4. Safety check: Did the user actually exist in the database?
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({ message: "Password updated successfully" });
+
+    } catch (error) {
+        console.error("Error updating password:", error);
+        return res.status(500).json({ message: "An error occurred" });
+    }
 });
 
 module.exports = router;

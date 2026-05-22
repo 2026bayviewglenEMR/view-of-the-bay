@@ -19,15 +19,15 @@ const authenticateToken = (req, res, next) => {
     })
 }
 
-const requireRole = (requiredRole) => {
+const requireRole = (requiredRoles) => {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ error: "Unauthorized. Please log in." });
         }
 
-        if (req.user.role.toLowerCase() !== requiredRole.toLowerCase()) {
+        if (!requiredRoles.includes(req.user.role.toLowerCase())) {
             return res.status(403).json({ 
-                error: `Access denied. This action requires ${requiredRole}.` 
+                error: `Access denied. This action requires one of ${requiredRoles.join(", ")}.` 
             });
         }
 
