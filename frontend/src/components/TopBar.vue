@@ -11,12 +11,10 @@
             <span class="search-icon">🔍</span>
         </div>
         <div class="user-info">
-            <span class="notification-icon" title="Notifications">
-                🔔
-                <span v-if="notificationCount > 0" class="notification-badge">
-                    {{ notificationCount }}
-                </span>
-            </span>
+            
+            <DoctorTasks />
+            <PatientAlerts />
+
             <div class="profile-menu">
                 <button class="profile-button" @click="toggleMenu">
                     👤 {{ userName }}
@@ -98,6 +96,9 @@
 import { defineProps, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '../api/api.js';
+
+import PatientAlerts from './PatientAlerts.vue';
+import DoctorTasks from './DoctorTasks.vue';
 
 const props = defineProps({
     title: {
