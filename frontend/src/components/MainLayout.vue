@@ -22,7 +22,7 @@ import Sidebar from '../components/Sidebar.vue';
 const props = defineProps({
     title: {
         type: String,
-        default: 'Dashboard'
+        default: 'View of the Bay'
     }
 });
 
