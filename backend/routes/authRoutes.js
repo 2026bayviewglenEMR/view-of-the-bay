@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const { authenticateToken } = require("../verifyToken.js");
+const { authenticateToken, requireRole } = require("../verifyToken.js");
 const bcrypt = require("bcrypt");
 const User = require("../models/User.js");
 
@@ -42,7 +42,7 @@ router.post('/signIn', async (req, res) => {
     }
 });
 
-router.post('/createUser', authenticateToken, async (req, res) => {
+router.post('/createUser', authenticateToken, requireRole(['admin']), async (req, res) => {
     const { username, password, firstName, lastName, email, role, patientId } = req.body;
 
     try {
