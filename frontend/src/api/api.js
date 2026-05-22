@@ -13,9 +13,11 @@ export const api = {
     updatePassword: (newPassword) => http.post('/auth/updatePassword', {newPassword}).then(r => r.data),
     createUser: ({username, password, firstName, lastName, email, role}) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
 
-    // comms
-    sendMessage: (senderId, receiverId, message) => http.post('/comms/send', {senderId, receiverId, message}).then(r => r.data),
+    // comms - SUBJECT TO CHANGE
+    sendMessage: (senderId, receiverId, content, isRead, timestamp) => 
+        http.post('/comms/send', {senderId, receiverId, content, isRead, timestamp}).then(r => r.data),
     loadMessages: (userId) => http.get(`/comms/${userId}/messages`).then(r => r.data),
+    //sendAttachment: (attachment) => http.post('???').then(r => r.data),
 
     // patient portal
     getPortalData: (patientId) => http.get(`/patient-portal/${patientId}`).then(r => r.data),
