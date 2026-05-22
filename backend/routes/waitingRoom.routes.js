@@ -10,13 +10,16 @@ const {
   getPatientDetails,
 } = require("../controllers/waitingRoom.controller");
 
-router.get("/waiting-room",              getWaitingRoom);
-router.post("/waiting-room",             checkInPatient);
-router.patch("/waiting-room/:id/status", updatePatientStatus);
-router.delete("/waiting-room/:id",       removePatient);
+router.get("/", getWaitingRoom);
 
-router.get("/doctors/overview",          getDoctorsOverview);
+router.post("/", checkInPatient);
 
-router.get("/patients/:id",              getPatientDetails);
+router.patch("/:id/status", updatePatientStatus);
+
+router.delete("/:id", removePatient);
+
+router.get("/doctors/overview", getDoctorsOverview);
+
+router.get("/patients/:id", getPatientDetails);
 
 module.exports = router;
