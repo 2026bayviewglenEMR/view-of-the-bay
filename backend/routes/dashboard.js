@@ -14,7 +14,7 @@ const {
   getProviderWorkload,
 } = require('../controllers/dashboardController');
 
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { authenticateToken: requireAuth, requireRole } = require('../verifyToken');
 
 // ─── Role-Specific Dashboard Views ───────────────────────────────────────────
 
@@ -34,7 +34,7 @@ router.get(
 router.get(
   '/nurse',
   requireAuth,
-  requireRole('NURS3E'),
+  requireRole(['nurs3e']),
   getNurseDashboard
 );
 
@@ -53,7 +53,7 @@ router.get(
 router.get(
   '/receptionist',
   requireAuth,
-  requireRole('RECEPTIONIST'),
+  requireRole(['receptionist']),
   getReceptionistDashboard
 );
 
@@ -66,7 +66,7 @@ router.get(
 router.get(
   '/appointments/today',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN', 'RECEPTIONIST'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin', 'receptionist']), //NO NURSE/RECEPTIONIST ROLE
   getTodaysAppointments
 );
 
@@ -76,7 +76,7 @@ router.get(
 router.get(
   '/tasks',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin']), //NO NURSE/RECEPTIONIST ROLE
   getPendingTasks
 );
 
@@ -85,7 +85,7 @@ router.get(
 router.patch(
   '/tasks/:taskId/complete',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin']), //NO NURSE/RECEPTIONIST ROLE
   completeTask
 );
 
@@ -95,7 +95,7 @@ router.patch(
 router.get(
   '/activity',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin']), //NO NURSE/RECEPTIONIST ROLE
   getRecentActivity
 );
 

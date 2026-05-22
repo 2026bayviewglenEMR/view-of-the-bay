@@ -10,7 +10,7 @@ const {
   completeTask,
 } = require("../controllers/taskController");
 
-const { authenticateToken } = require("../middleware/auth");
+const { authenticateToken } = require("../verifyToken");
 
 router.post("/", authenticateToken, createTask);
 router.get("/", authenticateToken, getTasks);

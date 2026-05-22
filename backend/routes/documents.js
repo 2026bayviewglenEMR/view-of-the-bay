@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../config/multer");
 const controller = require("../controllers/documentController");
-const auth = require("../middleware/auth");
+const { authenticateToken } = require("../verifyToken");
 
 // Upload document
 router.post(
   "/upload",
-  auth,
+  authenticateToken,
   upload.single("file"),
   controller.uploadDocument
 );
@@ -15,14 +15,14 @@ router.post(
 // Get documents for a patient
 router.get(
   "/patient/:patientId",
-  auth,
+  authenticateToken,
   controller.getDocumentsByPatient
 );
 
 // Delete document
 router.delete(
   "/:id",
-  auth,
+  authenticateToken,
   controller.deleteDocument
 );
 

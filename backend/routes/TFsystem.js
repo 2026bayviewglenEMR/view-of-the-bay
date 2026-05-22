@@ -21,7 +21,7 @@ const {
 } = require('../controllers/favoriteController');
 
 
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { authenticateToken: requireAuth, requireRole } = require('../verifyToken');
 
 
 router.get('/templates/my',
