@@ -1,32 +1,44 @@
 <template>
   <div class="templates-page">
 
-    <!-- TITLE -->
     <h1 class="title">
       Patient Examination
     </h1>
 
-    <!-- CURRENT FORM -->
-    <TemplateRenderer :template="currentTemplate" :initialData="allForms[currentTemplate.id]"
-      @update="updateFormData" />
+    <TemplateRenderer
+      :template="currentTemplate"
+      :initialData="allForms[currentTemplate.id] || {}"
+      @update="updateFormData"
+    />
 
-    <!-- NAVIGATION -->
     <div class="navigation-buttons">
 
-      <!-- BACK -->
-      <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">
+      <button
+        v-if="currentIndex > 0"
+        class="back-btn"
+        @click="previousTemplate"
+      >
         Back
       </button>
 
-      <!-- NEXT -->
-      <button v-if="currentIndex < templates.length - 1" class="next-btn" :disabled="!canGoNext"
-        :class="{ disabled: !canGoNext }" @click="nextTemplate">
+      <button
+        v-if="!isLastPage"
+        class="next-btn"
+        :class="{ disabled: !canGoNext }"
+        :disabled="!canGoNext"
+        @click="nextTemplate"
+      >
         Next
       </button>
 
-      <!-- SAVE -->
-      <button v-else class="save-btn" :disabled="!canGoNext" :class="{ disabled: !canGoNext }" @click="saveAllForms">
-        Save
+      <button
+        v-else
+        class="save-btn"
+        :class="{ disabled: !canGoNext }"
+        :disabled="!canGoNext"
+        @click="saveAllForms"
+      >
+        Save Examination
       </button>
 
     </div>
@@ -37,136 +49,153 @@
 <script setup>
 import {
   ref,
-  computed
+  computed,
+  watch
 } from "vue";
 
-import {
-  useRoute
-} from "vue-router";
+import { useRoute } from "vue-router";
 
-import {
-  getTemplates
-} from "@/templates/templateSystem";
+import { getTemplates }
+from "@/templates/templateSystem";
 
-import TemplateRenderer from
-  "@/components/templates/TemplateRenderer.vue";
+import TemplateRenderer
+from "@/components/templates/TemplateRenderer.vue";
 
-/* ROUTE */
 const route = useRoute();
 
 const patientId =
   route.params.patientId;
 
-/* ALL TEMPLATES */
 const templates =
   ref(getTemplates());
 
-/* CURRENT STEP */
 const currentIndex =
   ref(0);
 
-/* CURRENT TEMPLATE */
 const currentTemplate =
   computed(() =>
     templates.value[currentIndex.value]
   );
 
-/* STORED FORMS */
+const isLastPage =
+  computed(() =>
+    currentIndex.value ===
+    templates.value.length - 1
+  );
+
 const allForms =
   ref({});
 
-/* CURRENT FORM DATA */
 const currentFormData =
   ref({});
 
-/* LIVE FORM UPDATE */
+watch(
+  currentTemplate,
+  () => {
+
+    const savedData =
+      allForms.value[
+        currentTemplate.value.id
+      ];
+
+    currentFormData.value =
+      savedData
+      ? { ...savedData }
+      : {};
+
+  },
+  { immediate: true }
+);
+
 function updateFormData(data) {
-  currentFormData.value = data;
+
+  currentFormData.value = {
+    ...data
+  };
+
 }
 
-/* VALIDATION */
-const canGoNext = computed(() => {
+const canGoNext =
+  computed(() => {
 
-  if (!currentTemplate.value) {
-    return false;
-  }
-
-  return currentTemplate.value.fields.some(field => {
-
-    const value =
-      currentFormData.value[field.id];
-
-    /* CHECKBOX GROUP */
-    if (Array.isArray(value)) {
-      return value.length > 0;
+    if (!currentTemplate.value) {
+      return false;
     }
 
-    /* BOOLEAN */
-    if (field.type === "boolean") {
-      return value === true ||
-             value === false;
-    }
+    return currentTemplate.value.fields.some(field => {
 
-    /* TEXT / TEXTAREA */
-    return value !== "" &&
-           value !== null &&
-           value !== undefined;
+      const value =
+        currentFormData.value[field.id];
+
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+
+      if (field.type === "boolean") {
+        return value === true ||
+               value === false;
+      }
+
+      return value !== "" &&
+             value !== null &&
+             value !== undefined;
+
+    });
 
   });
 
-});
-
-/* NEXT TEMPLATE */
 function nextTemplate() {
 
   if (!canGoNext.value) return;
 
-  /* save current form */
   allForms.value[
     currentTemplate.value.id
   ] = {
     ...currentFormData.value
   };
 
-  /* Next button */
   currentIndex.value++;
+
 }
 
-/* Prev template */
 function previousTemplate() {
 
-  if (currentIndex.value === 0) return;
-
-  /* save current form */
   allForms.value[
     currentTemplate.value.id
   ] = {
     ...currentFormData.value
   };
 
-  /* Go back previous */
-  currentIndex.value--;
+  if (currentIndex.value > 0) {
+    currentIndex.value--;
+  }
+
 }
 
-/* Save everything */
-function saveAllForms() {
+async function saveAllForms() {
 
-  /* Saving final form */
+  if (!canGoNext.value) return;
+
   allForms.value[
     currentTemplate.value.id
   ] = {
     ...currentFormData.value
   };
 
-  console.log(
-    "Patient:",
-    patientId
-  );
+  const payload = {
+    patientId,
+    forms: allForms.value
+  };
 
-  console.log(
-    "All Forms:",
-    allForms.value
+  console.log(payload);
+
+  /*
+  LATER:
+  await axios.post(
+    "/api/consultation/complete",
+    payload
   );
+  */
 
   alert(
     "Patient examination saved successfully"
@@ -176,12 +205,12 @@ function saveAllForms() {
 </script>
 
 <style scoped>
+
 .templates-page {
   min-height: 100vh;
 
   display: flex;
   flex-direction: column;
-
   align-items: center;
 
   padding: 32px;
@@ -189,7 +218,6 @@ function saveAllForms() {
   background: #e8e4cf;
 }
 
-/* Title card */
 .title {
   font-size: 52px;
   font-weight: 700;
@@ -199,16 +227,15 @@ function saveAllForms() {
   margin-bottom: 28px;
 }
 
-/* BUTTON ROW */
 .navigation-buttons {
   display: flex;
 
   gap: 18px;
 
   margin-top: 26px;
+  margin-bottom: 20px;
 }
 
-/* buttons */
 .back-btn,
 .next-btn,
 .save-btn {
@@ -225,30 +252,32 @@ function saveAllForms() {
   transition: all 0.2s ease;
 }
 
-/* Back button */
 .back-btn {
   background: #d9d9d9;
   color: black;
 }
 
-/* Next button */
 .next-btn {
   background: #2e7d32;
   color: white;
 }
 
-/* Save button */
 .save-btn {
   background: #2e7d32;
   color: white;
 }
 
-/* Disable next button */
+.next-btn:hover,
+.save-btn:hover,
+.back-btn:hover {
+  transform: translateY(-1px);
+}
+
 .disabled {
   background: #bdbdbd !important;
-
   cursor: not-allowed;
-
   opacity: 0.75;
+  transform: none !important;
 }
+
 </style>
