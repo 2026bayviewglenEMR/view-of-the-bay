@@ -11,7 +11,6 @@ onMounted(async () => {
   try {
     const response = await fetch(`${baseURL}/api/tasks`);
     if (response.ok) {
-      // Assuming you only want to show incomplete tasks in the dropdown
       const allTasks = await response.json();
       tasks.value = allTasks.filter(task => !task.completed); 
     }
@@ -50,7 +49,6 @@ const addTask = async () => {
 
 // 3. PATCH /api/tasks/:id (Updates the checkbox status)
 const completeTask = async (id) => {
-  // Optimistically remove it from the active list
   tasks.value = tasks.value.filter(task => task.id !== id);
   
   try {

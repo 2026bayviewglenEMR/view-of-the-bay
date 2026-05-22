@@ -20,12 +20,26 @@ const emit = defineEmits(["update:modelValue"]);
 <style scoped>
 input {
   width: 100%;
-  border: 1px solid #000000;
-  padding: 10px;
-  border-radius: 8px;
-  font: inherit;
+  padding: 14px;
+
+  border: 2px solid #d0d0d0;
+  border-radius: 10px;
+
+  font-size: 16px;
+  font-family: inherit;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
+
 input:focus {
-  outline: 2px solid #93c5fd;
+  outline: none;
+
+  border-color: #4f8cff;
+
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.15);
 }
 </style>

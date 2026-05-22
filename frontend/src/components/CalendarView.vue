@@ -6,20 +6,11 @@ import { Qalendar } from 'qalendar';
 const events = ref([]);
 const config = ref({
   defaultMode: 'week',
-  // You can add more qalendar config options here
 });
 const baseURL = 'http://localhost:3000';
 
 // 1. GET /api/appointments
 onMounted(async () => {
-  
-  setTimeout(() => {
-    events.value = mockDatabaseResponse; // Inject the JSON
-    isLoading.value = false;             // Turn off the loading screen
-  }, 1000);
-
-  // === THE REAL CODE FOR LATER ===
-
   try {
     const response = await fetch(`${baseURL}/api/appointments`);
     if (response.ok) {
@@ -31,7 +22,6 @@ onMounted(async () => {
 });
 
 // 2. PATCH /api/appointments/:id
-// This triggers automatically if someone drags/drops or resizes an event in Qalendar
 const updateAppointment = async (updatedEvent) => {
   try {
     await fetch(`${baseURL}/api/appointments/${updatedEvent.id}`, {
@@ -56,7 +46,6 @@ const updateAppointment = async (updatedEvent) => {
 </template>
 
 <style scoped>
-/* Includes the custom Portal colors we set up earlier */
 .calendar-wrapper {
   background-color: #f5f3e6;
   border: 2px solid #2e6d4f;
@@ -71,16 +60,5 @@ const updateAppointment = async (updatedEvent) => {
   --qalendar-border-color: rgba(46, 109, 79, 0.2); 
   --qalendar-heading-color: #2e6d4f;
   --qalendar-base-color: #333333;
-}
-
-:deep(.calendar-root .date),
-:deep(.calendar-root .calendar-date),
-:deep(.calendar-root [class*="date"]) {
-  color: var(--color-text-1-dark);
-}
-
-:deep(.calendar-root .icon),
-:deep(.calendar-root [class*="icon"]) {
-  color: var(--color-text-1-dark);
 }
 </style>
