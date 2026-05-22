@@ -20,6 +20,11 @@ mongoose.connect(MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('MongoDB connection error:', err));
 
+mongoose.connection.once("open", () => {
+  console.log("DB NAME:", mongoose.connection.name);
+  console.log("HOST:", mongoose.connection.host);
+});
+
 //middleware to log requests
 app.use((req, res, next) => {
     const time = new Date().toLocaleTimeString();
@@ -40,6 +45,8 @@ const alertsRouter = require('./routes/alerts');
 const consultationsRouter = require('./routes/consultations');
 const tasksRouter = require('./routes/tasks');
 const patientPortalRoutes = require("./routes/patientPortal");
+const drugsRoutes = require("./routes/drugsRoutes")
+const waitingRoomRouter = require('./routes/waitingRoom');
 
 // 2. Mount the routes to their base URLs
 // If a request starts with '/api/patients', send it to Student 2's file
@@ -55,6 +62,8 @@ app.use('/api/alerts', alertsRouter);
 app.use('/api/consultations', consultationsRouter);
 app.use('/api/tasks', tasksRouter);
 app.use("/api/patient-portal", patientPortalRoutes);
+app.use("/api/drugs", drugsRoutes)
+app.use('/api/waiting-room', waitingRoomRouter);
 
 app.get('/api/doctors', authenticateToken, async (req, res) => {
     const doctors = await User.find({ role: 'doctor' });
