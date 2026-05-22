@@ -48,6 +48,7 @@ const patientPortalRoutes = require("./routes/patientPortal");
 const drugsRoutes = require("./routes/drugsRoutes")
 const waitingRoomRouter = require('./routes/waitingRoom.routes');
 const calendarRouter = require('./routes/calendar');
+const templatesRouter = require('./routes/consultationTemplates.js');
 const patientRoutes = require("./routes/patients.routes");
 const userRoutes = require("./routes/users.routes");
 
@@ -67,6 +68,7 @@ app.use('/api/tasks', tasksRouter);
 app.use("/api/patient-portal", patientPortalRoutes);
 app.use("/api/drugs", drugsRoutes)
 app.use('/api/waiting-room', waitingRoomRouter);
+app.use('/api/templates', templatesRouter);
 app.use("/api/users", userRoutes);
 app.use('/api/calendar', calendarRouter);
 
