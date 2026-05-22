@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Consultation from "@/views/TemplateUse.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,11 @@ const router = createRouter({
       path: '/templates',
       name: 'templates',
       component: () => import('../views/Templates.vue')
+    },
+    {
+      path: "/consultation/:patientId",
+      name: "consultation",
+      component: Consultation
     },
     {
       path: '/diagnose/:patientId',
@@ -68,6 +74,11 @@ const router = createRouter({
       name: 'Waiting Room',
       component: () => import('../views/WaitingRoom.vue')
     },
+    {
+      path: '/consultation',
+      name: "Consultation",
+      component: () => import('../views/Consultation.vue')
+    }
   ]
 })
 
