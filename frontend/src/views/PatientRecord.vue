@@ -37,8 +37,6 @@
     </div>
 
     <div class="patient-layout">
-
-    <div class="patient-layout">
       <main class="main-content">
         <section class="card">
           <h2>Demographics</h2>
