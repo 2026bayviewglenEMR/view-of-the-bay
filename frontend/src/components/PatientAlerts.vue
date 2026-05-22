@@ -23,7 +23,6 @@ const toggleDropdown = () => {
 
 // 2. DELETE /alerts/:id
 const dismissAlert = async (id) => {
-  // Optimistic UI update: instantly remove from screen
   patientAlerts.value = patientAlerts.value.filter(alert => alert.id !== id);
   
   try {
