@@ -16,8 +16,8 @@
 
         <el-button @click.prevent @click="signIn" type="primary" class="full-width">Log In</el-button>
         <el-button @click="testServer" type="primary" class="full-width">Test Server</el-button>
-        <el-button @click="doctorOnly" type="primary" class="full-width">Test Server (doctor only)</el-button>
-        <el-button @click="adminOnly" type="primary" class="full-width">Test Server (admin only)</el-button>
+        <el-button @click="getInteraction" type="primary" class="full-width">Get Interaction</el-button>
+        <el-button @click="getDrug" type="primary" class="full-width">getDrug</el-button>
       </el-form>
       
       <div class="footer">
@@ -79,16 +79,15 @@ const testServer = async () => {
   alert(JSON.stringify(res));
 }
 
-const doctorOnly = async () => {
-  alert("testing");
-  const res = await api.doctorOnly();
+const getInteraction = async () => {
+  const res = await api.getInteractions("DB00004", "DB00012");
   console.log("response", res);
   alert(JSON.stringify(res));
 }
 
-const adminOnly = async () => {
+const getDrug = async () => {
   alert("testing");
-  const res = await api.adminOnly();
+  const res = await api.getDrugs("da");
   console.log("response", res);
   alert(JSON.stringify(res));
 }

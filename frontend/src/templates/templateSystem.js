@@ -1,98 +1,394 @@
-// src/templates/templateSystem.js
-
 export function getTemplates() {
   return [
+
+    /* symptoms */
     {
-      id: "basic_diagnosis",
-      name: "Basic Diagnosis",
+      id: "symptoms_checklist",
+
+      name: "Symptoms Checklist",
+
       fields: [
-        {
-          id: "patient_name",
-          label: "Patient Name",
-          type: "text",
-          default: ""
-        },
         {
           id: "symptoms",
+
           label: "Symptoms",
-          type: "textarea",
-          default: ""
-        },
-        {
-          id: "diagnosis",
-          label: "Diagnosis",
-          type: "text",
-          default: ""
-        },
-        {
-          id: "follow_up",
-          label: "Follow-up Needed",
-          type: "boolean",
-          default: false
-        }
-      ]
-    },
 
-    {
-      id: "vitals_check",
-      name: "Vitals Check",
-      fields: [
-        {
-          id: "temperature",
-          label: "Temperature (°C)",
-          type: "text",
-          default: ""
+          type: "checkbox-group",
+
+          options: [
+            "Cough",
+            "Fever",
+            "Vomiting",
+            "Headache",
+            "Chest Pain",
+            "Abdominal Pain",
+            "Shortness of Breath",
+            "Excessive Sneezing",
+            "Dizziness",
+            "Sore Throat",
+            "Nausea",
+            "Back Pain",
+            "Joint Pain",
+            "Runny Nose",
+            "Congestion",
+            "Loss of Appetite",
+            "Rash",
+            "Jiddy virus",
+          ],
+
+          default: []
         },
+
         {
-          id: "heart_rate",
-          label: "Heart Rate (bpm)",
-          type: "text",
-          default: ""
-        },
-        {
-          id: "blood_pressure",
-          label: "Blood Pressure",
-          type: "text",
-          default: ""
-        },
-        {
-          id: "notes",
+          id: "additional_notes",
+
           label: "Additional Notes",
+
           type: "textarea",
+
           default: ""
         }
       ]
     },
 
+    /* Examination form */
+{
+  id: "basic_diagnosis",
+
+  name: "Examination",
+
+  fields: [
+
     {
-      id: "mental_health",
-      name: "Mental Health Check",
-      fields: [
-        {
-          id: "mood",
-          label: "Current Mood",
-          type: "text",
-          default: ""
-        },
-        {
-          id: "stress_level",
-          label: "Stress Level",
-          type: "text",
-          default: ""
-        },
-        {
-          id: "sleep_quality",
-          label: "Sleep Quality",
-          type: "text",
-          default: ""
-        },
-        {
-          id: "follow_up_required",
-          label: "Follow-up Required",
-          type: "boolean",
-          default: false
-        }
-      ]
+      id: "chief_complaint",
+
+      label: "Chief Complaint",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "diagnosis",
+
+      label: "Diagnosis",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "pain_level",
+
+      label: "Pain Level (1-10)",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "symptom_duration",
+
+      label: "Symptom Duration",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "allergies",
+
+      label: "Allergies",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "current_medications",
+
+      label: "Current Medications",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "physical_exam",
+
+      label: "Physical Examination Findings",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "treatment_plan",
+
+      label: "Treatment Plan",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "additional_notes",
+
+      label: "Additional Notes",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "follow_up",
+
+      label: "Follow-up Needed",
+
+      type: "boolean",
+
+      default: ""
     }
+  ]
+},
+
+/* Vitals form */
+{
+  id: "vitals_check",
+
+  name: "Vitals Check",
+
+  fields: [
+
+    {
+      id: "temperature",
+
+      label: "Temperature (°C)",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "heart_rate",
+
+      label: "Heart Rate (bpm)",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "blood_pressure",
+
+      label: "Blood Pressure",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "respiratory_rate",
+
+      label: "Respiratory Rate",
+
+      type: "text",
+
+      default: ""
+    },
+    
+    {
+      id: "height",
+
+      label: "Height",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "weight",
+
+      label: "Weight",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "bmi",
+
+      label: "BMI",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "mobility_status",
+
+      label: "Mobility Status",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "additional_notes",
+
+      label: "Additional Notes",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "follow_up",
+
+      label: "Follow-up Needed",
+
+      type: "boolean",
+
+      default: ""
+    }
+  ]
+},
+
+/* Mental health form */
+{
+  id: "mental_health",
+
+  name: "Mental Health Check",
+
+  fields: [
+
+    {
+      id: "current_mood",
+
+      label: "Current Mood",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "stress_level",
+
+      label: "Stress Level",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "sleep_quality",
+
+      label: "Sleep Quality",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "energy_level",
+
+      label: "Energy Level",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "appetite",
+
+      label: "Appetite Changes",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "anxiety_level",
+
+      label: "Anxiety Level",
+
+      type: "text",
+
+      default: ""
+    },
+
+    {
+      id: "depression_symptoms",
+
+      label: "Depression Symptoms",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "social_support",
+
+      label: "Social Support System",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "coping_methods",
+
+      label: "Current Coping Methods",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "additional_notes",
+
+      label: "Additional Notes",
+
+      type: "textarea",
+
+      default: ""
+    },
+
+    {
+      id: "follow_up",
+
+      label: "Follow-up Needed",
+
+      type: "boolean",
+
+      default: ""
+    }
+  ]
+}
   ];
 }

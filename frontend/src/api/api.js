@@ -8,6 +8,10 @@ export const api = {
 
     getDoctors: () => http.get('/doctors').then(r => r.data),
 
+    //drugs
+    getInteractions: (id1, id2) => http.get(`/drugs/${id1}/${id2}`).then(r => r.data),
+    getDrugs: (query) => http.get(`/drugs/${query}`),
+
     //auth
     signIn: (username, password) => http.post('/auth/signIn', {username, password}).then(r => r.data),
     updatePassword: (newPassword) => http.post('/auth/updatePassword', {newPassword}).then(r => r.data),
