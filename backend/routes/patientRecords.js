@@ -25,7 +25,7 @@ const {
   deleteDocument,
 } = require('../controllers/patientRecordsController');
 
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { authenticateToken: requireAuth, requireRole } = require('../verifyToken');
 const { upload } = require('../middleware/multer'); // multer instance for document uploads
 
 // ─── Patient CRUD ────────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ const { upload } = require('../middleware/multer'); // multer instance for docum
 router.get(
   '/',
   requireAuth,
-  requireRole('DOCTOR', 'NUR3SE', 'ADMIN', 'RECEPTIONIST'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nur3se', 'admin', 'receptionist']), //NO NURSE/RECEPTIONIST ROLE
   searchPatients
 );
 
@@ -45,7 +45,7 @@ router.get(
 router.post(
   '/',
   requireAuth,
-  requireRole('ADMIN', 'RECEPTIONIST'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['admin', 'receptionist']), //NO NURSE/RECEPTIONIST ROLE
   createPatientRecord
 );
 
@@ -54,7 +54,7 @@ router.post(
 router.get(
   '/:patientId',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN', 'RECEPTIONIST'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin', 'receptionist']), //NO NURSE/RECEPTIONIST ROLE
   getPatientRecord
 );
 
@@ -63,7 +63,7 @@ router.get(
 router.put(
   '/:patientId',
   requireAuth,
-  requireRole('ADMIN', 'RECEPTIONIST'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['admin', 'receptionist']), //NO NURSE/RECEPTIONIST ROLE
   updatePatientRecord
 );
 
@@ -83,7 +83,7 @@ router.delete(
 router.get(
   '/:patientId/visits',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin']), //NO NURSE/RECEPTIONIST ROLE
   getPatientVisitHistory
 );
 
@@ -94,7 +94,7 @@ router.get(
 router.post(
   '/:patientId/visits',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e']), //NO NURSE/RECEPTIONIST ROLE
   addVisit
 );
 
@@ -104,7 +104,7 @@ router.post(
 router.put(
   '/:patientId/visits/:visitId',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST ROLE
+  requireRole(['doctor', 'nurs3e']), //NO NURSE/RECEPTIONIST ROLE
   updateVisit
 );
 
@@ -115,7 +115,7 @@ router.put(
 router.get(
   '/:patientId/medications',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'PHARMACIST'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
+  requireRole(['doctor', 'nurs3e', 'pharmacist']), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getPatientMedications
 );
 
@@ -153,7 +153,7 @@ router.patch(
 router.get(
   '/:patientId/allergies',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'PHARMACIST'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
+  requireRole(['doctor', 'nurs3e', 'pharmacist']), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getPatientAllergies
 );
 
@@ -163,7 +163,7 @@ router.get(
 router.post(
   '/:patientId/allergies',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
+  requireRole(['doctor', 'nurs3e']), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   addAllergy
 );
 
@@ -183,7 +183,7 @@ router.delete(
 router.get(
   '/:patientId/diagnoses',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
+  requireRole(['doctor', 'nurs3e']), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getPatientDiagnoses
 );
 
@@ -212,7 +212,7 @@ router.put(
 router.get(
   '/:patientId/documents',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin']), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   getPatientDocuments
 );
 
@@ -221,7 +221,7 @@ router.get(
 router.post(
   '/:patientId/documents',
   requireAuth,
-  requireRole('DOCTOR', 'NURS3E', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
+  requireRole(['doctor', 'nurs3e', 'admin']), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   upload.single('file'),
   uploadDocument
 );
@@ -230,7 +230,7 @@ router.post(
 router.delete(
   '/:patientId/documents/:documentId',
   requireAuth,
-  requireRole('DOCTOR', 'ADMIN'), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
+  requireRole(['doctor', 'admin']), //NO NURSE/RECEPTIONIST/PHARMACIST ROLE
   deleteDocument
 );
 

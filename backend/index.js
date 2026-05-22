@@ -48,6 +48,7 @@ const patientPortalRoutes = require("./routes/patientPortal");
 const drugsRoutes = require("./routes/drugsRoutes")
 const waitingRoomRouter = require('./routes/waitingRoom');
 const templatesRoutes = require('./routes/templatesRoutes.js');
+const calendarRouter = require('./routes/calendar');
 const patientRoutes = require("./routes/patients.routes");
 const userRoutes = require("./routes/users.routes");
 
@@ -58,7 +59,6 @@ app.use("/api/patients", patientRoutes);
 // app.use('/api/staff', staffRoutes);
 // app.use('/api/patients', patientRoutes);
 // app.use('/api/clinical', clinicalRoutes); 
-// app.use('/api/scheduling', schedulingRoutes);
 app.use('/api/labs', labsRouter);
 app.use('/api/comms', commsRouter);
 app.use('/api/fileUploads', fileUploadsRouter);
@@ -70,6 +70,7 @@ app.use("/api/drugs", drugsRoutes)
 app.use('/api/waiting-room', waitingRoomRouter);
 app.use('/api/templates', templatesRoutes);
 app.use("/api/users", userRoutes);
+app.use('/api/calendar', calendarRouter);
 
 app.get('/api/doctors', authenticateToken, async (req, res) => {
     const doctors = await User.find({ role: 'doctor' });

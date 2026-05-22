@@ -13,7 +13,7 @@
             <p v-if="msg.content">{{ msg.content }}</p>
 
             <div v-if="msg.attachment" class="attachment">
-              <a :href="msg.attachmentUrl" target="_blank"> {{ msg.attachment.name }} </a>
+              <a :href="msg.attachment.url" target="_blank"> {{ msg.attachment.name }} </a>
             </div>
           </div>
         </div>
@@ -54,8 +54,53 @@ const currentUser = "user_123"
 const message = ref("")
 const selectedFile = ref(null)
 const messagesContainer = ref(null)
+// line for backend: const pastMessages = ref([])
 
-// loadMessages route to get
+
+const handleFileChange = (file) => { selectedFile.value = file }
+const removeFile = () => { selectedFile.value = null }
+
+
+
+// WHAT IT MIGHT LOOK LIKE WITH BACKEND (idk what I'm doing)
+/*
+const loadMessages = async () => {
+  try {
+    const res = await api.loadMessages(?) // figure out later
+    pastMessages.value = res
+  }
+  catch (err) {
+    console.error("Failed to load messages")
+  }
+}
+
+const sendMessage = async () => {
+  try {
+    let uploadedFile = null
+    if (selectedFile.value) {
+      uploadedFile = await api.sendAttachment(selectedFile.value.raw)
+    }
+    const newMessage = {
+      senderId: currentUser,
+      receiverId: "doctor_01",
+      content: message.value,
+      isRead: false,
+      timestamp: "idk how this works",
+      attachment: uploadedFile
+    }
+    const sentMessage = await api.sendMessage(newMessage)
+    pastMessages.value.push(sentMessage)
+    message.value = ""
+    selectedFile.value = null
+  }
+  catch (err) {
+    console.error("Failed to send message")
+  }
+}
+*/
+
+
+// FRONTEND MOCK VERSION
 const pastMessages = ref([
   {
     id: 1,
@@ -77,24 +122,27 @@ const pastMessages = ref([
   }
 ])
 
-// route for this, post, will write actual thing later
 const sendMessage = async () => {
   if (message.value.trim() === "" && selectedFile.value === null) {
     return
   }
-
   try {
     pastMessages.value.push({
-      id: Date.now(),
+      id: Date.now(), //temporary
       senderId: currentUser,
       receiverId: "doctor_01",
       content: message.value,
       isRead: true,
-      attachment: selectedFile.value,
-      attachmentUrl: selectedFile.value ? URL.createObjectURL(selectedFile.value.raw) : null,
-      timestamp: 0
+      timestamp: 0,
+      attachment: selectedFile.value
+      ? {
+        name: selectedFile.value.name,
+        url: URL.createObjectURL(selectedFile.value.raw)
+      }
+      : null
     })
     message.value = ""
+    selectedFile.value = null
 
     await nextTick()
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
@@ -102,14 +150,6 @@ const sendMessage = async () => {
   catch (err) {
     console.error("Failed to send message");
   }
-}
-
-const handleFileChange = (file) => {
-  selectedFile.value = file
-}
-
-const removeFile = () => {
-  selectedFile.value = null
 }
 </script>
 
@@ -151,6 +191,10 @@ const removeFile = () => {
 
 .sent .message {
   background: #2D6A4F;
+  color: white;
+}
+
+.message .attachment a {
   color: white;
 }
 
