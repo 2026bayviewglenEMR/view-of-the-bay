@@ -10,13 +10,13 @@ const {
   getPatientDetails,
 } = require('../controllers/waitingRoom.controller');
 
-const { authenticateToken, requireRole } = require('../middleware/auth');
+const { authenticateToken, requireRole } = require('../verifyToken');
 
 // GET /api/waiting-room — full queue for today
 router.get(
   '/',
   authenticateToken,
-  requireRole('doctor', 'admin'),
+  requireRole(['doctor', 'admin']),
   getWaitingRoom
 );
 
@@ -24,7 +24,7 @@ router.get(
 router.get(
   '/doctors',
   authenticateToken,
-  requireRole('doctor', 'admin'),
+  requireRole(['doctor', 'admin']),
   getDoctorsOverview
 );
 
@@ -33,7 +33,7 @@ router.get(
 router.post(
   '/check-in',
   authenticateToken,
-  requireRole('admin'),
+  requireRole(['admin']),
   checkInPatient
 );
 
@@ -42,7 +42,7 @@ router.post(
 router.patch(
   '/:id/status',
   authenticateToken,
-  requireRole('doctor', 'admin'),
+  requireRole(['doctor', 'admin']),
   updatePatientStatus
 );
 
@@ -50,7 +50,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticateToken,
-  requireRole('doctor', 'admin'),
+  requireRole(['doctor', 'admin']),
   removePatient
 );
 
@@ -58,7 +58,7 @@ router.delete(
 router.get(
   '/patient/:id',
   authenticateToken,
-  requireRole('doctor', 'admin'),
+  requireRole(['doctor', 'admin']),
   getPatientDetails
 );
 
