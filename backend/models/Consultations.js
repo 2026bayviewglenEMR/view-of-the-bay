@@ -25,6 +25,8 @@ const consultationSchema = new mongoose.Schema(
       heartRate: Number,
       temperature: Number,
       weight: Number,
+      systolicBP: Number,
+      diastolicBP: Number,
     },
     symptoms: {
       type: [String],
@@ -64,6 +66,47 @@ const consultationSchema = new mongoose.Schema(
       default: "symptoms",
     },
     notes: String,
+    wizardData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    finalTreatmentPlan: {
+      diagnosis: String,
+      prescriptions: String,
+      plan: String,
+      followUp: String,
+      updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      updatedAt: Date,
+    },
+    testOrderDocuments: [
+      {
+        title: {
+          type: String,
+          required: true,
+        },
+        testType: {
+          type: String,
+          required: true,
+        },
+        priority: {
+          type: String,
+          default: "routine",
+        },
+        instructions: String,
+        documentText: String,
+        createdBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     templateForms: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
