@@ -41,7 +41,8 @@
           </option>
         </select>
 
-        <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field" />
+        <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field"
+          :readonly="field.readonly" />
         <input v-if="field.type === 'select' && field.id === 'medication'" v-model="drugSearch" @input="searchDrugs"
           class="select" placeholder="Search medication..." />
         <div v-if="field.id === 'medication' && drugOptions.length > 0" class="drug-options">
@@ -85,7 +86,8 @@
 
         </div>
 
-        <TextField v-else-if="field.id !== 'medication'" v-model="formData[field.id]" :field="field" />
+        <TextField v-else-if="field.id !== 'medication'" v-model="formData[field.id]" :field="field"
+          :readonly="field.readonly" />
 
       </div>
 
@@ -370,6 +372,10 @@ const normalFields =
 .select {
   width: 100%;
 
+  min-width: 0;
+
+  display: block;
+
   padding: 14px;
 
   border-radius: 12px;
@@ -379,6 +385,8 @@ const normalFields =
   font-size: 15px;
 
   background: white;
+
+  box-sizing: border-box;
 }
 
 .checkbox-section {

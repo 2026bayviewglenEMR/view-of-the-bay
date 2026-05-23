@@ -7,7 +7,7 @@
 
     <TemplateRenderer
       :template="currentTemplate"
-      :initialData="allForms[currentTemplate.id] || {}"
+      :initialData="currentInitialData"
       @update="updateFormData"
     />
 
@@ -89,22 +89,59 @@ const allForms =
 const currentFormData =
   ref({});
 
+const SOURCE_TEMPLATE =
+  "basic_diagnosis";
+
+const currentInitialData =
+  computed(() => {
+
+    const savedCurrentPage =
+      allForms.value[
+        currentTemplate.value?.id
+      ] || {};
+
+    if (
+      currentTemplate.value?.id ===
+      "prescribe_medication"
+    ) {
+
+      const source =
+        allForms.value[
+          SOURCE_TEMPLATE
+        ] || {};
+
+      return {
+        ...savedCurrentPage,
+
+        allergies:
+          savedCurrentPage.allergies ||
+          source.allergies ||
+          "",
+
+        current_medications:
+          savedCurrentPage.current_medications ||
+          source.current_medications ||
+          ""
+      };
+
+    }
+
+    return savedCurrentPage;
+
+  });
+
 watch(
   currentTemplate,
   () => {
 
-    const savedData =
-      allForms.value[
-        currentTemplate.value.id
-      ];
-
-    currentFormData.value =
-      savedData
-      ? { ...savedData }
-      : {};
+    currentFormData.value = {
+      ...currentInitialData.value
+    };
 
   },
-  { immediate: true }
+  {
+    immediate: true
+  }
 );
 
 function updateFormData(data) {
@@ -127,18 +164,30 @@ const canGoNext =
       const value =
         currentFormData.value[field.id];
 
-      if (Array.isArray(value)) {
+      if (
+        Array.isArray(value)
+      ) {
+
         return value.length > 0;
+
       }
 
-      if (field.type === "boolean") {
-        return value === true ||
-               value === false;
+      if (
+        field.type === "boolean"
+      ) {
+
+        return (
+          value === true ||
+          value === false
+        );
+
       }
 
-      return value !== "" &&
-             value !== null &&
-             value !== undefined;
+      return (
+        value !== "" &&
+        value !== null &&
+        value !== undefined
+      );
 
     });
 
@@ -146,7 +195,9 @@ const canGoNext =
 
 function nextTemplate() {
 
-  if (!canGoNext.value) return;
+  if (
+    !canGoNext.value
+  ) return;
 
   allForms.value[
     currentTemplate.value.id
@@ -166,15 +217,21 @@ function previousTemplate() {
     ...currentFormData.value
   };
 
-  if (currentIndex.value > 0) {
+  if (
+    currentIndex.value > 0
+  ) {
+
     currentIndex.value--;
+
   }
 
 }
 
 async function saveAllForms() {
 
-  if (!canGoNext.value) return;
+  if (
+    !canGoNext.value
+  ) return;
 
   allForms.value[
     currentTemplate.value.id
@@ -189,14 +246,6 @@ async function saveAllForms() {
 
   console.log(payload);
 
-  /*
-  LATER:
-  await axios.post(
-    "/api/consultation/complete",
-    payload
-  );
-  */
-
   alert(
     "Patient examination saved successfully"
   );
@@ -205,7 +254,6 @@ async function saveAllForms() {
 </script>
 
 <style scoped>
-
 .templates-page {
   min-height: 100vh;
 
@@ -279,5 +327,4 @@ async function saveAllForms() {
   opacity: 0.75;
   transform: none !important;
 }
-
 </style>

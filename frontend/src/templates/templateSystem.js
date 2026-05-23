@@ -393,7 +393,6 @@ export function getTemplates() {
     ,
 
     /* Prescribe medication form */
-    /* Prescribe medication form */
     {
       id: "prescribe_medication",
 
@@ -401,24 +400,17 @@ export function getTemplates() {
 
       fields: [
         {
-          id: "patient_name",
-          label: "Patient Name",
-          type: "text",
-          default: "Emma Johnson"
+          id: "current_medications",
+          label: "Current Medications",
+          type: "textarea",
+          readonly: true,
         },
 
         {
           id: "allergies",
-          label: "Allergies",
+          label: "Known Allergies",
           type: "text",
-          default: "Penicillin"
-        },
-
-        {
-          id: "current_medications",
-          label: "Current Medications",
-          type: "textarea",
-          default: "Warfarin 5mg Daily\nIbuprofen 400mg As needed"
+          readonly: true,
         },
 
         {
@@ -431,14 +423,12 @@ export function getTemplates() {
             { id: "DB00331", name: "Metformin" },
             { id: "DB01060", name: "Amoxicillin" }
           ],
-          default: ""
         },
 
         {
           id: "dosage",
           label: "Dosage",
           type: "text",
-          default: ""
         },
 
         {
@@ -452,23 +442,20 @@ export function getTemplates() {
             "Every 6 hours",
             "As needed"
           ],
-          default: ""
         },
 
         {
           id: "instructions",
           label: "Instructions",
           type: "textarea",
-          default: ""
         },
 
         {
           id: "drug_interactions",
           label: "Drug Interaction Results",
           type: "drug-interaction",
-          default: ""
         }
       ]
-    }
-  ];
+    },
+  ]
 }

@@ -1,12 +1,11 @@
 <template>
-  <textarea
-    v-model="model"
-    class="textarea"
-    placeholder="Enter notes..."
-  ></textarea>
+  <textarea v-model="model" class="textarea" placeholder="Enter notes..." :readonly="readonly"></textarea>
 </template>
 
 <script setup>
+defineProps({
+  readonly: Boolean
+});
 const model = defineModel();
 </script>
 

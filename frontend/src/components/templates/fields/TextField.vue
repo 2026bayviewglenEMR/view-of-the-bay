@@ -4,6 +4,7 @@
     type="text"
     :placeholder="field.placeholder || ''"
     :value="modelValue"
+    :readonly="field.readonly"
     @input="$emit('update:modelValue', $event.target.value)"
   />
 </template>
@@ -12,6 +13,7 @@
 const props = defineProps({
   field: { type: Object, required: true },
   modelValue: { type: [String, Number], default: "" },
+  readonly: Boolean
 });
 
 const emit = defineEmits(["update:modelValue"]);
