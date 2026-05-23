@@ -42,9 +42,19 @@
         </select>
 
         <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field" />
-        <input v-if="field.type === 'select' && field.id === 'medication'"" v-model="drugSearch" @input="searchDrugs"
+        <input v-if="field.type === 'select' && field.id === 'medication'" v-model="drugSearch" @input="searchDrugs"
           class="select" placeholder="Search medication..." />
-        <select v-if="field.type === 'select'" v-model="formData[field.id]" class="select"
+        <div v-if="field.id === 'medication' && drugOptions.length > 0" class="drug-options">
+          <div v-for="drug in drugOptions" :key="drug.id" class="drug-option" @click="
+            formData.medication = drug.id;
+          drugSearch = drug.name;
+          drugOptions = [];
+          checkDrugInteractions();
+          ">
+            {{ drug.name }}
+          </div>
+        </div>
+        <select v-if="field.type === 'select' && field.id !== 'medication'" v-model="formData[field.id]" class="select"
           @change="field.id === 'medication' && checkDrugInteractions()">
           <option value="">
             Select Option
@@ -75,7 +85,7 @@
 
         </div>
 
-        <TextField v-else v-model="formData[field.id]" :field="field" />
+        <TextField v-else-if="field.id !== 'medication'" v-model="formData[field.id]" :field="field" />
 
       </div>
 
@@ -393,6 +403,23 @@ const normalFields =
   border: 2px solid #e5e7eb;
 
   border-radius: 16px;
+}
+
+.drug-options {
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  background: white;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.drug-option {
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.drug-option:hover {
+  background: #f3f4f6;
 }
 
 .checkbox-item {
