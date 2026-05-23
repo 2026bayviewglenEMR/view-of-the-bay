@@ -15,20 +15,21 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
+      default: "",
     },
     isRead: {
       type: Boolean,
-      required: true,
+      default: false,
     },
-    attachments: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Document",
-      required: true,
-    },
+    attachments: [
+      {
+        name: { type: String },
+        url: { type: String },
+      }
+    ],
     timestamp: {
       type: Date,
-      required: true,
+      default: Date.now,
     },
   },
   { timestamps: true }
