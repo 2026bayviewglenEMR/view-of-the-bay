@@ -15,11 +15,13 @@ const {
   skipStep,
   unskipStep,
   completeConsultation,
+  completeTemplateConsultation,
 } = require("../controllers/consultationController");
 
 router.get("/flow-config", authenticateToken, getFlowConfig);
 router.put("/flow-config", authenticateToken, updateFlowConfig);
 
+router.post("/complete", authenticateToken, completeTemplateConsultation);
 router.post("/", authenticateToken, createConsultation);
 router.get("/active", authenticateToken, getActiveConsultation);
 router.get("/patient/:patientId", authenticateToken, getConsultationByPatient);

@@ -64,6 +64,10 @@ const consultationSchema = new mongoose.Schema(
       default: "symptoms",
     },
     notes: String,
+    templateForms: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
     lockedAt: Date,
   },
   { timestamps: true }

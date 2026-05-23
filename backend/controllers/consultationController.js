@@ -1,4 +1,9 @@
 const Consultation = require("../models/Consultations");
+const { getTemplates } = require("../templates/templateSystem");
+const {
+  normalizeTemplateForms,
+  validateTemplateForms,
+} = require("../utils/templateData");
 
 const flowConfig = {
   steps: ["symptoms", "vitals", "diagnoses", "prescriptions", "treatmentPlan"],
@@ -346,6 +351,53 @@ const completeConsultation = async (req, res) => {
   }
 };
 
+const completeTemplateConsultation = async (req, res) => {
+  try {
+    const { patientId, appointmentId, doctorId, dateOfVisit, forms, notes } =
+      req.body;
+
+    if (!patientId) {
+      return res.status(400).json({
+        message: "patientId is required.",
+      });
+    }
+
+    const templates = getTemplates();
+    const errors = validateTemplateForms(forms, templates);
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        message: "Invalid consultation forms.",
+        errors,
+      });
+    }
+
+    const consultation = await Consultation.create({
+      appointmentId,
+      patientId,
+      doctorId: doctorId || req.user.id,
+      dateOfVisit: dateOfVisit || new Date(),
+      templateForms: normalizeTemplateForms(forms, templates),
+      notes,
+      status: "completed",
+      currentStep: "complete",
+      completedSteps: ["complete"],
+      skippedSteps: [],
+      lockedAt: new Date(),
+    });
+
+    return res.status(201).json({
+      message: "Consultation templates saved successfully.",
+      consultation,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while saving consultation templates.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getFlowConfig,
   updateFlowConfig,
@@ -358,4 +410,5 @@ module.exports = {
   skipStep,
   unskipStep,
   completeConsultation,
+  completeTemplateConsultation,
 };
