@@ -2,28 +2,118 @@ const mongoose = require("mongoose");
 
 const consultationSchema = new mongoose.Schema(
   {
+    appointmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Appointment",
+    },
     patientId: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    forms: {
-      type: mongoose.Schema.Types.Mixed,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
       required: true,
     },
-
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    dateOfVisit: {
+      type: Date,
+      required: true,
+    },
+    vitals: {
+      bloodPressure: String,
+      heartRate: Number,
+      temperature: Number,
+      weight: Number,
+      systolicBP: Number,
+      diastolicBP: Number,
+    },
+    symptoms: {
+      type: [String],
+    },
+    examFindings: String,
+    diagnoses: {
+      type: [String],
+    },
+    prescriptions: [
+      {
+        medicationName: {
+          type: String,
+        },
+        dosage: {
+          type: String,
+        },
+        instructions: {
+          type: String,
+        },
+      },
+    ],
+    treatmentPlan: String,
     status: {
       type: String,
-      enum: ["draft", "completed"],
-      default: "completed",
+      default: "in-progress",
     },
+    skippedSteps: {
+      type: [String],
+      default: [],
+    },
+    completedSteps: {
+      type: [String],
+      default: [],
+    },
+    currentStep: {
+      type: String,
+      default: "symptoms",
+    },
+    notes: String,
+    wizardData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    finalTreatmentPlan: {
+      diagnosis: String,
+      prescriptions: String,
+      plan: String,
+      followUp: String,
+      updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      updatedAt: Date,
+    },
+    testOrderDocuments: [
+      {
+        title: {
+          type: String,
+          required: true,
+        },
+        testType: {
+          type: String,
+          required: true,
+        },
+        priority: {
+          type: String,
+          default: "routine",
+        },
+        instructions: String,
+        documentText: String,
+        createdBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    templateForms: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    lockedAt: Date,
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
-
-consultationSchema.index({ patientId: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Consultation", consultationSchema);
