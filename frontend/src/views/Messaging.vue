@@ -123,7 +123,10 @@ const sendMessage = async () => {
   try {
     let attachments = []
     if (selectedFile.value) {
-      attachments = [{ name: selectedFile.value.name, url: URL.createObjectURL(selectedFile.value.raw) }]
+      const formData = new FormData()
+      formData.append("file", selectedFile.value.raw)
+      const uploaded = await api.uploadAttachment(formData)
+      attachments = [uploaded]
     }
     const sentMessage = await api.sendMessage(currentUser, selectedUser.value._id, message.value, attachments)
     pastMessages.value.push(sentMessage)
