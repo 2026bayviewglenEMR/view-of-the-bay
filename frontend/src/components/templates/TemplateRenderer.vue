@@ -43,13 +43,14 @@
 
         <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field" />
 
-        <select v-else-if="field.type === 'select'" v-model="formData[field.id]" class="select">
+        <select v-else-if="field.type === 'select'" v-model="formData[field.id]" class="select"
+          @change="field.id === 'medication' && checkDrugInteractions()">
           <option disabled value="">
             Select Option
           </option>
 
-          <option v-for="option in field.options" :key="option" :value="option">
-            {{ option }}
+          <option v-for="option in field.options" :key="option.id || option" :value="option.id || option">
+            {{ option.name || option }}
           </option>
         </select>
 
@@ -62,11 +63,14 @@
             No known interactions found with the patient’s current medications.
           </div>
 
-          <div v-for="interaction in drugInteractionResults" :key="interaction.with" class="warning">
-            <strong>{{ formData.medication }} + {{ interaction.with }}</strong>
+          <div v-for="interaction in drugInteractionResults" :key="interaction.drug_id" class="warning">
+            <strong>{{ formData.medication }} + {{ interaction.name }}</strong>
+
             <p><strong>Severity:</strong> {{ interaction.severity }}</p>
+
             <p>{{ interaction.description }}</p>
           </div>
+
         </div>
 
         <TextField v-else v-model="formData[field.id]" :field="field" />
@@ -82,8 +86,11 @@
 import {
   reactive,
   computed,
-  watch
+  watch,
+  ref
 } from "vue";
+
+import { api } from "@/api/api";
 
 import TextField
   from "./fields/TextField.vue";
@@ -101,66 +108,76 @@ const emit =
 
 const formData =
   reactive({});
-const dummyDrugDatabase = [
-  {
-    name: "Aspirin",
-    interactions: [
-      {
-        with: "Warfarin",
-        severity: "High",
-        description:
-          "Aspirin may increase bleeding risk when used with Warfarin."
-      },
-      {
-        with: "Ibuprofen",
-        severity: "Medium",
-        description:
-          "Aspirin and Ibuprofen may increase stomach irritation and bleeding risk."
-      }
-    ]
-  },
-  {
-    name: "Azithromycin",
-    interactions: [
-      {
-        with: "Warfarin",
-        severity: "Medium",
-        description:
-          "Azithromycin may increase the effect of Warfarin and may require monitoring."
-      }
-    ]
-  },
-  {
-    name: "Metformin",
-    interactions: []
-  },
-  {
-    name: "Amoxicillin",
-    interactions: []
-  }
-];
+const drugInteractionResults = ref([]);
+const drugOptions = ref([]);
 
-const drugInteractionResults =
-  computed(() => {
-    const selectedDrug =
-      dummyDrugDatabase.find(
-        drug =>
-          drug.name === formData.medication
-      );
+const checkDrugInteractions =
+  async () => {
 
-    if (!selectedDrug) {
-      return [];
+    if (
+      !formData.medication ||
+      !formData.current_medications
+    ) {
+
+      drugInteractionResults.value = [];
+
+      return;
     }
 
-    const currentMeds =
-      formData.current_medications || "";
+    drugInteractionResults.value = [];
 
-    return selectedDrug.interactions.filter(interaction =>
-      currentMeds
-        .toLowerCase()
-        .includes(interaction.with.toLowerCase())
-    );
-  });
+    const selectedDrugId =
+      formData.medication;
+    drugInteractionResults.value = [];
+
+    const currentMeds =
+      formData.current_medications
+        .split("\n")
+        .map(
+          med =>
+            med
+              .split(" ")[0]
+              .trim()
+        );
+
+    for (
+      const med
+      of currentMeds
+    ) {
+
+      try {
+
+        const search =
+          await api.getDrugs(med);
+
+        const matched =
+          search.data?.[0];
+
+        if (!matched)
+          continue;
+
+        const interactions =
+          await api.getInteractions(
+            selectedDrugId,
+            matched.id
+          );
+
+        drugInteractionResults.value
+          .push(
+            ...interactions
+          );
+
+      }
+
+      catch (err) {
+
+        console.log(err);
+
+      }
+
+    }
+
+  };
 
 watch(
   () => props.template,

@@ -426,10 +426,10 @@ export function getTemplates() {
           label: "Medication",
           type: "select",
           options: [
-            "Aspirin",
-            "Azithromycin",
-            "Metformin",
-            "Amoxicillin"
+            { id: "DB00945", name: "Aspirin" },
+            { id: "DB00207", name: "Azithromycin" },
+            { id: "DB00331", name: "Metformin" },
+            { id: "DB01060", name: "Amoxicillin" }
           ],
           default: ""
         },
