@@ -1,5 +1,6 @@
 <template>
-  <div class="patient-record-page">
+  <MainLayout>
+    <div class="patient-record-page">
     <div class="patient-header">
       <div>
         <h1>{{ patient.name || 'Patient Record' }}</h1>
@@ -107,13 +108,16 @@
       </aside>
     </div>
   </div>
+  </MainLayout>
 </template>
 
 
 
 <script>
+import MainLayout from '../components/MainLayout.vue';
 export default {
   name: 'PatientRecord',
+  components: { MainLayout },
   data() {
     return {
       role: localStorage.getItem('role') || 'doctor',

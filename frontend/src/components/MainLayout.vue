@@ -60,10 +60,9 @@ const handleSidebarToggle = (isOpen) => {
   margin-left: 20vw;
   padding: 20px;
   background-color: var(--color-bg);
-  overflow: hidden;        
+  overflow-y: auto;
   transition: margin-left 0.3s ease;
   position: relative;
-  
 }
 
 /* 2. Add this block to shrink the gap when collapsed! */
