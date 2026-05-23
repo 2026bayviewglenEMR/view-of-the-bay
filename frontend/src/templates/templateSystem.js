@@ -393,6 +393,7 @@ export function getTemplates() {
     ,
 
     /* Prescribe medication form */
+    /* Prescribe medication form */
     {
       id: "prescribe_medication",
 
@@ -422,8 +423,14 @@ export function getTemplates() {
 
         {
           id: "medication",
-          label: "Medication Search",
-          type: "text",
+          label: "Medication",
+          type: "select",
+          options: [
+            "Aspirin",
+            "Azithromycin",
+            "Metformin",
+            "Amoxicillin"
+          ],
           default: ""
         },
 
@@ -437,7 +444,14 @@ export function getTemplates() {
         {
           id: "frequency",
           label: "Frequency",
-          type: "text",
+          type: "select",
+          options: [
+            "Once daily",
+            "Twice daily",
+            "Three times daily",
+            "Every 6 hours",
+            "As needed"
+          ],
           default: ""
         },
 
@@ -445,6 +459,13 @@ export function getTemplates() {
           id: "instructions",
           label: "Instructions",
           type: "textarea",
+          default: ""
+        },
+
+        {
+          id: "drug_interactions",
+          label: "Drug Interaction Results",
+          type: "drug-interaction",
           default: ""
         }
       ]

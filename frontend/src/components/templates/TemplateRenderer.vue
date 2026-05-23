@@ -1,10 +1,7 @@
 <template>
   <form class="form">
 
-    <div
-      v-if="checkboxField"
-      class="checkbox-section"
-    >
+    <div v-if="checkboxField" class="checkbox-section">
 
       <label class="section-title">
         {{ checkboxField.label }}
@@ -12,16 +9,8 @@
 
       <div class="checkbox-grid">
 
-        <label
-          v-for="option in checkboxField.options"
-          :key="option"
-          class="checkbox-item"
-        >
-          <input
-            type="checkbox"
-            :value="option"
-            v-model="formData[checkboxField.id]"
-          />
+        <label v-for="option in checkboxField.options" :key="option" class="checkbox-item">
+          <input type="checkbox" :value="option" v-model="formData[checkboxField.id]" />
 
           <span>{{ option }}</span>
         </label>
@@ -32,21 +21,13 @@
 
     <div class="fields-grid">
 
-      <div
-        v-for="field in normalFields"
-        :key="field.id"
-        class="field"
-      >
+      <div v-for="field in normalFields" :key="field.id" class="field">
 
         <label class="field-label">
           {{ field.label }}
         </label>
 
-        <select
-          v-if="field.type === 'boolean'"
-          v-model="formData[field.id]"
-          class="select"
-        >
+        <select v-if="field.type === 'boolean'" v-model="formData[field.id]" class="select">
           <option disabled value="">
             Select Option
           </option>
@@ -60,17 +41,35 @@
           </option>
         </select>
 
-        <TextAreaField
-          v-else-if="field.type === 'textarea'"
-          v-model="formData[field.id]"
-          :field="field"
-        />
+        <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field" />
 
-        <TextField
-          v-else
-          v-model="formData[field.id]"
-          :field="field"
-        />
+        <select v-else-if="field.type === 'select'" v-model="formData[field.id]" class="select">
+          <option disabled value="">
+            Select Option
+          </option>
+
+          <option v-for="option in field.options" :key="option" :value="option">
+            {{ option }}
+          </option>
+        </select>
+
+        <div v-else-if="field.type === 'drug-interaction'" class="drug-interaction-box">
+          <div v-if="!formData.medication">
+            Select a medication to check drug interactions.
+          </div>
+
+          <div v-else-if="drugInteractionResults.length === 0" class="safe">
+            No known interactions found with the patient’s current medications.
+          </div>
+
+          <div v-for="interaction in drugInteractionResults" :key="interaction.with" class="warning">
+            <strong>{{ formData.medication }} + {{ interaction.with }}</strong>
+            <p><strong>Severity:</strong> {{ interaction.severity }}</p>
+            <p>{{ interaction.description }}</p>
+          </div>
+        </div>
+
+        <TextField v-else v-model="formData[field.id]" :field="field" />
 
       </div>
 
@@ -87,10 +86,10 @@ import {
 } from "vue";
 
 import TextField
-from "./fields/TextField.vue";
+  from "./fields/TextField.vue";
 
 import TextAreaField
-from "./fields/TextAreaField.vue";
+  from "./fields/TextAreaField.vue";
 
 const props = defineProps({
   template: Object,
@@ -102,6 +101,66 @@ const emit =
 
 const formData =
   reactive({});
+const dummyDrugDatabase = [
+  {
+    name: "Aspirin",
+    interactions: [
+      {
+        with: "Warfarin",
+        severity: "High",
+        description:
+          "Aspirin may increase bleeding risk when used with Warfarin."
+      },
+      {
+        with: "Ibuprofen",
+        severity: "Medium",
+        description:
+          "Aspirin and Ibuprofen may increase stomach irritation and bleeding risk."
+      }
+    ]
+  },
+  {
+    name: "Azithromycin",
+    interactions: [
+      {
+        with: "Warfarin",
+        severity: "Medium",
+        description:
+          "Azithromycin may increase the effect of Warfarin and may require monitoring."
+      }
+    ]
+  },
+  {
+    name: "Metformin",
+    interactions: []
+  },
+  {
+    name: "Amoxicillin",
+    interactions: []
+  }
+];
+
+const drugInteractionResults =
+  computed(() => {
+    const selectedDrug =
+      dummyDrugDatabase.find(
+        drug =>
+          drug.name === formData.medication
+      );
+
+    if (!selectedDrug) {
+      return [];
+    }
+
+    const currentMeds =
+      formData.current_medications || "";
+
+    return selectedDrug.interactions.filter(interaction =>
+      currentMeds
+        .toLowerCase()
+        .includes(interaction.with.toLowerCase())
+    );
+  });
 
 watch(
   () => props.template,
@@ -185,7 +244,6 @@ const normalFields =
 </script>
 
 <style scoped>
-
 .form {
   width: 1100px;
 
@@ -196,7 +254,7 @@ const normalFields =
   padding: 36px;
 
   box-shadow:
-    0 4px 10px rgba(0,0,0,0.06);
+    0 4px 10px rgba(0, 0, 0, 0.06);
 
   display: flex;
   flex-direction: column;
@@ -285,6 +343,31 @@ const normalFields =
   cursor: pointer;
 }
 
+.drug-interaction-box {
+  min-height: 90px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  color: #10231b;
+}
+
+.safe {
+  background: #dcebd9;
+  color: #1b4332;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.warning {
+  background: #fff0c7;
+  border-left: 6px solid #ffc800;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
 @media (max-width: 1100px) {
 
   .form {
@@ -300,5 +383,4 @@ const normalFields =
   }
 
 }
-
 </style>
