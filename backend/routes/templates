@@ -1,0 +1,15 @@
+const express = require("express");
+
+const {
+  getAllTemplates,
+  getTemplate,
+} = require("../controllers/templateController");
+
+const { authenticateToken } = require("../middleware/auth");
+
+const router = express.Router();
+
+router.get("/", authenticateToken, getAllTemplates);
+router.get("/:templateId", authenticateToken, getTemplate);
+
+module.exports = router;

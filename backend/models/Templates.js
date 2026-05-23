@@ -1,31 +1,43 @@
-// models/Template.js
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const templateSchema = new mongoose.Schema(
+const consultationSchema = new mongoose.Schema(
   {
-    authorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    title: {
+    patientId: {
       type: String,
       required: true,
+      trim: true
     },
-    type: {
+
+    templateId: {
       type: String,
-      required: true,
+      trim: true
     },
-    content: {
+
+    templateName: {
       type: String,
-      required: true,
+      trim: true
     },
-    isGlobal: {
-      type: Boolean,
-      required: true,
+
+    data: {
+      type: mongoose.Schema.Types.Mixed
     },
+
+    forms: {
+      type: mongoose.Schema.Types.Mixed
+    },
+
+    status: {
+      type: String,
+      enum: ["draft", "completed"],
+      default: "draft"
+    }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
-module.exports = mongoose.model("Template", templateSchema);
+consultationSchema.index({ patientId: 1, createdAt: -1 });
+consultationSchema.index({ templateId: 1, createdAt: -1 });
+
+export default mongoose.model("Consultation", consultationSchema);

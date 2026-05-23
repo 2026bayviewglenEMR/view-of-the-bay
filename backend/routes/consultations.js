@@ -1,35 +1,17 @@
 const express = require("express");
-const router = express.Router();
-
-const { authenticateToken } = require("../verifyToken");
 
 const {
-  getFlowConfig,
-  updateFlowConfig,
-  createConsultation,
-  getActiveConsultation,
-  getConsultationByPatient,
-  getConsultation,
-  switchPatient,
-  updateConsultationStep,
-  skipStep,
-  unskipStep,
   completeConsultation,
+  getConsultation,
+  getConsultations,
 } = require("../controllers/consultationController");
 
-router.get("/flow-config", authenticateToken, getFlowConfig);
-router.put("/flow-config", authenticateToken, updateFlowConfig);
+const { authenticateToken } = require("../middleware/auth");
 
-router.post("/", authenticateToken, createConsultation);
-router.get("/active", authenticateToken, getActiveConsultation);
-router.get("/patient/:patientId", authenticateToken, getConsultationByPatient);
-router.get("/:id", authenticateToken, getConsultation);
+const router = express.Router();
 
-router.post("/switch-patient", authenticateToken, switchPatient);
-
-router.patch("/:id/step", authenticateToken, updateConsultationStep);
-router.post("/:id/skip-step", authenticateToken, skipStep);
-router.post("/:id/unskip-step", authenticateToken, unskipStep);
-router.post("/:id/complete", authenticateToken, completeConsultation);
+router.post("/complete", authenticateToken, completeConsultation);
+router.get("/", authenticateToken, getConsultations);
+router.get("/:consultationId", authenticateToken, getConsultation);
 
 module.exports = router;

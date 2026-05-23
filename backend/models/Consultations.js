@@ -2,71 +2,28 @@ const mongoose = require("mongoose");
 
 const consultationSchema = new mongoose.Schema(
   {
-    appointmentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Appointment",
-    },
     patientId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Patient",
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    forms: {
+      type: mongoose.Schema.Types.Mixed,
       required: true,
     },
-    doctorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    dateOfVisit: {
-      type: Date,
-      required: true,
-    },
-    vitals: {
-      bloodPressure: String,
-      heartRate: Number,
-      temperature: Number,
-      weight: Number,
-    },
-    symptoms: {
-      type: [String],
-    },
-    examFindings: String,
-    diagnoses: {
-      type: [String],
-    },
-    prescriptions: [
-      {
-        medicationName: {
-          type: String,
-        },
-        dosage: {
-          type: String,
-        },
-        instructions: {
-          type: String,
-        },
-      },
-    ],
-    treatmentPlan: String,
+
     status: {
       type: String,
-      default: "in-progress",
+      enum: ["draft", "completed"],
+      default: "completed",
     },
-    skippedSteps: {
-      type: [String],
-      default: [],
-    },
-    completedSteps: {
-      type: [String],
-      default: [],
-    },
-    currentStep: {
-      type: String,
-      default: "symptoms",
-    },
-    notes: String,
-    lockedAt: Date,
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
+
+consultationSchema.index({ patientId: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Consultation", consultationSchema);

@@ -1,17 +1,25 @@
-import Template from "../models/Templates.js";
+const {
+  getTemplateById,
+  getTemplates,
+} = require("../templates/templateSystem");
 
-export const getTemplates = async(req, res) =>{
-  try {
-    const userId = req.user.id;
+const getAllTemplates = (req, res) => {
+  res.json(getTemplates());
+};
 
-    const templates = await Template.find({$or: [
-        { _id: userId },
-        { isGlobal: true }
-    ]});
+const getTemplate = (req, res) => {
+  const template = getTemplateById(req.params.templateId);
 
-    res.status(200).json(templates);
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!template) {
+    return res.status(404).json({
+      message: "Template not found",
+    });
   }
-}
+
+  res.json(template);
+};
+
+module.exports = {
+  getAllTemplates,
+  getTemplate,
+};
