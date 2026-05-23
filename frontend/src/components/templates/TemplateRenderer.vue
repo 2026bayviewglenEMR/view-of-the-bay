@@ -42,14 +42,16 @@
         </select>
 
         <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field" />
-
-        <select v-else-if="field.type === 'select'" v-model="formData[field.id]" class="select"
+        <input v-if="field.type === 'select' && field.id === 'medication'"" v-model="drugSearch" @input="searchDrugs"
+          class="select" placeholder="Search medication..." />
+        <select v-if="field.type === 'select'" v-model="formData[field.id]" class="select"
           @change="field.id === 'medication' && checkDrugInteractions()">
-          <option disabled value="">
+          <option value="">
             Select Option
           </option>
 
-          <option v-for="option in field.options" :key="option.id || option" :value="option.id || option">
+          <option v-for="option in field.id === 'medication' ? drugOptions : field.options" :key="option.id || option"
+            :value="option.id || option">
             {{ option.name || option }}
           </option>
         </select>
@@ -66,7 +68,7 @@
           <div v-for="interaction in drugInteractionResults" :key="interaction.drug_id" class="warning">
             <strong>{{ formData.medication }} + {{ interaction.name }}</strong>
 
-            <p><strong>Severity:</strong> {{ interaction.severity }}</p>
+            <!-- <p><strong>Severity:</strong> {{ interaction.severity }}</p> -->
 
             <p>{{ interaction.description }}</p>
           </div>
@@ -110,6 +112,59 @@ const formData =
   reactive({});
 const drugInteractionResults = ref([]);
 const drugOptions = ref([]);
+const drugSearch = ref("");
+const loadDrugOptions =
+  async () => {
+
+    try {
+
+      const response =
+        await api.getDrugs("a");
+
+      drugOptions.value =
+        response.data;
+
+    }
+
+    catch (err) {
+
+      console.log(err);
+
+      drugOptions.value = [];
+
+    }
+
+  };
+const searchDrugs =
+  async () => {
+
+    if (!drugSearch.value) {
+
+      drugOptions.value = [];
+
+      return;
+
+    }
+
+    try {
+
+      const response =
+        await api.getDrugs(
+          drugSearch.value
+        );
+
+      drugOptions.value =
+        response.data;
+
+    }
+
+    catch (err) {
+
+      console.log(err);
+
+    }
+
+  };
 
 const checkDrugInteractions =
   async () => {
@@ -124,7 +179,6 @@ const checkDrugInteractions =
       return;
     }
 
-    drugInteractionResults.value = [];
 
     const selectedDrugId =
       formData.medication;
