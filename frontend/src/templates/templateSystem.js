@@ -400,54 +400,62 @@ export function getTemplates() {
 
       fields: [
         {
-          id: "patient_name",
-          label: "Patient Name",
-          type: "text",
-          default: "Emma Johnson"
+          id: "current_medications",
+          label: "Current Medications",
+          type: "textarea",
+          readonly: true,
         },
 
         {
           id: "allergies",
-          label: "Allergies",
+          label: "Known Allergies",
           type: "text",
-          default: "Penicillin"
-        },
-
-        {
-          id: "current_medications",
-          label: "Current Medications",
-          type: "textarea",
-          default: "Warfarin 5mg Daily\nIbuprofen 400mg As needed"
+          readonly: true,
         },
 
         {
           id: "medication",
-          label: "Medication Search",
-          type: "text",
-          default: ""
+          label: "Medication",
+          type: "select",
+          options: [
+            { id: "DB00945", name: "Aspirin" },
+            { id: "DB00207", name: "Azithromycin" },
+            { id: "DB00331", name: "Metformin" },
+            { id: "DB01060", name: "Amoxicillin" }
+          ],
         },
 
         {
           id: "dosage",
           label: "Dosage",
           type: "text",
-          default: ""
         },
 
         {
           id: "frequency",
           label: "Frequency",
-          type: "text",
-          default: ""
+          type: "select",
+          options: [
+            "Once daily",
+            "Twice daily",
+            "Three times daily",
+            "Every 6 hours",
+            "As needed"
+          ],
         },
 
         {
           id: "instructions",
           label: "Instructions",
           type: "textarea",
-          default: ""
+        },
+
+        {
+          id: "drug_interactions",
+          label: "Drug Interaction Results",
+          type: "drug-interaction",
         }
       ]
-    }
-  ];
+    },
+  ]
 }

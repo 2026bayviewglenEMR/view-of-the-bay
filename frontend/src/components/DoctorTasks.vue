@@ -1,13 +1,26 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const isDropdownOpen = ref(false);
 const newTaskText = ref('');
 const tasks = ref([]);
 const baseURL = 'http://localhost:3000';
 
-// 1. GET /api/tasks
+// 1. Create the reference for the click-outside tripwire
+const componentRef = ref(null);
+
+// 2. The function that checks where the user clicked
+const closeOnClickOutside = (event) => {
+  if (componentRef.value && !componentRef.value.contains(event.target)) {
+    isDropdownOpen.value = false;
+  }
+};
+
+// 3. GET /api/tasks (and start watching for clicks)
 onMounted(async () => {
+  // Start watching for outside clicks
+  document.addEventListener('mousedown', closeOnClickOutside);
+
   try {
     const response = await fetch(`${baseURL}/api/tasks`);
     if (response.ok) {
@@ -19,11 +32,16 @@ onMounted(async () => {
   }
 });
 
+// 4. Stop watching for clicks if the component is removed
+onUnmounted(() => {
+  document.removeEventListener('mousedown', closeOnClickOutside);
+});
+
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-// 2. POST /api/tasks
+// 5. POST /api/tasks
 const addTask = async () => {
   if (newTaskText.value.trim() === '') return;
   
@@ -47,7 +65,7 @@ const addTask = async () => {
   }
 };
 
-// 3. PATCH /api/tasks/:id (Updates the checkbox status)
+// 6. PATCH /api/tasks/:id (Updates the checkbox status)
 const completeTask = async (id) => {
   tasks.value = tasks.value.filter(task => task.id !== id);
   
@@ -64,16 +82,16 @@ const completeTask = async (id) => {
 </script>
 
 <template>
-  <div style="position: relative; display: inline-block;">
+  <div ref="componentRef" style="position: relative; display: inline-block;">
     
     <button @click="toggleDropdown" style="background: transparent; border: none; cursor: pointer; padding: 0; position: relative;">
       <span style="font-size: 1.5rem;">📋</span>
-      <span v-if="tasks.length > 0" style="position: absolute; top: -5px; right: -5px; background-color: #3273dc; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold;">
+      <span v-if="tasks.length > 0" style="position: absolute; top: -5px; right: -5px; background-color: #5c4033; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold;">
         {{ tasks.length }}
       </span>
     </button>
 
-    <div v-show="isDropdownOpen" style="position: absolute; top: 120%; right: 0; width: 320px; background-color: white; border: 1px solid #e5e5e5; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 9999; padding: 1rem; text-align: left;">
+    <div v-show="isDropdownOpen" style="position: absolute; top: 120%; right: 0; width: 320px; background-color: white; border: 2px solid #32cd32; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 9999; padding: 1rem; text-align: left;">
       <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 8px;">Daily Tasks</h3>
       
       <div style="display: flex; gap: 8px; margin-bottom: 15px;">
@@ -83,7 +101,7 @@ const completeTask = async (id) => {
           placeholder="Add a new task..." 
           style="flex-grow: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px;"
         />
-        <button @click="addTask" style="background: #3273dc; color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Add</button>
+        <button @click="addTask" style="background: #5c4033; color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Add</button>
       </div>
 
       <div v-if="tasks.length > 0" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;">

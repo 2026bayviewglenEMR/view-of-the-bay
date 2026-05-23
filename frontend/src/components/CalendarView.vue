@@ -2,11 +2,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Qalendar } from 'qalendar';
+import 'qalendar/dist/style.css'; 
 import { http } from '../api/http';
 
 const events = ref([]);
 const config = ref({
   defaultMode: 'week',
+ 
+  dayBoundaries: {
+    start: 6,
+    end: 18,
+  }
 });
 
 const formatCalendarDate = (value) => {
@@ -22,7 +28,6 @@ const formatCalendarDate = (value) => {
 
 const getPatientName = (patient) => {
   if (!patient) return 'Unknown patient';
-
   return [patient.firstName, patient.lastName].filter(Boolean).join(' ');
 };
 
@@ -67,7 +72,7 @@ const updateAppointment = async (updatedEvent) => {
 </script>
 
 <template>
-  <div class="calendar-wrapper">
+  <div class="calendar-wrapper is-light-mode">
     <Qalendar 
       :events="events" 
       :config="config" 
@@ -83,13 +88,15 @@ const updateAppointment = async (updatedEvent) => {
   border-radius: 12px;
   padding: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  min-height: 600px; 
 }
 
-:deep(.qalendar-is-light-mode) {
-  --qalendar-theme-color: #2e6d4f; 
-  --qalendar-paper: #f5f3e6; 
-  --qalendar-border-color: rgba(46, 109, 79, 0.2); 
-  --qalendar-heading-color: #2e6d4f;
-  --qalendar-base-color: #333333;
+
+:deep(.is-light-mode) {
+  --qalendar-theme-color: #2e6d4f !important; 
+  --qalendar-paper: #f5f3e6 !important; 
+  --qalendar-border-color: rgba(46, 109, 79, 0.2) !important; 
+  --qalendar-heading-color: #2e6d4f !important;
+  --qalendar-base-color: #333333 !important;
 }
 </style>
