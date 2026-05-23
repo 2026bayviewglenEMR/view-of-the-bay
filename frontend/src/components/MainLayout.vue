@@ -56,14 +56,14 @@ const handleSidebarToggle = (isOpen) => {
   NOT in the individual pages!
 */
 .main-content {
-    flex: 1;
-    margin-left: 20vw; /* Adjust based on your Sidebar's actual CSS */
-    padding: 20px;
-    background-color: var(--color-bg);
-    overflow-y: auto;
-    height: calc(100vh - 60px);
-
-    transition: margin-left 0.3s ease; 
+  flex: 1;
+  margin-left: 20vw;
+  padding: 20px;
+  background-color: var(--color-bg);
+  overflow: hidden;        
+  transition: margin-left 0.3s ease;
+  position: relative;
+  
 }
 
 /* 2. Add this block to shrink the gap when collapsed! */

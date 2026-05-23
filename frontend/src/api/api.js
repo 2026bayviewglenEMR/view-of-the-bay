@@ -7,6 +7,7 @@ export const api = {
     adminOnly: () => http.get('/adminOnly').then(r => r.data),
 
     getDoctors: () => http.get('/doctors').then(r => r.data),
+    getUsers: () => http.get('/users').then(r => r.data),
 
     //drugs
     getInteractions: (id1, id2) => http.get(`/drugs/${id1}/${id2}`).then(r => r.data),
@@ -17,11 +18,12 @@ export const api = {
     updatePassword: (newPassword) => http.post('/auth/updatePassword', {newPassword}).then(r => r.data),
     createUser: ({username, password, firstName, lastName, email, role}) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
 
-    // comms - SUBJECT TO CHANGE
-    sendMessage: (senderId, receiverId, content, isRead, timestamp) => 
-        http.post('/comms/send', {senderId, receiverId, content, isRead, timestamp}).then(r => r.data),
-    loadMessages: (userId) => http.get(`/comms/${userId}/messages`).then(r => r.data),
-    //sendAttachment: (attachment) => http.post('???').then(r => r.data),
+    // messaging
+    sendMessage: (senderId, receiverId, content, attachments = []) =>
+    http.post('/messages', { senderId, receiverId, content, attachments }).then(r => r.data),
+    loadMessages: (userId, otherUserId) => http.get(`/messages/${userId}/${otherUserId}`).then(r => r.data),
+    markAsRead: (messageId) => http.patch(`/messages/${messageId}/read`).then(r => r.data),
+    getConversations: (userId) => http.get(`/messages/conversations/${userId}`).then(r => r.data),
 
     // patient portal
     getPortalData: (patientId) => http.get(`/patient-portal/${patientId}`).then(r => r.data),
