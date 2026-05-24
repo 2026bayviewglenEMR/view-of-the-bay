@@ -403,14 +403,14 @@ export function getTemplates() {
           id: "current_medications",
           label: "Current Medications",
           type: "textarea",
-          readonly: true,
+          default: ""
         },
 
         {
           id: "allergies",
           label: "Known Allergies",
-          type: "text",
-          readonly: true,
+          type: "textarea",
+          default: ""
         },
 
         {
