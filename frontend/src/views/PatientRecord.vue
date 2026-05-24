@@ -308,7 +308,7 @@ patientForm: {
       this.mapTimeline(encounters);
     },
     startConsultation() {
-      this.$router.push(`/consultation/${this.patient.id}`);
+      this.$router.push(`/diagnose/${this.patient.id}`)
     },
     openAddPatient() {
   this.isEditingPatient = false
