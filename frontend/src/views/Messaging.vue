@@ -70,7 +70,7 @@
 
 <script setup>
 import { api } from './../api/api.js'
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../components/MainLayout.vue'
 
@@ -83,6 +83,7 @@ const messagesContainer = ref(null)
 const pastMessages = ref([])
 const contacts = ref([])
 const selectedUser = ref(null)
+let pollInterval = null
 
 const handleFileChange = (file) => { selectedFile.value = file }
 const removeFile = () => { selectedFile.value = null }
@@ -90,7 +91,21 @@ const removeFile = () => { selectedFile.value = null }
 const loadContacts = async () => {
   try {
     const users = await api.getUsers()
-    contacts.value = users.filter(u => u._id !== currentUser)
+    const conversations = await api.getConversations(currentUser)
+
+    const recentMap = {}
+    conversations.forEach(c => {
+      recentMap[c.otherUserId] = c.lastTimestamp
+    })
+
+    const others = users.filter(u => u._id !== currentUser)
+    others.sort((a, b) => {
+      const timeA = recentMap[a._id] ? new Date(recentMap[a._id]) : 0
+      const timeB = recentMap[b._id] ? new Date(recentMap[b._id]) : 0
+      return timeB - timeA
+    })
+
+    contacts.value = others
   } catch (err) {
     console.error("Failed to load contacts")
   }
@@ -100,6 +115,11 @@ const selectUser = async (user) => {
   selectedUser.value = user
   pastMessages.value = []
   await loadMessages()
+
+  if (pollInterval) clearInterval(pollInterval)
+  pollInterval = setInterval(() => {
+    loadMessages()
+  }, 3000)
 }
 
 const loadMessages = async () => {
@@ -143,6 +163,10 @@ const sendMessage = async () => {
 
 onMounted(() => {
   loadContacts()
+})
+
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval)
 })
 </script>
 
