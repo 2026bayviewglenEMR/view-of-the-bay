@@ -84,6 +84,15 @@ const patientSchema = new mongoose.Schema(
       ],
     },
 
+    // In-progress consultation saved by a doctor to resume later
+    consultationDraft: {
+      forms:        { type: mongoose.Schema.Types.Mixed, default: null },
+      currentIndex: { type: Number, default: 0 },
+      savedBy:      { type: String, default: '' },
+      savedById:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      savedAt:      { type: Date, default: null },
+    },
+
     // Tests ordered by doctors during or after consultations
     orderedTests: [
       {

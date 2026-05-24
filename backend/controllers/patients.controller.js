@@ -215,6 +215,47 @@ const saveOrderedTests = async (req, res) => {
   }
 };
 
+const saveDraft = async (req, res) => {
+  try {
+    if (!canEditPatientClinicalData(req)) {
+      return res.status(403).json({ message: "Only doctors can save consultation drafts." });
+    }
+
+    const { forms, currentIndex } = req.body;
+    const patient = await Patient.findById(req.params.id);
+    if (!patient) return res.status(404).json({ message: "Patient not found." });
+
+    patient.consultationDraft = {
+      forms:        forms || {},
+      currentIndex: currentIndex ?? 0,
+      savedBy:      req.user.firstName && req.user.lastName
+                      ? `Dr. ${req.user.firstName} ${req.user.lastName}`
+                      : req.user.username,
+      savedById:    req.user.id,
+      savedAt:      new Date(),
+    };
+    await patient.save();
+    res.json({ consultationDraft: patient.consultationDraft });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to save draft." });
+  }
+};
+
+const clearDraft = async (req, res) => {
+  try {
+    if (!canEditPatientClinicalData(req)) {
+      return res.status(403).json({ message: "Only doctors can clear consultation drafts." });
+    }
+
+    await Patient.findByIdAndUpdate(req.params.id, { $unset: { consultationDraft: "" } });
+    res.json({ message: "Draft cleared." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to clear draft." });
+  }
+};
+
 module.exports = {
   getAllPatients,
   getPatientById,
@@ -222,4 +263,6 @@ module.exports = {
   getPatientEncounters,
   addPatientNote,
   saveOrderedTests,
+  saveDraft,
+  clearDraft,
 };

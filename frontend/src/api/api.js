@@ -43,6 +43,8 @@ export const api = {
     getPatientEncounters: (id) => http.get(`/patients/${id}/encounters`).then(r => r.data),
     getAllPatients: () => http.get('/patients').then(r => r.data),
     saveOrderedTests: (patientId, tests) => http.post(`/patients/${patientId}/ordered-tests`, { tests }).then(r => r.data),
+    saveConsultationDraft: (patientId, data) => http.put(`/patients/${patientId}/consultation-draft`, data).then(r => r.data),
+    clearConsultationDraft: (patientId) => http.delete(`/patients/${patientId}/consultation-draft`).then(r => r.data),
 
     // dashboard
     getTodaysAppointments: () => http.get('/dashboard/appointments/today').then(r => r.data),

@@ -75,6 +75,10 @@
               {{ isSaving ? "Saving..." : "Save Consultation" }}
             </button>
 
+            <button v-if="isDoctor" class="save-draft-btn" @click="saveDraft">
+              💾 Save & Continue Later
+            </button>
+
             <button v-if="isDoctor" class="order-tests-btn" @click="showOrderTests = true">
               🧪 Order Tests
             </button>
@@ -99,7 +103,7 @@
 
 <script setup>
 import { ref, computed, watch, watchEffect } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { getTemplates, saveTemplateConsultation } from "@/api/template";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
 import MainLayout from "@/components/MainLayout.vue";
@@ -107,6 +111,7 @@ import OrderTestsModal from "@/components/OrderTestsModal.vue";
 import { api } from "@/api/api.js";
 
 const route = useRoute();
+const router = useRouter();
 const patientId = route.params.patientId;
 
 const templates = ref([]);
@@ -181,8 +186,29 @@ async function loadPatient() {
   if (!patientId) return;
   try {
     patient.value = await api.getPatient(patientId);
+    // Restore in-progress draft if one exists
+    const draft = patient.value?.consultationDraft;
+    if (draft?.savedAt && draft.forms && Object.keys(draft.forms).length > 0) {
+      allForms.value = draft.forms;
+      currentIndex.value = draft.currentIndex ?? 0;
+    }
   } catch (err) {
     console.error("Failed to load patient", err);
+  }
+}
+
+async function saveDraft() {
+  if (currentTemplate.value) {
+    allForms.value[currentTemplate.value.id] = { ...currentFormData.value };
+  }
+  try {
+    await api.saveConsultationDraft(patientId, {
+      forms: allForms.value,
+      currentIndex: currentIndex.value,
+    });
+    router.push(`/patients/${patientId}`);
+  } catch (err) {
+    error.value = "Failed to save draft. Please try again.";
   }
 }
 
@@ -221,6 +247,8 @@ async function saveAllForms() {
 
   try {
     await saveTemplateConsultation(payload);
+    // Clear any saved draft now that the consultation is complete
+    try { await api.clearConsultationDraft(patientId); } catch {}
     alert("Patient examination saved successfully");
   } catch (err) {
     error.value = err?.response?.data?.message || err?.response?.data?.error || "Unable to save consultation.";
@@ -416,6 +444,24 @@ loadPatient();
   color: #b91c1c;
   font-weight: 700;
   margin-bottom: 18px;
+}
+
+.save-draft-btn {
+  padding: 14px 34px;
+  border: 2px solid #b45309;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background: white;
+  color: #b45309;
+  transition: all 0.2s ease;
+}
+
+.save-draft-btn:hover {
+  background: #b45309;
+  color: white;
+  transform: translateY(-1px);
 }
 
 .order-tests-btn {

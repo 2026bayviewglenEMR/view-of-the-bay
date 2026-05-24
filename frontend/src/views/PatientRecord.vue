@@ -45,6 +45,21 @@
       </p>
 
       <template v-else>
+
+        <!-- Resume consultation banner (doctors only) -->
+        <div v-if="role === 'doctor' && consultationDraft" class="draft-banner">
+          <div class="draft-banner-left">
+            <span class="draft-icon">📋</span>
+            <div>
+              <strong>In-progress consultation</strong>
+              <span class="draft-meta">
+                Saved by {{ consultationDraft.savedBy }} on {{ new Date(consultationDraft.savedAt).toLocaleDateString() }}
+              </span>
+            </div>
+          </div>
+          <button class="resume-btn" @click="startConsultation">Resume Consultation →</button>
+        </div>
+
         <div class="patient-header">
           <div>
             <h1>{{ patient.name || "Patient Record" }}</h1>
@@ -196,6 +211,7 @@ patientForm: {
   address: "",
   insurance: "",
 },
+      consultationDraft: null,
       patient: {
         id: "",
         name: "",
@@ -280,6 +296,11 @@ patientForm: {
       this.medications = (patient.executiveSummary?.activeMedications || []).map((med) =>
         `${med.name} ${med.dosage} ${med.frequency || ""}`.trim()
       );
+
+      const draft = patient.consultationDraft;
+      this.consultationDraft = (draft?.savedAt && draft.forms && Object.keys(draft.forms).length > 0)
+        ? draft
+        : null;
     },
     mapTimeline(encounters) {
       this.timeline = (encounters || []).map((encounter) => ({
@@ -617,6 +638,57 @@ async savePatient() {
 .secondary-modal-btn {
   background: #e5e7eb;
   color: #111827;
+}
+
+.draft-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #fffbeb;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 18px;
+}
+
+.draft-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.draft-icon {
+  font-size: 22px;
+}
+
+.draft-banner strong {
+  display: block;
+  font-size: 15px;
+  color: #92400e;
+}
+
+.draft-meta {
+  font-size: 13px;
+  color: #b45309;
+}
+
+.resume-btn {
+  padding: 10px 22px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.resume-btn:hover {
+  background: #d97706;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 900px) {
