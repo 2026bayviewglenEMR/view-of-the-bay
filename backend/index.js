@@ -12,6 +12,7 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGO_URI.trim().replace(/['"]+/g, '');;
@@ -40,7 +41,7 @@ app.use((req, res, next) => {
 const authRoutes = require('./routes/authRoutes');
 const labsRouter = require('./routes/labs');
 const commsRouter = require('./routes/comms');
-const fileUploadsRouter = require('./routes/fileUploads');
+//const fileUploadsRouter = require('./routes/fileUploads');
 const alertsRouter = require('./routes/alerts');
 const consultationsRouter = require('./routes/consultations');
 const tasksRouter = require('./routes/tasks');
@@ -51,6 +52,9 @@ const templatesRoutes = require('./routes/templatesRoutes.js');
 const calendarRouter = require('./routes/calendar');
 const patientRoutes = require("./routes/patients.routes");
 const userRoutes = require("./routes/users.routes");
+const messageRoutes = require('./routes/messageRoutes');
+const appointmentRoutes = require('./routes/appointments');
+
 
 // 2. Mount the routes to their base URLs
 // If a request starts with '/api/patients', send it to Student 2's file
@@ -61,7 +65,7 @@ app.use("/api/patients", patientRoutes);
 // app.use('/api/clinical', clinicalRoutes); 
 app.use('/api/labs', labsRouter);
 app.use('/api/comms', commsRouter);
-app.use('/api/fileUploads', fileUploadsRouter);
+//app.use('/api/fileUploads', fileUploadsRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/consultations', consultationsRouter);
 app.use('/api/tasks', tasksRouter);
@@ -71,6 +75,8 @@ app.use('/api/waiting-room', waitingRoomRouter);
 app.use('/api/templates', templatesRoutes);
 app.use("/api/users", userRoutes);
 app.use('/api/calendar', calendarRouter);
+app.use('/api/messages', messageRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 app.get('/api/doctors', authenticateToken, async (req, res) => {
     const doctors = await User.find({ role: 'doctor' });

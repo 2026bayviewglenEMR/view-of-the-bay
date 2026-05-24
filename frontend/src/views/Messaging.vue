@@ -1,41 +1,69 @@
 <template>
   <MainLayout>
     <div class="chat-page">
-      <div class="messages-container" ref="messagesContainer">
-        <div 
-          v-for="msg in pastMessages" 
-          :key="msg.id" 
-          class="message-wrapper"
-          :class="msg.senderId === currentUser ? 'sent' : 'received'"
-        >
-          <div class="message">
-            <strong>{{ msg.senderId }} to {{ msg.receiverId }}</strong>
-            <p v-if="msg.content">{{ msg.content }}</p>
 
-            <div v-if="msg.attachment" class="attachment">
-              <a :href="msg.attachment.url" target="_blank"> {{ msg.attachment.name }} </a>
-            </div>
+      <!-- Contacts Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-title">Contacts</div>
+        <div
+          v-for="user in contacts"
+          :key="user._id"
+          class="contact"
+          :class="{ active: selectedUser?._id === user._id }"
+          @click="selectUser(user)"
+        >
+          <div class="contact-name" :class="{ unread: unreadMap[user._id] > 0 }">
+            {{ user.firstName }} {{ user.lastName }}
+            <span v-if="unreadMap[user._id] > 0" class="unread-badge">{{ unreadMap[user._id] }}</span>
           </div>
+          <div class="contact-role">{{ user.role }}</div>
         </div>
       </div>
 
-      <div class="input-bar">
-        <el-form class="message-form">
-          <el-form-item class="message-input">
-            <el-input v-model="message" type="textarea" placeholder="Type message here" />
-          </el-form-item>
-
-          <el-upload :auto-upload="false" :show-file-list="false" :on-change="handleFileChange">
-            <el-button> Attach File </el-button>
-          </el-upload>
-
-          <el-button @click="sendMessage" type="primary">Send</el-button>
-        </el-form>
-
-        <div v-if="selectedFile" class="selected-file">
-          <span> Selected: {{ selectedFile.name }} </span>
-          <el-button type="danger" size="small" @click="removeFile"> Cancel </el-button>
+      <!-- Chat Section -->
+      <div class="chat-section">
+        <div v-if="!selectedUser" class="no-chat">
+          Select a contact to start messaging
         </div>
+
+        <template v-else>
+          <div class="messages-container" ref="messagesContainer">
+            <div 
+              v-for="msg in pastMessages" 
+              :key="msg._id" 
+              class="message-wrapper"
+              :class="msg.senderId === currentUser ? 'sent' : 'received'"
+            >
+              <div class="message">
+                <strong>{{ msg.senderId === currentUser ? 'You' : selectedUser.firstName }}</strong>
+                <p v-if="msg.content">{{ msg.content }}</p>
+
+                <div v-if="msg.attachments && msg.attachments.length > 0" class="attachment">
+                  <a v-for="att in msg.attachments" :key="att.url" :href="att.url" target="_blank"> {{ att.name }} </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-bar">
+            <el-form class="message-form">
+              <el-form-item class="message-input">
+                <el-input v-model="message" type="textarea" placeholder="Type message here" />
+              </el-form-item>
+
+              <el-upload :auto-upload="false" :show-file-list="false" :on-change="handleFileChange">
+                <el-button> Attach File </el-button>
+              </el-upload>
+
+              <el-button @click="sendMessage" type="primary">Send</el-button>
+            </el-form>
+
+            <div v-if="selectedFile" class="selected-file">
+              <span> Selected: {{ selectedFile.name }} </span>
+              <el-button type="danger" size="small" @click="removeFile"> Cancel </el-button>
+            </div>
+          </div>
+        </template>
       </div>
 
     </div>
@@ -45,29 +73,70 @@
 
 <script setup>
 import { api } from './../api/api.js'
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../components/MainLayout.vue'
 
 const router = useRouter()
-const currentUser = "user_123"
+const currentUserObj = JSON.parse(localStorage.getItem("user"))
+const currentUser = currentUserObj?.id
 const message = ref("")
 const selectedFile = ref(null)
 const messagesContainer = ref(null)
-// line for backend: const pastMessages = ref([])
-
+const pastMessages = ref([])
+const contacts = ref([])
+const selectedUser = ref(null)
+const unreadMap = ref({})
+let pollInterval = null
+let contactsInterval = null
 
 const handleFileChange = (file) => { selectedFile.value = file }
 const removeFile = () => { selectedFile.value = null }
 
+const loadContacts = async () => {
+  try {
+    const users = await api.getUsers()
+    const conversations = await api.getConversations(currentUser)
 
+    const recentMap = {}
+    conversations.forEach(c => {
+      recentMap[c.otherUserId] = c.lastTimestamp
+      unreadMap.value[c.otherUserId] = c.unreadCount || 0
+    })
 
-// WHAT IT MIGHT LOOK LIKE WITH BACKEND (idk what I'm doing)
-/*
+    const others = users.filter(u => u._id !== currentUser)
+    others.sort((a, b) => {
+      const timeA = recentMap[a._id] ? new Date(recentMap[a._id]) : 0
+      const timeB = recentMap[b._id] ? new Date(recentMap[b._id]) : 0
+      return timeB - timeA
+    })
+
+    contacts.value = others
+  } catch (err) {
+    console.error("Failed to load contacts")
+  }
+}
+
+const selectUser = async (user) => {
+  selectedUser.value = user
+  pastMessages.value = []
+  unreadMap.value[user._id] = 0
+  await loadMessages()
+
+  if (pollInterval) clearInterval(pollInterval)
+  pollInterval = setInterval(() => {
+    loadMessages()
+  }, 3000)
+}
+
 const loadMessages = async () => {
   try {
-    const res = await api.loadMessages(?) // figure out later
+    const res = await api.loadMessages(currentUser, selectedUser.value._id)
     pastMessages.value = res
+    await nextTick()
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
   }
   catch (err) {
     console.error("Failed to load messages")
@@ -75,91 +144,125 @@ const loadMessages = async () => {
 }
 
 const sendMessage = async () => {
-  try {
-    let uploadedFile = null
-    if (selectedFile.value) {
-      uploadedFile = await api.sendAttachment(selectedFile.value.raw)
-    }
-    const newMessage = {
-      senderId: currentUser,
-      receiverId: "doctor_01",
-      content: message.value,
-      isRead: false,
-      timestamp: "idk how this works",
-      attachment: uploadedFile
-    }
-    const sentMessage = await api.sendMessage(newMessage)
-    pastMessages.value.push(sentMessage)
-    message.value = ""
-    selectedFile.value = null
-  }
-  catch (err) {
-    console.error("Failed to send message")
-  }
-}
-*/
-
-
-// FRONTEND MOCK VERSION
-const pastMessages = ref([
-  {
-    id: 1,
-    senderId: "user_123",
-    receiverId: "doctor_01",
-    content: "random text message"
-  },
-  {
-    id: 2,
-    senderId: "doctor_01",
-    receiverId: "user_123",
-    content: "Oh look, here's a wonderful generic reply to you kind sir"
-  },
-  {
-    id: 3,
-    senderId: "user_123",
-    receiverId: "doctor_01",
-    content: "Thank you for your extraordinary space filler comment!"
-  }
-])
-
-const sendMessage = async () => {
   if (message.value.trim() === "" && selectedFile.value === null) {
     return
   }
   try {
-    pastMessages.value.push({
-      id: Date.now(), //temporary
-      senderId: currentUser,
-      receiverId: "doctor_01",
-      content: message.value,
-      isRead: true,
-      timestamp: 0,
-      attachment: selectedFile.value
-      ? {
-        name: selectedFile.value.name,
-        url: URL.createObjectURL(selectedFile.value.raw)
-      }
-      : null
-    })
+    let attachments = []
+    if (selectedFile.value) {
+      const formData = new FormData()
+      formData.append("file", selectedFile.value.raw)
+      const uploaded = await api.uploadAttachment(formData)
+      attachments = [uploaded]
+    }
+    const sentMessage = await api.sendMessage(currentUser, selectedUser.value._id, message.value, attachments)
+    pastMessages.value.push(sentMessage)
     message.value = ""
     selectedFile.value = null
+    loadContacts()
 
     await nextTick()
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
   catch (err) {
-    console.error("Failed to send message");
+    console.error("Failed to send message")
   }
 }
+
+onMounted(() => {
+  loadContacts()
+  contactsInterval = setInterval(() => {
+    loadContacts()
+  }, 5000)
+})
+
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval)
+  if (contactsInterval) clearInterval(contactsInterval)
+})
 </script>
 
 
 <style scoped>
 .chat-page {
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  flex-direction: row;
+  height: calc(100vh - 100px);
   overflow: hidden;
+  margin: -20px;
+  width: calc(100% + 40px);
+}
+
+.sidebar {
+  width: 220px;
+  border-right: 1px solid #ccc;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  padding: 16px;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+}
+
+.contact {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.contact:hover {
+  background: #f5f5f5;
+}
+
+.contact.active {
+  background: #e6f4ee;
+  border-left: 3px solid #2D6A4F;
+}
+
+.contact-name {
+  font-weight: 500;
+}
+
+.contact-name.unread {
+  font-weight: 800;
+  color: #000;
+}
+
+.unread-badge {
+  display: inline-block;
+  background: #2D6A4F;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  text-align: center;
+  line-height: 18px;
+  margin-left: 6px;
+}
+
+.contact-role {
+  font-size: 12px;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.chat-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.no-chat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
 }
 
 .messages-container {

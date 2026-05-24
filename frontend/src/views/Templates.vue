@@ -1,34 +1,37 @@
 <template>
-  <div>
-    <h1>Select Template</h1>
+  <MainLayout>
+    <div>
+      <h1>Select Template</h1>
 
-    <p v-if="isLoading">
-      Loading templates...
-    </p>
+      <p v-if="isLoading">
+        Loading templates...
+      </p>
 
-    <p v-else-if="error">
-      {{ error }}
-    </p>
+      <p v-else-if="error">
+        {{ error }}
+      </p>
 
-    <ul>
-      <li v-for="t in templates" :key="t.name">
-        <button @click="selectTemplate(t)">
-          {{ t.name }}
-        </button>
-      </li>
-    </ul>
+      <ul>
+        <li v-for="t in templates" :key="t.name">
+          <button @click="selectTemplate(t)">
+            {{ t.name }}
+          </button>
+        </li>
+      </ul>
 
-    <TemplateRenderer
-      v-if="selectedTemplate"
-      :template="selectedTemplate"
-    />
-  </div>
+      <TemplateRenderer
+        v-if="selectedTemplate"
+        :template="selectedTemplate"
+      />
+    </div>
+  </MainLayout>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
 import { getTemplates } from "@/api/template";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
+import MainLayout from '../components/MainLayout.vue'
 
 const templates = ref([]);
 const selectedTemplate = ref(null);
