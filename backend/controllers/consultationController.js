@@ -8,13 +8,109 @@ const {
 } = require("../utils/templateData");
 
 const flowConfig = {
-  steps: ["symptoms", "vitals", "diagnosePrescribe", "plan"],
+  steps: [
+    "symptoms",
+    "physicalExam",
+    "chooseNextSteps",
+    "assessment",
+    "orderTests",
+    "prescribeMedication",
+    "surgeryRequest",
+    "referral",
+    "patientInstructions",
+    "followUp",
+    "clinicalNotes",
+    "complete",
+  ],
   defaultStep: "symptoms",
+};
+
+const toNumber = (value) => {
+  if (value === "" || value === null || value === undefined) {
+    return undefined;
+  }
+
+  const numberValue = Number(value);
+  return Number.isNaN(numberValue) ? undefined : numberValue;
+};
+
+const addNote = (notes, label, value) => {
+  if (!value) return;
+  notes.push(`${label}: ${value}`);
+};
+
+const buildTemplateConsultationFields = (forms, templates, notes) => {
+  const normalizedForms = normalizeTemplateForms(forms, templates);
+  const symptomsForm = normalizedForms.symptoms_checklist || {};
+  const diagnosisForm = normalizedForms.basic_diagnosis || {};
+  const vitalsForm = normalizedForms.vitals_check || {};
+  const mentalHealthForm = normalizedForms.mental_health || {};
+  const medicationForm = normalizedForms.prescribe_medication || {};
+
+  const consultationNotes = [];
+
+  addNote(consultationNotes, "Notes", notes);
+  addNote(consultationNotes, "Symptom notes", symptomsForm.additional_notes);
+  addNote(consultationNotes, "Chief complaint", diagnosisForm.chief_complaint);
+  addNote(consultationNotes, "Pain level", diagnosisForm.pain_level);
+  addNote(consultationNotes, "Symptom duration", diagnosisForm.symptom_duration);
+  addNote(consultationNotes, "Allergies", diagnosisForm.allergies || medicationForm.allergies);
+  addNote(
+    consultationNotes,
+    "Current medications",
+    diagnosisForm.current_medications || medicationForm.current_medications
+  );
+  addNote(consultationNotes, "Examination notes", diagnosisForm.additional_notes);
+  addNote(consultationNotes, "Vitals notes", vitalsForm.additional_notes);
+  addNote(consultationNotes, "Current mood", mentalHealthForm.current_mood);
+  addNote(consultationNotes, "Mental health notes", mentalHealthForm.additional_notes);
+  addNote(consultationNotes, "Medication instructions", medicationForm.instructions);
+
+  return {
+    templateForms: normalizedForms,
+    symptoms: symptomsForm.symptoms || [],
+    vitals: {
+      bloodPressure: vitalsForm.blood_pressure || "",
+      heartRate: toNumber(vitalsForm.heart_rate),
+      temperature: toNumber(vitalsForm.temperature),
+      weight: toNumber(vitalsForm.weight),
+    },
+    examFindings: diagnosisForm.physical_exam || "",
+    diagnoses: diagnosisForm.diagnosis ? [diagnosisForm.diagnosis] : [],
+    prescriptions: medicationForm.medication
+      ? [
+          {
+            medicationName: medicationForm.medication,
+            dosage: medicationForm.dosage || "",
+            instructions: [medicationForm.frequency, medicationForm.instructions]
+              .filter(Boolean)
+              .join(" - "),
+          },
+        ]
+      : [],
+    treatmentPlan: diagnosisForm.treatment_plan || "",
+    notes: consultationNotes.join("\n"),
+  };
 };
 
 const buildConsultationFields = (body, userId) => {
   const wizardData = body.wizardData || body.formData || {};
   const vitals = body.vitals || {};
+  const notes = [];
+
+  addNote(notes, "Chief complaint", wizardData.chiefComplaint);
+  addNote(notes, "Symptom duration", wizardData.symptomDuration);
+  addNote(notes, "History", wizardData.history);
+  addNote(notes, "Pain level", wizardData.painLevel);
+  addNote(notes, "Differential diagnosis", wizardData.differentialDiagnosis);
+  addNote(notes, "Surgery request", wizardData.surgeryProcedure);
+  addNote(notes, "Surgery urgency", wizardData.surgeryUrgency);
+  addNote(notes, "Surgery reason", wizardData.surgeryReason);
+  addNote(notes, "Referral to", wizardData.referralTo);
+  addNote(notes, "Referral reason", wizardData.referralReason);
+  addNote(notes, "Patient instructions", wizardData.patientInstructions);
+  addNote(notes, "Return precautions", wizardData.returnPrecautions);
+  addNote(notes, "Additional notes", wizardData.additionalNotes);
 
   return {
     appointmentId: body.appointmentId,
@@ -27,16 +123,33 @@ const buildConsultationFields = (body, userId) => {
       diastolicBP: wizardData.diastolicBP ?? vitals.diastolicBP,
       temperature: wizardData.temperature ?? vitals.temperature,
       heartRate: wizardData.heartRate ?? vitals.heartRate,
+      respiratoryRate: wizardData.respiratoryRate ?? vitals.respiratoryRate,
+      oxygenSaturation: wizardData.oxygenSaturation ?? vitals.oxygenSaturation,
     },
     symptoms: body.symptoms || wizardData.reportedSymptoms || [],
     examFindings: body.examFindings || wizardData.physicalFindings,
-    diagnoses: body.diagnoses || (wizardData.diagnosis ? [wizardData.diagnosis] : []),
+    diagnoses:
+      body.diagnoses ||
+      (wizardData.workingDiagnosis || wizardData.diagnosis
+        ? [wizardData.workingDiagnosis || wizardData.diagnosis]
+        : []),
     prescriptions: body.prescriptions || [],
-    treatmentPlan: body.treatmentPlan || wizardData.plan,
+    treatmentPlan:
+      body.treatmentPlan ||
+      [
+        wizardData.plan,
+        wizardData.followUpTimeline
+          ? `Follow-up: ${wizardData.followUpTimeline}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
     finalTreatmentPlan: body.finalTreatmentPlan,
     wizardData,
     templateForms: body.templateForms || {},
-    notes: body.notes || wizardData.history,
+    testOrderDocuments:
+      body.testOrderDocuments !== undefined ? body.testOrderDocuments : undefined,
+    notes: body.notes || notes.join("\n"),
   };
 };
 
@@ -361,8 +474,9 @@ const completeConsultation = async (req, res) => {
 
 const completeTemplateConsultation = async (req, res) => {
   try {
-    const { patientId, appointmentId, doctorId, dateOfVisit, forms, notes } =
+    const { patientId, appointmentId, doctorId, dateOfVisit, notes } =
       req.body;
+    const forms = req.body.forms || req.body.templateForms || req.body.formData;
 
     if (!patientId) {
       return res.status(400).json({
@@ -380,13 +494,18 @@ const completeTemplateConsultation = async (req, res) => {
       });
     }
 
+    const templateConsultationFields = buildTemplateConsultationFields(
+      forms,
+      templates,
+      notes
+    );
+
     const consultation = await Consultation.create({
       appointmentId,
       patientId,
       doctorId: doctorId || req.user.id,
       dateOfVisit: dateOfVisit || new Date(),
-      templateForms: normalizeTemplateForms(forms, templates),
-      notes,
+      ...templateConsultationFields,
       status: "completed",
       currentStep: "complete",
       completedSteps: ["complete"],

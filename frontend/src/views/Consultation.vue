@@ -9,7 +9,7 @@
       <el-card shadow="never" class="stepper-card">
         <el-steps :active="currentStep - 1" finish-status="success" align-center>
           <el-step
-            v-for="(step, index) in consultationConfig"
+            v-for="(step, index) in consultationSteps"
             :key="index"
             :title="step.title"
             :description="step.description"
@@ -22,6 +22,20 @@
           <div class="step-pane">
             <h2>{{ currentStepConfig.title }}</h2>
             <p class="step-description">{{ currentStepConfig.description }}</p>
+
+            <div v-if="currentStepConfig.key === 'chooseNextSteps'" class="step-choice-panel">
+              <el-checkbox-group v-model="selectedActionKeys" class="step-choice-grid">
+                <el-checkbox
+                  v-for="step in optionalActionSteps"
+                  :key="step.key"
+                  :label="step.key"
+                  border
+                >
+                  <strong>{{ step.title }}</strong>
+                  <span>{{ step.description }}</span>
+                </el-checkbox>
+              </el-checkbox-group>
+            </div>
 
             <el-row :gutter="20">
               <el-col
@@ -67,6 +81,20 @@
                     />
                   </el-select>
 
+                  <el-select
+                    v-else-if="field.type === 'single-select'"
+                    v-model="formData[field.modelKey]"
+                    :placeholder="field.placeholder || 'Select an option'"
+                    style="width: 100%"
+                  >
+                    <el-option
+                      v-for="opt in field.options"
+                      :key="opt"
+                      :label="opt"
+                      :value="opt"
+                    />
+                  </el-select>
+
                   <div v-else-if="field.type === 'scale'" class="scale-wrapper">
                     <el-slider
                       v-model="formData[field.modelKey]"
@@ -95,7 +123,7 @@
             </el-row>
 
             <div
-              v-if="currentStepConfig.key === 'diagnosePrescribe' && prescriptionTemplate"
+              v-if="currentStepConfig.key === 'prescribeMedication' && prescriptionTemplate"
               class="prescription-template"
             >
               <TemplateRenderer
@@ -114,7 +142,7 @@
 
           <div class="right-buttons">
             <el-button
-              v-if="currentStep < consultationConfig.length"
+              v-if="currentStep < consultationSteps.length"
               type="primary"
               @click="nextStep"
             >
@@ -154,17 +182,42 @@ const userRole = storedUser.role?.toLowerCase();
 const isAdmin = computed(() => userRole === "admin");
 const patientId = computed(() => route.params.patientId || route.query.patientId);
 
-const consultationConfig = [
+const requiredSteps = [
   {
     key: "symptoms",
     title: "Symptoms",
-    description: "Gather patient history and complaints.",
+    description: "Start with complaint, duration, and patient history.",
     fields: [
+      {
+        type: "text-input",
+        modelKey: "chiefComplaint",
+        label: "Chief Complaint",
+        placeholder: "e.g., Chest pain, persistent cough, abdominal pain",
+      },
+      {
+        type: "text-input",
+        modelKey: "symptomDuration",
+        label: "Duration",
+        placeholder: "e.g., 3 days, since this morning, 2 weeks",
+      },
       {
         type: "multi-select",
         modelKey: "reportedSymptoms",
         label: "Reported Symptoms",
-        options: ["Cough", "Fever", "Headache", "Sore Throat", "Fatigue", "Nausea"],
+        options: [
+          "Cough",
+          "Fever",
+          "Headache",
+          "Sore Throat",
+          "Fatigue",
+          "Nausea",
+          "Chest Pain",
+          "Shortness of Breath",
+          "Abdominal Pain",
+          "Dizziness",
+          "Rash",
+          "Vomiting",
+        ],
       },
       {
         type: "scale",
@@ -179,53 +232,261 @@ const consultationConfig = [
         type: "textarea",
         modelKey: "history",
         label: "Detailed History",
-        placeholder: "Describe the onset and duration of symptoms...",
+        placeholder: "Onset, progression, triggers, relieving factors, relevant history...",
         rows: 5,
       },
     ],
   },
   {
-    key: "vitals",
-    title: "Vitals",
-    description: "Record vitals and physical findings.",
+    key: "physicalExam",
+    title: "Physical Exam",
+    description: "Record vitals and examination findings.",
     fields: [
       { type: "number-input", modelKey: "systolicBP", label: "Systolic BP", span: 12 },
       { type: "number-input", modelKey: "diastolicBP", label: "Diastolic BP", span: 12 },
       { type: "number-input", modelKey: "temperature", label: "Temperature (C)", span: 12 },
       { type: "number-input", modelKey: "heartRate", label: "Heart Rate (bpm)", span: 12 },
-      { type: "textarea", modelKey: "physicalFindings", label: "Physical Findings", rows: 4 },
-    ],
-  },
-  {
-    key: "diagnosePrescribe",
-    title: "Diagnose/Prescribe",
-    description: "Record diagnosis and prescriptions.",
-    fields: [
+      { type: "number-input", modelKey: "respiratoryRate", label: "Respiratory Rate", span: 12 },
+      { type: "number-input", modelKey: "oxygenSaturation", label: "Oxygen Saturation (%)", span: 12 },
       {
-        type: "text-input",
-        modelKey: "diagnosis",
-        label: "Primary Diagnosis",
-        placeholder: "e.g., Acute Pharyngitis",
+        type: "textarea",
+        modelKey: "physicalFindings",
+        label: "Physical Examination Findings",
+        rows: 5,
       },
     ],
   },
   {
-    key: "plan",
-    title: "Plan",
-    description: "Finalize treatment plan and follow-up.",
+    key: "chooseNextSteps",
+    title: "Choose Care Path",
+    description: "Select the next clinical actions for this visit.",
+    fields: [],
+  },
+];
+
+const optionalActionSteps = [
+  {
+    key: "assessment",
+    title: "Assessment",
+    description: "Diagnosis and clinical impression.",
     fields: [
-      { type: "textarea", modelKey: "plan", label: "Treatment Plan & Follow-up", rows: 3 },
+      {
+        type: "text-input",
+        modelKey: "workingDiagnosis",
+        label: "Working Diagnosis",
+        placeholder: "e.g., Acute Pharyngitis",
+      },
+      {
+        type: "textarea",
+        modelKey: "differentialDiagnosis",
+        label: "Differential Diagnosis",
+        rows: 3,
+      },
+    ],
+  },
+  {
+    key: "orderTests",
+    title: "Order Tests",
+    description: "Labs, imaging, or diagnostic studies.",
+    fields: [
+      {
+        type: "text-input",
+        modelKey: "testOrderTitle",
+        label: "Order Title",
+        placeholder: "e.g., Chest X-ray and CBC",
+      },
+      {
+        type: "single-select",
+        modelKey: "testType",
+        label: "Test Type",
+        options: ["Laboratory", "Imaging", "Pathology", "Cardiology", "Other"],
+      },
+      {
+        type: "single-select",
+        modelKey: "testPriority",
+        label: "Priority",
+        options: ["routine", "urgent", "stat"],
+      },
+      {
+        type: "textarea",
+        modelKey: "testInstructions",
+        label: "Instructions / Clinical Question",
+        rows: 4,
+      },
+    ],
+  },
+  {
+    key: "prescribeMedication",
+    title: "Prescribe Medication",
+    description: "Medication, dosage, and interaction check.",
+    fields: [],
+  },
+  {
+    key: "surgeryRequest",
+    title: "Surgery Request",
+    description: "Procedure request or surgical consult.",
+    fields: [
+      {
+        type: "text-input",
+        modelKey: "surgeryProcedure",
+        label: "Procedure / Service",
+        placeholder: "e.g., Appendectomy consult, wound debridement",
+      },
+      {
+        type: "single-select",
+        modelKey: "surgeryUrgency",
+        label: "Urgency",
+        options: ["elective", "semi-urgent", "urgent", "emergency"],
+      },
+      {
+        type: "textarea",
+        modelKey: "surgeryReason",
+        label: "Reason / Relevant Findings",
+        rows: 4,
+      },
+    ],
+  },
+  {
+    key: "referral",
+    title: "Referral",
+    description: "Specialist or allied health referral.",
+    fields: [
+      {
+        type: "text-input",
+        modelKey: "referralTo",
+        label: "Refer To",
+        placeholder: "e.g., Cardiology, physiotherapy, dermatology",
+      },
+      {
+        type: "textarea",
+        modelKey: "referralReason",
+        label: "Referral Reason",
+        rows: 4,
+      },
+    ],
+  },
+  {
+    key: "patientInstructions",
+    title: "Instructions",
+    description: "Patient education and home care.",
+    fields: [
+      {
+        type: "textarea",
+        modelKey: "patientInstructions",
+        label: "Patient Instructions",
+        rows: 5,
+      },
+    ],
+  },
+  {
+    key: "followUp",
+    title: "Follow-up",
+    description: "Timeline and return precautions.",
+    fields: [
+      {
+        type: "text-input",
+        modelKey: "followUpTimeline",
+        label: "Follow-up Timeline",
+        placeholder: "e.g., 1 week, 48 hours, after results return",
+      },
+      {
+        type: "textarea",
+        modelKey: "returnPrecautions",
+        label: "Return Precautions",
+        rows: 4,
+      },
+    ],
+  },
+  {
+    key: "clinicalNotes",
+    title: "Clinical Notes",
+    description: "Additional notes for the record.",
+    fields: [
+      { type: "textarea", modelKey: "additionalNotes", label: "Additional Notes", rows: 5 },
     ],
   },
 ];
 
+const finalStep = {
+  key: "complete",
+  title: "Complete",
+  description: "Review and save the visit.",
+  fields: [
+    {
+      type: "textarea",
+      modelKey: "plan",
+      label: "Final Treatment Plan",
+      rows: 5,
+    },
+  ],
+};
+
 const currentStep = ref(1);
+const selectedActionKeys = ref(["assessment"]);
 const formData = ref({});
 const prescriptionData = ref({});
 const isSubmitting = ref(false);
 const error = ref("");
 
-const currentStepConfig = computed(() => consultationConfig[currentStep.value - 1]);
+const consultationSteps = computed(() => [
+  ...requiredSteps,
+  ...optionalActionSteps.filter((step) => selectedActionKeys.value.includes(step.key)),
+  finalStep,
+]);
+
+const currentStepConfig = computed(() => {
+  return consultationSteps.value[currentStep.value - 1] || finalStep;
+});
+
+const selectedStepTitles = computed(() =>
+  consultationSteps.value.map((step) => step.title).join(", ")
+);
+
+const testOrderDocuments = computed(() => {
+  if (!selectedActionKeys.value.includes("orderTests")) {
+    return [];
+  }
+
+  if (!formData.value.testOrderTitle || !formData.value.testType) {
+    return [];
+  }
+
+  return [
+    {
+      title: formData.value.testOrderTitle,
+      testType: formData.value.testType,
+      priority: formData.value.testPriority || "routine",
+      instructions: formData.value.testInstructions || "",
+      documentText: [
+        formData.value.testOrderTitle,
+        formData.value.testInstructions,
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
+    },
+  ];
+});
+
+const treatmentPlanSummary = computed(() =>
+  [
+    formData.value.plan,
+    formData.value.patientInstructions
+      ? `Patient instructions: ${formData.value.patientInstructions}`
+      : "",
+    formData.value.followUpTimeline
+      ? `Follow-up: ${formData.value.followUpTimeline}`
+      : "",
+    formData.value.returnPrecautions
+      ? `Return precautions: ${formData.value.returnPrecautions}`
+      : "",
+    formData.value.surgeryProcedure
+      ? `Surgery request: ${formData.value.surgeryProcedure} (${formData.value.surgeryUrgency || "not specified"})`
+      : "",
+    formData.value.referralTo ? `Referral: ${formData.value.referralTo}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+);
 const prescriptionTemplate = computed(() =>
   getTemplates().find((template) => template.id === "prescribe_medication")
 );
@@ -271,7 +532,8 @@ const updatePrescriptionData = (data) => {
 };
 
 const nextStep = () => {
-  if (currentStep.value < consultationConfig.length) currentStep.value++;
+  formData.value.selectedConsultationSteps = [...selectedActionKeys.value];
+  if (currentStep.value < consultationSteps.value.length) currentStep.value++;
 };
 
 const prevStep = () => {
@@ -290,8 +552,13 @@ const submitConsultation = async () => {
   try {
     const createResult = await consultationsApi.createConsultation({
       patientId: patientId.value,
-      formData: formData.value,
+      formData: {
+        ...formData.value,
+        selectedConsultationSteps: selectedActionKeys.value,
+        completedStepTitles: selectedStepTitles.value,
+      },
       prescriptions: prescribedMedications.value,
+      testOrderDocuments: testOrderDocuments.value,
       templateForms: {
         prescribe_medication: prescriptionData.value,
       },
@@ -301,9 +568,10 @@ const submitConsultation = async () => {
 
     if (consultationId) {
       await consultationsApi.saveTreatmentPlan(consultationId, {
-        diagnosis: formData.value.diagnosis,
+        diagnosis: formData.value.workingDiagnosis,
         prescriptions: prescriptionSummary.value,
-        plan: formData.value.plan,
+        plan: treatmentPlanSummary.value,
+        followUp: formData.value.followUpTimeline,
       });
 
       await consultationsApi.completeConsultation(consultationId);
@@ -332,6 +600,7 @@ const submitConsultation = async () => {
 
 .stepper-card {
   padding: 10px 0;
+  overflow-x: auto;
 }
 
 .content-card {
@@ -351,6 +620,37 @@ const submitConsultation = async () => {
   color: #666;
   margin-bottom: 30px;
   font-size: 0.95rem;
+}
+
+.step-choice-panel {
+  margin-bottom: 28px;
+}
+
+.step-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.step-choice-grid :deep(.el-checkbox) {
+  height: auto;
+  min-height: 86px;
+  margin: 0;
+  padding: 14px;
+  white-space: normal;
+  align-items: flex-start;
+}
+
+.step-choice-grid :deep(.el-checkbox__label) {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 1.35;
+}
+
+.step-choice-grid span {
+  color: #666;
+  font-weight: 400;
 }
 
 .scale-wrapper {

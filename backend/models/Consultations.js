@@ -27,6 +27,8 @@ const consultationSchema = new mongoose.Schema(
       weight: Number,
       systolicBP: Number,
       diastolicBP: Number,
+      respiratoryRate: Number,
+      oxygenSaturation: Number,
     },
     symptoms: {
       type: [String],

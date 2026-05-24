@@ -44,6 +44,7 @@ const commsRouter = require('./routes/comms');
 //const fileUploadsRouter = require('./routes/fileUploads');
 const alertsRouter = require('./routes/alerts');
 const consultationsRouter = require('./routes/consultations');
+const consultationTemplatesRouter = require('./routes/consultationTemplates');
 const tasksRouter = require('./routes/tasks');
 const patientPortalRoutes = require("./routes/patientPortal");
 const drugsRoutes = require("./routes/drugsRoutes")
@@ -68,6 +69,7 @@ app.use('/api/comms', commsRouter);
 //app.use('/api/fileUploads', fileUploadsRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/consultations', consultationsRouter);
+app.use('/api/consultation-templates', consultationTemplatesRouter);
 app.use('/api/tasks', tasksRouter);
 app.use("/api/patient-portal", patientPortalRoutes);
 app.use("/api/drugs", drugsRoutes)
