@@ -243,6 +243,13 @@ const checkDrugInteractions =
 
     }
 
+    formData.drug_interactions =
+      drugInteractionResults.value
+        .map(interaction =>
+          `${formData.medication} + ${interaction.name}: ${interaction.description}`
+        )
+        .join("\n");
+
   };
 
 watch(

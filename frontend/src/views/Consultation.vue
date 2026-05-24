@@ -93,6 +93,17 @@
                 </el-form-item>
               </el-col>
             </el-row>
+
+            <div
+              v-if="currentStepConfig.key === 'diagnosePrescribe' && prescriptionTemplate"
+              class="prescription-template"
+            >
+              <TemplateRenderer
+                :template="prescriptionTemplate"
+                :initialData="prescriptionData"
+                @update="updatePrescriptionData"
+              />
+            </div>
           </div>
         </el-form>
 
@@ -133,7 +144,9 @@
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import MainLayout from "../components/MainLayout.vue";
+import TemplateRenderer from "../components/templates/TemplateRenderer.vue";
 import { consultationsApi } from "../api/consultations";
+import { getTemplates } from "../templates/templateSystem";
 
 const route = useRoute();
 const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -143,6 +156,7 @@ const patientId = computed(() => route.params.patientId || route.query.patientId
 
 const consultationConfig = [
   {
+    key: "symptoms",
     title: "Symptoms",
     description: "Gather patient history and complaints.",
     fields: [
@@ -171,6 +185,7 @@ const consultationConfig = [
     ],
   },
   {
+    key: "vitals",
     title: "Vitals",
     description: "Record vitals and physical findings.",
     fields: [
@@ -182,6 +197,7 @@ const consultationConfig = [
     ],
   },
   {
+    key: "diagnosePrescribe",
     title: "Diagnose/Prescribe",
     description: "Record diagnosis and prescriptions.",
     fields: [
@@ -191,10 +207,10 @@ const consultationConfig = [
         label: "Primary Diagnosis",
         placeholder: "e.g., Acute Pharyngitis",
       },
-      { type: "textarea", modelKey: "prescriptions", label: "Prescriptions", rows: 3 },
     ],
   },
   {
+    key: "plan",
     title: "Plan",
     description: "Finalize treatment plan and follow-up.",
     fields: [
@@ -205,10 +221,54 @@ const consultationConfig = [
 
 const currentStep = ref(1);
 const formData = ref({});
+const prescriptionData = ref({});
 const isSubmitting = ref(false);
 const error = ref("");
 
 const currentStepConfig = computed(() => consultationConfig[currentStep.value - 1]);
+const prescriptionTemplate = computed(() =>
+  getTemplates().find((template) => template.id === "prescribe_medication")
+);
+
+const prescriptionSummary = computed(() => {
+  const data = prescriptionData.value;
+
+  return [
+    data.medication ? `Medication: ${data.medication}` : "",
+    data.dosage ? `Dosage: ${data.dosage}` : "",
+    data.frequency ? `Frequency: ${data.frequency}` : "",
+    data.instructions ? `Instructions: ${data.instructions}` : "",
+    data.drug_interactions ? `Drug Interactions:\n${data.drug_interactions}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+});
+
+const prescribedMedications = computed(() => {
+  if (!prescriptionData.value.medication) {
+    return [];
+  }
+
+  return [
+    {
+      medicationName: prescriptionData.value.medication,
+      dosage: prescriptionData.value.dosage || "",
+      instructions: [
+        prescriptionData.value.frequency,
+        prescriptionData.value.instructions,
+        prescriptionData.value.drug_interactions,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    },
+  ];
+});
+
+const updatePrescriptionData = (data) => {
+  prescriptionData.value = { ...data };
+  formData.value.prescriptionData = { ...data };
+  formData.value.prescriptions = prescriptionSummary.value;
+};
 
 const nextStep = () => {
   if (currentStep.value < consultationConfig.length) currentStep.value++;
@@ -231,6 +291,10 @@ const submitConsultation = async () => {
     const createResult = await consultationsApi.createConsultation({
       patientId: patientId.value,
       formData: formData.value,
+      prescriptions: prescribedMedications.value,
+      templateForms: {
+        prescribe_medication: prescriptionData.value,
+      },
     });
 
     const consultationId = createResult?.consultation?._id;
@@ -238,7 +302,7 @@ const submitConsultation = async () => {
     if (consultationId) {
       await consultationsApi.saveTreatmentPlan(consultationId, {
         diagnosis: formData.value.diagnosis,
-        prescriptions: formData.value.prescriptions,
+        prescriptions: prescriptionSummary.value,
         plan: formData.value.plan,
       });
 
@@ -347,5 +411,17 @@ const submitConsultation = async () => {
   color: #b91c1c;
   font-weight: 700;
   margin-top: 16px;
+}
+
+.prescription-template {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+.prescription-template :deep(.form) {
+  width: 100%;
+  padding: 0;
+  box-shadow: none;
 }
 </style>
