@@ -167,6 +167,12 @@
             <li v-for="c in patient.clinicalHistory.conditions" :key="c">{{ c }}</li>
           </ul>
         </div>
+        <div class="panel-section" v-if="patient.clinicalHistory?.surgeries?.length">
+          <h3 class="panel-section-title">🔪 Surgeries</h3>
+          <ul class="panel-list">
+            <li v-for="s in patient.clinicalHistory.surgeries" :key="s">{{ s }}</li>
+          </ul>
+        </div>
       </div>
 
     </div>
