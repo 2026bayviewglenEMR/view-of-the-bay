@@ -87,8 +87,8 @@
         </select>
 
         <div v-else-if="field.type === 'drug-interaction'" class="drug-interaction-box">
-          <div v-if="!formData.medication">
-            Select a medication to check drug interactions.
+          <div v-if="!Array.isArray(formData.medications) || formData.medications.length === 0">
+            Select prescribed medications to check drug interactions.
           </div>
 
           <div v-else-if="drugInteractionResults.length === 0" class="safe">
@@ -244,7 +244,8 @@ const checkDrugInteractions =
   async () => {
 
     if (
-      !formData.medication ||
+      !Array.isArray(formData.medications) ||
+      formData.medications.length === 0 ||
       !Array.isArray(formData.current_medications) ||
       formData.current_medications.length === 0
     ) {
@@ -255,18 +256,51 @@ const checkDrugInteractions =
     }
 
 
-    const selectedDrugId =
-      formData.medication;
-    drugInteractionResults.value = [];
+    const selectedDrugs =
+      formData.medications
+        .map(
+          med =>
+            med.id
+        );
 
     const currentMeds =
       formData.current_medications
         .map(med => med.id);
 
     for (
-      const med
-      of currentMeds
+      const selectedDrug
+      of selectedDrugs
     ) {
+
+      for (
+        const currentDrug
+        of currentMeds
+      ) {
+
+        try {
+
+          const interactions =
+            await api.getInteractions(
+              selectedDrug,
+              currentDrug
+            );
+
+          drugInteractionResults.value
+            .push(
+              ...interactions
+            );
+
+        }
+
+        catch (err) {
+
+          console.log(err);
+
+        }
+
+      }
+
+    } {
 
       try {
 
@@ -293,8 +327,9 @@ const checkDrugInteractions =
 
     formData.drug_interactions =
       drugInteractionResults.value
-        .map(interaction =>
-          `${formData.medication} + ${interaction.name}: ${interaction.description}`
+        .map(
+          interaction =>
+            `${interaction.name}: ${interaction.description}`
         )
         .join("\n");
 

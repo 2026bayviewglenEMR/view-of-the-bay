@@ -244,7 +244,7 @@ const getTemplates = () => {
     },
     {
       id: "prescribe_medication",
-      name: "Prescribe Medication",
+      name: "Prescribed Medications",
       fields: [
         {
           id: "patient_name",
@@ -265,26 +265,20 @@ const getTemplates = () => {
           default: []
         },
         {
-          id: "medication",
-          label: "Medication",
-          type: "select",
-          options: [
-            { id: "DB00945", name: "Aspirin" },
-            { id: "DB00207", name: "Azithromycin" },
-            { id: "DB00331", name: "Metformin" },
-            { id: "DB01060", name: "Amoxicillin" },
-          ],
-          default: "",
+          id: "medications",
+          label: "Prescribed Medications",
+          type: "drug-list",
+          default: []
         },
         {
           id: "dosage",
-          label: "Dosage",
+          label: "Dosage of Perscribed Medication",
           type: "text",
           default: "",
         },
         {
           id: "frequency",
-          label: "Frequency",
+          label: "Frequency of Perscribed Medication",
           type: "select",
           options: [
             "Once daily",
@@ -311,7 +305,6 @@ const getTemplates = () => {
     },
   ];
 };
-
 const getTemplateById = (templateId) => {
   return getTemplates().find((template) => template.id === templateId);
 };
