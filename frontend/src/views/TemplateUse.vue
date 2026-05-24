@@ -39,6 +39,16 @@
               <li v-for="s in patient.clinicalHistory.surgeries" :key="s">{{ s }}</li>
             </ul>
           </div>
+
+          <div class="panel-section" v-if="pendingTests.length">
+            <h3 class="panel-section-title">🧪 Ordered Tests</h3>
+            <ul class="panel-list">
+              <li v-for="t in pendingTests" :key="t._id" class="ordered-test-item">
+                <span class="ordered-test-name">{{ t.testName }}</span>
+                <span class="ordered-test-meta">{{ t.orderedBy }} · {{ new Date(t.orderedAt).toLocaleDateString() }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <!-- Main Form Area -->
@@ -73,10 +83,12 @@
           <!-- Order Tests Modal -->
           <OrderTestsModal
             v-if="showOrderTests"
+            :patientId="patientId"
             :patientName="patient ? `${patient.firstName} ${patient.lastName}` : ''"
             :patientDob="patient?.dateOfBirth || ''"
             :doctorName="doctorName"
-            @close="showOrderTests = false"
+            :alreadyOrderedIds="pendingTestIds"
+            @close="onOrderTestsClose"
           />
         </div>
 
@@ -86,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import { getTemplates, saveTemplateConsultation } from "@/api/template";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
@@ -110,6 +122,20 @@ const isDoctor = storedUser.role === 'doctor'
 const doctorName = storedUser.firstName && storedUser.lastName
   ? `Dr. ${storedUser.firstName} ${storedUser.lastName}`
   : storedUser.username || ''
+
+// Ordered tests derived from patient record
+const pendingTests = computed(() =>
+  (patient.value?.orderedTests || []).filter(t => t.status === 'pending')
+)
+const pendingTestIds = computed(() => pendingTests.value.map(t => t.testId))
+
+// After closing the modal, reload patient so sidebar reflects newly saved tests
+async function onOrderTestsClose() {
+  showOrderTests.value = false
+  if (patientId) {
+    try { patient.value = await api.getPatient(patientId) } catch {}
+  }
+}
 
 const currentTemplate = computed(() => templates.value[currentIndex.value]);
 const isLastPage = computed(() => currentIndex.value === templates.value.length - 1);
@@ -313,6 +339,23 @@ loadPatient();
   font-size: 12px;
   color: #aaa;
   font-style: italic;
+}
+
+.ordered-test-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 5px;
+}
+
+.ordered-test-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #10231b;
+}
+
+.ordered-test-meta {
+  font-size: 10px;
+  color: #888;
 }
 
 .title {

@@ -26,7 +26,7 @@
           v-for="test in testsByCategory(category)"
           :key="test.id"
           class="test-row"
-          :class="{ selected: selected.includes(test.id) }"
+          :class="{ selected: selected.includes(test.id), 'already-ordered': alreadyOrderedIds.includes(test.id) }"
           @click="toggle(test.id)"
         >
           <div class="checkbox" :class="{ checked: selected.includes(test.id) }">
@@ -36,6 +36,7 @@
             <span class="test-name">{{ test.name }}</span>
             <span class="test-desc">{{ test.description }}</span>
           </div>
+          <span v-if="alreadyOrderedIds.includes(test.id)" class="already-badge">⚠ Already ordered</span>
         </div>
       </div>
 
@@ -63,11 +64,14 @@
 import { ref } from 'vue'
 import { jsPDF } from 'jspdf'
 import { LAB_TESTS, TEST_CATEGORIES } from '../config/labTests.js'
+import { api } from '../api/api.js'
 
 const props = defineProps({
-  patientName: { type: String, default: '' },
-  patientDob: { type: String, default: '' },
-  doctorName: { type: String, default: '' },
+  patientId:        { type: String, default: '' },
+  patientName:      { type: String, default: '' },
+  patientDob:       { type: String, default: '' },
+  doctorName:       { type: String, default: '' },
+  alreadyOrderedIds:{ type: Array,  default: () => [] },  // testIds already pending
 })
 
 defineEmits(['close'])
@@ -254,7 +258,15 @@ function generatePDF() {
     W / 2, y, { align: 'center' }
   )
 
-  // ── Save ────────────────────────────────────────────────────────────────────
+  // ── Save to patient record ───────────────────────────────────────────────────
+  if (props.patientId) {
+    const testsToSave = selectedTests.map(t => ({ testId: t.id, testName: t.name }))
+    api.saveOrderedTests(props.patientId, testsToSave).catch(err => {
+      console.error('Failed to save ordered tests to patient record:', err)
+    })
+  }
+
+  // ── Download PDF ─────────────────────────────────────────────────────────────
   const safeName = (props.patientName || 'patient').replace(/\s+/g, '_')
   doc.save(`test_order_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`)
 }
@@ -362,6 +374,21 @@ function generatePDF() {
 .test-row:last-child { border-bottom: none; }
 .test-row:hover { background: #f5f9f5; }
 .test-row.selected { background: #eef6ee; }
+.test-row.already-ordered { background: #fff8e1; }
+.test-row.already-ordered:hover { background: #fff3cd; }
+
+.already-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
 
 .checkbox {
   width: 18px;

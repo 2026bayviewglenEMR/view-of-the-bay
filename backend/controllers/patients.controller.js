@@ -171,10 +171,55 @@ const addPatientNote = async (req, res) => {
   }
 };
 
+const saveOrderedTests = async (req, res) => {
+  try {
+    if (!canEditPatientClinicalData(req)) {
+      return res.status(403).json({ message: "Only doctors can order tests." });
+    }
+
+    const { tests } = req.body; // [{ testId, testName }]
+    if (!Array.isArray(tests) || tests.length === 0) {
+      return res.status(400).json({ message: "tests array is required." });
+    }
+
+    const patient = await Patient.findById(req.params.id);
+    if (!patient) return res.status(404).json({ message: "Patient not found." });
+
+    // Only add tests that aren't already pending for this patient
+    const pendingIds = new Set(
+      patient.orderedTests
+        .filter(t => t.status === 'pending')
+        .map(t => t.testId)
+    );
+
+    const newTests = tests
+      .filter(t => !pendingIds.has(t.testId))
+      .map(t => ({
+        testId:      t.testId,
+        testName:    t.testName,
+        orderedBy:   req.user.firstName && req.user.lastName
+                       ? `Dr. ${req.user.firstName} ${req.user.lastName}`
+                       : req.user.username,
+        orderedById: req.user.id,
+        orderedAt:   new Date(),
+        status:      'pending',
+      }));
+
+    patient.orderedTests.push(...newTests);
+    await patient.save();
+
+    res.json({ orderedTests: patient.orderedTests });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to save ordered tests." });
+  }
+};
+
 module.exports = {
   getAllPatients,
   getPatientById,
   getPatientSummary,
   getPatientEncounters,
   addPatientNote,
+  saveOrderedTests,
 };
