@@ -170,6 +170,11 @@
               <input v-model="bookingForm.reason" placeholder="e.g. Annual checkup" required />
             </div>
 
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea v-model="bookingForm.notes" rows="2" placeholder="Any additional notes (optional)"></textarea>
+            </div>
+
             <p v-if="bookingError" class="load-error">{{ bookingError }}</p>
 
             <div class="modal-actions">
@@ -295,7 +300,8 @@ const checkInForm = reactive({
 const bookingForm = reactive({
   date: '',
   time: '',
-  reason: ''
+  reason: '',
+  notes: ''
 })
 
 // ─── Data ─────────────────────────────────────────────────
@@ -415,6 +421,7 @@ function openBooking() {
   bookingForm.date = ''
   bookingForm.time = ''
   bookingForm.reason = ''
+  bookingForm.notes = ''
   bookingSearch.value = ''
   bookingSearchResults.value = []
   bookingPatientId.value = ''
@@ -466,6 +473,7 @@ async function submitBooking() {
       scheduledStartTime,
       scheduledEndTime,
       reasonForVisit: bookingForm.reason,
+      notes: bookingForm.notes || bookingForm.reason,
     })
     closeBooking()
   } catch (err) {
