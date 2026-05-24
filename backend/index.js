@@ -53,6 +53,7 @@ const calendarRouter = require('./routes/calendar');
 const patientRoutes = require("./routes/patients.routes");
 const userRoutes = require("./routes/users.routes");
 const messageRoutes = require('./routes/messageRoutes');
+const appointmentRoutes = require('./routes/appointments');
 
 
 // 2. Mount the routes to their base URLs
@@ -75,6 +76,7 @@ app.use('/api/templates', templatesRoutes);
 app.use("/api/users", userRoutes);
 app.use('/api/calendar', calendarRouter);
 app.use('/api/messages', messageRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 app.get('/api/doctors', authenticateToken, async (req, res) => {
     const doctors = await User.find({ role: 'doctor' });
