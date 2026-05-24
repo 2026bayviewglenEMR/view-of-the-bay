@@ -83,16 +83,16 @@ const patientSchema = new mongoose.Schema(
         },
       ],
     },
-  },
+
     // Tests ordered by doctors during or after consultations
     orderedTests: [
       {
-        testId:     { type: String, required: true },
-        testName:   { type: String, required: true },
-        orderedBy:  { type: String, default: '' },       // "Dr. First Last"
-        orderedById:{ type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        orderedAt:  { type: Date, default: Date.now },
-        status:     { type: String, enum: ['pending', 'completed'], default: 'pending' },
+        testId:      { type: String, required: true },
+        testName:    { type: String, required: true },
+        orderedBy:   { type: String, default: '' },
+        orderedById: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        orderedAt:   { type: Date, default: Date.now },
+        status:      { type: String, enum: ['pending', 'completed'], default: 'pending' },
       }
     ],
   },
