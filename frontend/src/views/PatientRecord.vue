@@ -1,4 +1,34 @@
 <template>
+  <div v-if="showPatientModal" class="modal-overlay">
+  <div class="modal-card">
+    <h2>
+      {{ isEditingPatient ? "Edit Patient" : "Add Patient" }}
+    </h2>
+
+    <div class="modal-grid">
+      <input v-model="patientForm.firstName" placeholder="First Name" />
+      <input v-model="patientForm.lastName" placeholder="Last Name" />
+      <input v-model="patientForm.dateOfBirth" type="date" />
+      <input v-model="patientForm.gender" placeholder="Gender" />
+      <input v-model="patientForm.phone" placeholder="Phone" />
+      <input v-model="patientForm.address" placeholder="Address" />
+      <input v-model="patientForm.insurance" placeholder="Insurance" />
+    </div>
+
+    <div class="modal-actions">
+      <button @click="savePatient">
+        Save Patient
+      </button>
+
+      <button
+        class="secondary-modal-btn"
+        @click="closePatientModal"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
   <MainLayout>
     <div class="patient-record-page">
       <section v-if="accessDenied" class="card access-denied">
@@ -30,10 +60,23 @@
               <button class="secondary-action-btn">Update Medications</button>
               <button class="secondary-action-btn">Edit Clinical History</button>
             </template>
+<template v-else-if="role === 'admin'">
+  <button
+    class="secondary-action-btn"
+    @click="openAddPatient"
+  >
+    Add Patient
+  </button>
 
-            <template v-else-if="role === 'admin'">
-              <button class="secondary-action-btn">Edit Demographics</button>
-            </template>
+  <button
+    class="secondary-action-btn"
+    @click="openEditPatient"
+  >
+    Edit Demographics
+  </button>
+</template>
+
+            
           </div>
         </div>
 
@@ -132,11 +175,27 @@ export default {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
     return {
+
+      
+      
       role: currentUser.role?.toLowerCase() || "doctor",
       currentUser,
       isLoading: false,
       accessDenied: false,
       errorMessage: "",
+      showPatientModal: false,
+
+isEditingPatient: false,
+
+patientForm: {
+  firstName: "",
+  lastName: "",
+  dateOfBirth: "",
+  gender: "",
+  phone: "",
+  address: "",
+  insurance: "",
+},
       patient: {
         id: "",
         name: "",
@@ -156,6 +215,7 @@ export default {
       allergies: [],
       medications: [],
       timeline: [],
+      
     };
   },
   async mounted() {
@@ -248,8 +308,89 @@ export default {
       this.mapTimeline(encounters);
     },
     startConsultation() {
-      this.$router.push(`/consultation/${this.patient.id}`);
+      this.$router.push(`/diagnose/${this.patient.id}`)
     },
+    openAddPatient() {
+  this.isEditingPatient = false
+
+  this.patientForm = {
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    gender: "",
+    phone: "",
+    address: "",
+    insurance: "",
+  }
+
+  this.showPatientModal = true
+},
+
+openEditPatient() {
+  this.isEditingPatient = true
+
+  const [firstName = "", lastName = ""] =
+    this.patient.name.split(" ")
+
+  this.patientForm = {
+    firstName,
+    lastName,
+    dateOfBirth: this.patient.dob || "",
+    gender: this.patient.gender || "",
+    phone: this.patient.phone || "",
+    address: this.patient.address || "",
+    insurance: this.patient.insurance || "",
+  }
+
+  this.showPatientModal = true
+},
+
+closePatientModal() {
+  this.showPatientModal = false
+},
+
+async savePatient() {
+  try {
+    const payload = {
+      firstName: this.patientForm.firstName,
+      lastName: this.patientForm.lastName,
+      dateOfBirth: this.patientForm.dateOfBirth,
+      gender: this.patientForm.gender,
+      demographics: {
+        phone: this.patientForm.phone,
+        address: this.patientForm.address,
+        insurance: this.patientForm.insurance,
+      },
+    }
+
+    /*
+      FRONTEND-ONLY VERSION:
+      Updates local state immediately.
+
+      LATER:
+      Replace this with:
+      await api.createPatient(payload)
+      or
+      await api.updatePatient(...)
+    */
+
+    this.patient = {
+      ...this.patient,
+      name: `${payload.firstName} ${payload.lastName}`,
+      dob: payload.dateOfBirth,
+      gender: payload.gender,
+      phone: payload.demographics.phone,
+      address: payload.demographics.address,
+      insurance: payload.demographics.insurance,
+    }
+
+    this.showPatientModal = false
+
+  } catch (err) {
+    console.error(err)
+    alert("Failed to save patient.")
+  }
+},
   },
 };
 </script>
@@ -271,6 +412,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  
 }
 
 .consultation-btn,
@@ -418,6 +560,63 @@ export default {
 
 .error-message {
   color: #b91c1c;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-card {
+  width: 600px;
+  max-width: 90%;
+  background: white;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.modal-grid input {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-actions button:first-child {
+  background: #2d6a4f;
+  color: white;
+}
+
+.secondary-modal-btn {
+  background: #e5e7eb;
+  color: #111827;
 }
 
 @media (max-width: 900px) {

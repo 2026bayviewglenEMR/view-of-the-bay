@@ -1,14 +1,14 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { api } from '@/api/api.js'; // Ensure this path is correct for your project
 
 const isDropdownOpen = ref(false);
 const patientAlerts = ref([]);
 const unreadMessages = ref(parseInt(localStorage.getItem('unreadMessages') || '0'));
-const baseURL = 'http://localhost:3000';
 let pollInterval = null;
 
-const currentUserObj = JSON.parse(localStorage.getItem("user"))
-const currentUser = currentUserObj?.id
+const currentUserObj = JSON.parse(localStorage.getItem("user") || "{}");
+const currentUser = currentUserObj?.id;
 
 const componentRef = ref(null);
 
@@ -19,40 +19,34 @@ const closeOnClickOutside = (event) => {
 };
 
 const fetchUnreadMessages = async () => {
+  if (!currentUser) return;
+  
   try {
-    const response = await fetch(`${baseURL}/api/messages/conversations/${currentUser}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-    })
-    if (response.ok) {
-      const conversations = await response.json()
-      unreadMessages.value = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
-      localStorage.setItem('unreadMessages', unreadMessages.value)
-    }
+    // Replaced raw fetch with your existing api.js messaging method
+    const conversations = await api.getConversations(currentUser);
+    unreadMessages.value = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+    localStorage.setItem('unreadMessages', unreadMessages.value);
   } catch (error) {
-    console.error("Error fetching unread messages:", error)
+    console.error("Error fetching unread messages:", error);
   }
-}
+};
 
 onMounted(async () => {
   document.addEventListener('mousedown', closeOnClickOutside);
 
   try {
-    const response = await fetch(`${baseURL}/alerts`);
-    if (response.ok) {
-      patientAlerts.value = await response.json(); 
-    }
+    patientAlerts.value = await api.getAlerts(); 
   } catch (error) {
     console.error("Error fetching alerts from database:", error);
   }
 
-  await fetchUnreadMessages()
-
-  pollInterval = setInterval(fetchUnreadMessages, 3000)
+  await fetchUnreadMessages();
+  pollInterval = setInterval(fetchUnreadMessages, 3000);
 });
 
 onUnmounted(() => {
   document.removeEventListener('mousedown', closeOnClickOutside);
-  if (pollInterval) clearInterval(pollInterval)
+  if (pollInterval) clearInterval(pollInterval);
 });
 
 const toggleDropdown = () => {
@@ -63,9 +57,7 @@ const dismissAlert = async (id) => {
   patientAlerts.value = patientAlerts.value.filter(alert => alert.id !== id);
   
   try {
-    await fetch(`${baseURL}/alerts/${id}`, { 
-      method: 'DELETE' 
-    });
+    await api.deleteAlert(id);
   } catch (error) {
     console.error("Error deleting the alert:", error);
   }

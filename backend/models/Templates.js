@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const consultationSchema = new mongoose.Schema(
+const templateSchema = new mongoose.Schema(
   {
     patientId: {
       type: String,
@@ -37,7 +37,7 @@ const consultationSchema = new mongoose.Schema(
   }
 );
 
-consultationSchema.index({ patientId: 1, createdAt: -1 });
-consultationSchema.index({ templateId: 1, createdAt: -1 });
+templateSchema.index({ patientId: 1, createdAt: -1 });
+templateSchema.index({ templateId: 1, createdAt: -1 });
 
-export default mongoose.model("Consultation", consultationSchema);
+export default mongoose.model("Template", templateSchema);

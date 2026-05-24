@@ -37,9 +37,35 @@ exports.getReceptionistDashboard = async (req, res) => {
 
 exports.getTodaysAppointments = async (req, res) => {
   try {
-    const { providerId, status } = req.query;
-    // TODO: Appointment.find({ date: today, ...(providerId && {providerId}), ...(status && {status}) })
-    res.json({ appointments: [] });
+    const Appointment = require('../models/Appointment');
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const filter = { scheduledStartTime: { $gte: start, $lte: end } };
+
+    // Doctors only see their own appointments; admins see everyone's
+    if (req.user.role === 'doctor') {
+      filter.doctorId = req.user.id;
+    }
+
+    const appointments = await Appointment.find(filter)
+      .populate('patientId', 'firstName lastName')
+      .populate('doctorId', 'firstName lastName')
+      .sort({ scheduledStartTime: 1 });
+
+    res.json(appointments.map(a => ({
+      id: a._id,
+      name: `${a.patientId.firstName} ${a.patientId.lastName}`,
+      appointmentTime: new Date(a.scheduledStartTime).toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit'
+      }),
+      status: a.status || 'Scheduled',
+      doctorName: `Dr. ${a.doctorId.firstName} ${a.doctorId.lastName}`,
+      patientId: a.patientId._id,
+    })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
