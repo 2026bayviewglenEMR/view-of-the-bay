@@ -246,62 +246,64 @@ const getTemplates = () => {
       id: "prescribe_medication",
       name: "Prescribed Medications",
       fields: [
-        {
-          id: "patient_name",
-          label: "Patient Name",
-          type: "text",
-          default: "Emma Johnson",
-        },
-        {
-          id: "allergies",
-          label: "Allergies",
-          type: "text",
-          default: "Penicillin",
-        },
+
         {
           id: "current_medications",
           label: "Current Medications",
           type: "drug-list",
           default: []
         },
+
         {
           id: "medications",
           label: "Prescribed Medications",
           type: "drug-list",
           default: []
         },
+
         {
-          id: "dosage",
-          label: "Dosage of Perscribed Medication",
+          id: "allergies",
+          label: "Allergies",
           type: "text",
           default: "",
         },
+
+        {
+          id: "dosage",
+          label: "Dosage of Prescribed Medication",
+          type: "text",
+          default: "",
+        },
+
         {
           id: "frequency",
-          label: "Frequency of Perscribed Medication",
+          label: "Frequency of Prescribed Medication",
           type: "select",
           options: [
             "Once daily",
             "Twice daily",
             "Three times daily",
             "Every 6 hours",
-            "As needed",
+            "As needed"
           ],
           default: "",
         },
+
         {
           id: "instructions",
           label: "Instructions",
           type: "textarea",
           default: "",
         },
+
         {
           id: "drug_interactions",
           label: "Drug Interaction Results",
           type: "drug-interaction",
           default: "",
         },
-      ],
+
+      ]
     },
   ];
 };
