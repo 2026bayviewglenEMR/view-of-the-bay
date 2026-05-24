@@ -65,7 +65,7 @@
               {{ isSaving ? "Saving..." : "Save Consultation" }}
             </button>
 
-            <button class="order-tests-btn" @click="showOrderTests = true">
+            <button v-if="isDoctor" class="order-tests-btn" @click="showOrderTests = true">
               🧪 Order Tests
             </button>
           </div>
@@ -104,8 +104,9 @@ const currentIndex = ref(0);
 const patient = ref(null);
 const showOrderTests = ref(false);
 
-// Pull doctor name from the JWT stored in localStorage
+// Pull doctor name and role from the JWT stored in localStorage
 const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+const isDoctor = storedUser.role === 'doctor'
 const doctorName = storedUser.firstName && storedUser.lastName
   ? `Dr. ${storedUser.firstName} ${storedUser.lastName}`
   : storedUser.username || ''
