@@ -47,7 +47,7 @@ const router = createRouter({
     {
       path: '/patients',
       name: 'patients',
-      component: () => import('../views/PatientRecord.vue')
+      component: () => import('../views/PatientList.vue')
     },
     {
       path: '/tasks',
@@ -92,16 +92,38 @@ const routesConfig = {
     patientRedirect: '/patientPortal',
     doctorRedirect: '/dashboard',
     adminRedirect: '/dashboard',
+  },
+  '/patients': {
+    patientRedirect: () => {
+      const user = JSON.parse(localStorage.getItem('user'))
+      return `/patients/${user?.patientId}`
+    },
+    doctorRedirect: '/patients',
+    adminRedirect: '/patients',
   }
 }
 
 router.beforeEach((to, from, next) => {
-  //if the route requires a token, go to login
   if (localStorage.getItem("token") || openRoutes.includes(to.path)) {
     if (routesConfig[to.path]) {
-      next(routesConfig[to.path][JSON.parse(localStorage.getItem("user")).role + "Redirect"])
+      const user = JSON.parse(localStorage.getItem("user"))
+      const role = user?.role
+      const redirect = routesConfig[to.path][role + "Redirect"]
+      if (typeof redirect === 'function') {
+        const resolvedRedirect = redirect()
+        if (resolvedRedirect !== to.path) {
+          next(resolvedRedirect)
+        } else {
+          next()
+        }
+      } else if (redirect !== to.path) {
+        next(redirect)
+      } else {
+        next()
+      }
+    } else {
+      next()
     }
-    next();
   } else {
     next('/login');
   }

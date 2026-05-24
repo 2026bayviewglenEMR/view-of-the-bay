@@ -115,48 +115,77 @@
 
 <script>
 import MainLayout from '../components/MainLayout.vue';
+import { api } from '../api/api.js';
+
 export default {
   name: 'PatientRecord',
   components: { MainLayout },
   data() {
     return {
-      role: localStorage.getItem('role') || 'doctor',
+      role: JSON.parse(localStorage.getItem('user'))?.role || 'doctor',
       patient: {
-        id: 'P-1001',
-        name: 'Jane Doe',
-        dob: '1991-03-14',
-        gender: 'Female',
-        phone: '(555) 123-4567',
-        address: '123 Main Street',
-        insurance: 'SunLife',
+        id: '',
+        name: '',
+        dob: '',
+        gender: '',
+        phone: '',
+        address: '',
+        insurance: '',
         photo: ''
       },
       clinicalHistory: {
-        conditions: 'Type 2 Diabetes, Hypertension',
-        surgeries: 'Appendectomy (2018)',
-        familyHistory: 'Father: hypertension',
-        socialHistory: 'Non-smoker, occasional alcohol use'
+        conditions: '',
+        surgeries: '',
+        familyHistory: '',
+        socialHistory: ''
       },
-      allergies: ['Penicillin', 'Peanuts'],
-      medications: ['Metformin 500mg', 'Lisinopril 10mg'],
-      timeline: [
-        {
-          id: 1,
-          date: '2026-04-10',
-          reason: 'Follow-up',
-          doctor: 'Dr. Patel',
-          diagnosis: 'Stable blood pressure',
-          notes: 'Continue current medications'
-        },
-        {
-          id: 2,
-          date: '2026-02-18',
-          reason: 'Routine checkup',
-          doctor: 'Dr. Patel',
-          diagnosis: 'General wellness visit',
-          notes: 'Recommended annual bloodwork'
-        }
-      ]
+      allergies: [],
+      medications: [],
+      timeline: []
+    }
+  },
+  async mounted() {
+    const id = this.$route.params.id
+    if (!id) return
+
+    try {
+      const patient = await api.getPatient(id)
+
+      this.patient = {
+        id: patient._id,
+        name: `${patient.firstName} ${patient.lastName}`,
+        dob: patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : '—',
+        gender: patient.gender || '—',
+        phone: patient.demographics?.phone || '—',
+        address: patient.demographics?.address || '—',
+        insurance: patient.demographics?.insurance || '—',
+        photo: patient.photoUrl || ''
+      }
+
+      this.clinicalHistory = {
+        conditions: patient.clinicalHistory?.conditions?.join(', ') || '—',
+        surgeries: patient.clinicalHistory?.surgeries?.join(', ') || '—',
+        familyHistory: patient.clinicalHistory?.familyHistory || '—',
+        socialHistory: patient.clinicalHistory?.socialHistory || '—'
+      }
+
+      this.allergies = patient.executiveSummary?.allergies || []
+      this.medications = (patient.executiveSummary?.activeMedications || []).map(
+        m => `${m.name} ${m.dosage}`
+      )
+
+      const encounters = await api.getPatientEncounters(id)
+      this.timeline = encounters.map(e => ({
+        id: e._id,
+        date: new Date(e.createdAt).toLocaleDateString(),
+        reason: e.reason || '—',
+        doctor: e.doctorId?.firstName ? `Dr. ${e.doctorId.firstName} ${e.doctorId.lastName}` : '—',
+        diagnosis: e.diagnosis || '—',
+        notes: e.notes || '—'
+      }))
+
+    } catch (err) {
+      console.error('Failed to load patient', err)
     }
   },
   methods: {
@@ -173,7 +202,7 @@ export default {
       console.log('Edit Demographics clicked')
     },
     startConsultation() {
-      this.$router.push('/dashboard')
+      this.$router.push(`/consultation/${this.patient.id}`)
     }
   }
 }

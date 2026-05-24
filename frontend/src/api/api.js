@@ -31,6 +31,12 @@ export const api = {
     updateAppointment: (patientId, appointmentId, data) => http.put(`/patient-portal/${patientId}/appointments/${appointmentId}`, data).then(r => r.data),
     deleteAppointment: (patientId, appointmentId) => http.delete(`/patient-portal/${patientId}/appointments/${appointmentId}`).then(r => r.data),
 
+    // patients
+    getPatient: (id) => http.get(`/patients/${id}`).then(r => r.data),
+    getPatientSummary: (id) => http.get(`/patients/${id}/summary`).then(r => r.data),
+    getPatientEncounters: (id) => http.get(`/patients/${id}/encounters`).then(r => r.data),
+    getAllPatients: () => http.get('/patients').then(r => r.data),
+
     uploadAttachment: (formData) => http.post('/messages/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
     }).then(r => r.data),

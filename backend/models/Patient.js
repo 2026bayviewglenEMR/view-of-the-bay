@@ -1,4 +1,3 @@
-// models/Patient.js
 const mongoose = require("mongoose");
 
 const patientSchema = new mongoose.Schema(
@@ -15,30 +14,57 @@ const patientSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    gender: {
+      type: String,
+      default: "",
+    },
     photoUrl: {
       type: String,
-      required: true,
+      default: "",
     },
 
     demographics: {
       phone: {
         type: String,
-        required: true,
+        default: "",
       },
       address: {
         type: String,
-        required: true,
+        default: "",
       },
       emergencyContact: {
         type: String,
-        required: true,
+        default: "",
+      },
+      insurance: {
+        type: String,
+        default: "",
+      },
+    },
+
+    clinicalHistory: {
+      conditions: {
+        type: [String],
+        default: [],
+      },
+      surgeries: {
+        type: [String],
+        default: [],
+      },
+      familyHistory: {
+        type: String,
+        default: "",
+      },
+      socialHistory: {
+        type: String,
+        default: "",
       },
     },
 
     executiveSummary: {
       allergies: {
         type: [String],
-        required: true,
+        default: [],
       },
       activeMedications: [
         {
