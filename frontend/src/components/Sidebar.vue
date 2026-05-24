@@ -6,43 +6,16 @@
         @mouseleave="collapseSidebar"
     >
         <nav class="nav-menu">
-            <router-link to="/dashboard" class="nav-link">
-                <span class="icon">📊</span>
-                <span class="label">Dashboard</span>
-            </router-link>
-
-            <router-link to="/patients" class="nav-link">
-                <span class="icon">👥</span>
-                <span class="label">Patient Records</span>
-            </router-link>
-
-            <router-link to="/messaging" class="nav-link">
-                <span class="icon">💬</span>
-                <span class="label">Messaging</span>
-            </router-link>
-
-            <router-link to="/templates" class="nav-link">
-                <span class="icon">📋</span>
-                <span class="label">Templates</span>
-            </router-link>
-
-            <router-link to="/tasks" class="nav-link">
-                <span class="icon">✓</span>
-                <span class="label">Tasks</span>
-            </router-link>
-
-            <router-link to="/alerts" class="nav-link">
-                <span class="icon">🔔</span>
-                <span class="label">Alerts</span>
-            </router-link>
-            <router-link to="/waitingroom" class="nav-link">
-                <span class="icon">🪑</span>
-                <span class="label">Waiting Room</span>
-            </router-link>
-            <router-link to="/PatientPortal" class="nav-link">
-                <span class="icon">🌀</span>
-                <span class="label">Patient Portal</span>
-            </router-link>
+            <template v-for="item in navConfig" :key="item.path">
+                <router-link 
+                    v-if="item.roles.includes(role)"
+                    :to="item.path" 
+                    class="nav-link"
+                >
+                    <span class="icon">{{ item.icon }}</span>
+                    <span class="label">{{ item.label }}</span>
+                </router-link>
+            </template>
         </nav>
     </div>
 </template>
@@ -53,6 +26,20 @@ import { ref, onMounted } from 'vue'
 const emit = defineEmits(['toggle'])
 
 const isOpen = ref(false)
+
+const role = JSON.parse(localStorage.getItem("user")).role
+
+// 1. Define the Navigation Structure Array
+const navConfig = [
+    { path: '/dashboard',     label: 'Dashboard',      icon: '📊', roles: ['doctor', 'admin'] },
+    { path: '/patients',      label: 'Patient Records', icon: '👥', roles: ['doctor', 'admin', 'patient'] },
+    { path: '/messaging',     label: 'Messaging',      icon: '💬', roles: ['doctor', 'admin', 'patient'] },
+    // { path: '/templates',     label: 'Templates',      icon: '📋' },
+    { path: '/tasks',         label: 'Tasks',          icon: '✓', roles: ['doctor', 'admin'] },
+    // { path: '/alerts',        label: 'Alerts',         icon: '🔔' },
+    { path: '/waitingroom',   label: 'Waiting Room',   icon: '🪑', roles: ['admin'] },
+    { path: '/PatientPortal', label: 'Patient Portal', icon: '🌀', roles: ['patient'] }
+]
 
 // Emit the initial state when the component mounts
 onMounted(() => {
