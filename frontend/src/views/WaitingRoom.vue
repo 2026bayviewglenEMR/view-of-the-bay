@@ -32,6 +32,7 @@
         <!-- LEFT: Global Waiting Room -->
         <div class="waiting-room">
           <h2>Global Waiting Room</h2>
+          <p v-if="loadError" class="load-error">{{ loadError }}</p>
 
           <table>
             <thead>
@@ -56,9 +57,13 @@
                 <td>{{ patient.time }}</td>
 
                 <td>
-                  <span :class="['status', patient.status.toLowerCase().replace(' ', '-')]">
-                    {{ patient.status }}
-                  </span>
+                  <select
+                    :value="patient.status"
+                    @change="changeStatus(patient, $event.target.value)"
+                    :class="['status-select', patient.status.toLowerCase().replace(' ', '-')]"
+                  >
+                    <option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option>
+                  </select>
                 </td>
 
                 <td>{{ patient.wait }} min</td>
@@ -68,8 +73,9 @@
                   {{ patient.note }}
                 </td>
 
-                <td>
+                <td class="actions-cell">
                   <button class="open-btn" @click="openPatient(patient)">Open</button>
+                  <button class="remove-btn" @click="removeFromQueue(patient)" title="Remove from queue">✕</button>
                 </td>
               </tr>
 
@@ -115,16 +121,34 @@
           <h2>📝 Book Appointment</h2>
 
           <form @submit.prevent="submitBooking">
-            <div class="form-group">
-              <label>Patient Name</label>
-              <input v-model="bookingForm.name" placeholder="Full name" required />
+
+            <!-- Patient search -->
+            <div class="form-group" style="position: relative">
+              <label>Search Patient</label>
+              <input
+                v-model="bookingSearch"
+                @input="onBookingSearch"
+                placeholder="Start typing a name..."
+                autocomplete="off"
+                required
+              />
+              <div v-if="bookingSearchResults.length" class="search-dropdown">
+                <div
+                  v-for="result in bookingSearchResults"
+                  :key="result.id"
+                  class="search-result"
+                  @mousedown.prevent="selectBookingPatient(result)"
+                >
+                  <strong>{{ result.firstName }} {{ result.lastName }}</strong>
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
               <label>Doctor</label>
-              <select v-model="bookingForm.doctor" required>
+              <select v-model="bookingDoctorId" required>
                 <option disabled value="">Select a doctor</option>
-                <option v-for="doc in doctors" :key="doc.id" :value="doc.name">
+                <option v-for="doc in doctors" :key="doc.id" :value="doc.id">
                   {{ doc.name }}
                 </option>
               </select>
@@ -146,6 +170,8 @@
               <input v-model="bookingForm.reason" placeholder="e.g. Annual checkup" required />
             </div>
 
+            <p v-if="bookingError" class="load-error">{{ bookingError }}</p>
+
             <div class="modal-actions">
               <button type="button" class="cancel-btn" @click="closeBooking">Cancel</button>
               <button type="submit" class="submit-btn">Book</button>
@@ -160,21 +186,45 @@
           <h2>Check In Patient</h2>
 
           <form @submit.prevent="submitCheckIn">
-            <div class="form-group">
-              <label>Patient Name</label>
+            <!-- Patient search -->
+            <div class="form-group" style="position: relative">
+              <label>Search Patient</label>
               <input
-                v-model="checkInForm.name"
-                placeholder="Full name"
+                v-model="checkInSearch"
+                @input="onCheckInSearch"
+                placeholder="Start typing a name..."
+                autocomplete="off"
+                required
+              />
+              <div v-if="searchResults.length" class="search-dropdown">
+                <div
+                  v-for="result in searchResults"
+                  :key="result.id"
+                  class="search-result"
+                  @mousedown.prevent="selectPatient(result)"
+                >
+                  <strong>{{ result.firstName }} {{ result.lastName }}</strong>
+                  <span v-if="result.doctor"> — {{ result.doctor }}, {{ result.appointmentTime }}</span>
+                  <span v-else> — No upcoming appointment</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto-filled fields -->
+            <div class="form-group">
+              <label>Assigned Doctor</label>
+              <input
+                v-model="checkInForm.doctor"
+                placeholder="Auto-filled from appointment"
                 required
               />
             </div>
 
             <div class="form-group">
-              <label>Assigned Doctor</label>
+              <label>Appointment Time</label>
               <input
-                v-model="checkInForm.doctor"
-                placeholder="e.g. Dr. Patel"
-                required
+                v-model="checkInForm.time"
+                placeholder="Auto-filled from appointment"
               />
             </div>
 
@@ -187,6 +237,8 @@
                 required
               ></textarea>
             </div>
+
+            <p v-if="checkInError" class="load-error">{{ checkInError }}</p>
 
             <div class="modal-actions">
               <button type="button" class="cancel-btn" @click="closeCheckIn">Cancel</button>
@@ -201,155 +253,224 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../components/MainLayout.vue'
+import { api } from '../api/api'
 
 const router = useRouter()
 
+// ─── UI state ─────────────────────────────────────────────
 const search = ref('')
 const activeFilter = ref('All')
+const loadError = ref('')
+
+// ─── Check In state ───────────────────────────────────────
 const showCheckIn = ref(false)
+const checkInSearch = ref('')
+const searchResults = ref([])
+const checkInAppointmentId = ref('')
+const checkInError = ref('')
+let searchTimeout = null
+
+// ─── Booking state ────────────────────────────────────────
 const showBooking = ref(false)
+const bookingSearch = ref('')
+const bookingSearchResults = ref([])
+const bookingPatientId = ref('')
+const bookingDoctorId = ref('')
+const bookingError = ref('')
+let bookingSearchTimeout = null
 
 const filters = ['All', 'Checked-in', 'Waiting', 'In consultation']
+const statusOptions = ['Checked-in', 'Waiting', 'In consultation']
 
 const checkInForm = reactive({
   name: '',
   doctor: '',
+  time: '',
   note: ''
 })
 
 const bookingForm = reactive({
-  name: '',
-  doctor: '',
   date: '',
   time: '',
   reason: ''
 })
 
-const patients = ref([
-  {
-    id: 1,
-    name: 'Sarah Chen',
-    doctor: 'Dr. Patel',
-    time: '10:30',
-    status: 'Waiting',
-    wait: 12,
-    note: 'Follow-up visit',
-    flag: true
-  },
-  {
-    id: 2,
-    name: 'James Lee',
-    doctor: 'Dr. Williams',
-    time: '10:00',
-    status: 'In consultation',
-    wait: 0,
-    note: '',
-    flag: false
-  },
-  {
-    id: 3,
-    name: 'Ava Singh',
-    doctor: 'Dr. Patel',
-    time: '10:15',
-    status: 'Checked-in',
-    wait: 5,
-    note: 'New patient',
-    flag: false
-  }
-])
+// ─── Data ─────────────────────────────────────────────────
+const patients = ref([])
+const doctors = ref([])
 
-const doctors = ref([
-  {
-    id: 1,
-    name: 'Dr. Patel',
-    status: 'Busy',
-    current: 'Sarah Chen',
-    queue: 3
-  },
-  {
-    id: 2,
-    name: 'Dr. Williams',
-    status: 'Free',
-    current: null,
-    queue: 0
+onMounted(async () => {
+  try {
+    const [queueData, doctorsData] = await Promise.all([
+      api.getWaitingRoom(),
+      api.getDoctorsOverview()
+    ])
+    patients.value = queueData
+    doctors.value = doctorsData
+  } catch (err) {
+    console.error('Failed to load waiting room:', err)
+    loadError.value = 'Could not load waiting room data.'
   }
-])
+})
 
+// ─── Filtering ────────────────────────────────────────────
 const filteredPatients = computed(() => {
   return patients.value.filter(p => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(search.value.toLowerCase())
-
-    const matchesFilter =
-      activeFilter.value === 'All' ||
-      p.status === activeFilter.value
-
+    const matchesSearch = p.name.toLowerCase().includes(search.value.toLowerCase())
+    const matchesFilter = activeFilter.value === 'All' || p.status === activeFilter.value
     return matchesSearch && matchesFilter
   })
 })
 
+// ─── Row actions ──────────────────────────────────────────
 function openPatient(patient) {
-  router.push(`/patients/${patient.id}`)
+  router.push(`/patients/${patient.patientId}`)
 }
 
-function openBooking() {
-  bookingForm.name = ''
-  bookingForm.doctor = ''
-  bookingForm.date = ''
-  bookingForm.time = ''
-  bookingForm.reason = ''
-  showBooking.value = true
+async function changeStatus(patient, newStatus) {
+  try {
+    const updated = await api.updatePatientStatus(patient.id, newStatus)
+    const idx = patients.value.findIndex(p => p.id === patient.id)
+    if (idx !== -1) patients.value[idx] = updated
+    doctors.value = await api.getDoctorsOverview()
+  } catch (err) {
+    console.error('Failed to update status:', err)
+  }
 }
 
-function closeBooking() {
-  showBooking.value = false
+async function removeFromQueue(patient) {
+  try {
+    await api.removePatient(patient.id)
+    patients.value = patients.value.filter(p => p.id !== patient.id)
+    doctors.value = await api.getDoctorsOverview()
+  } catch (err) {
+    console.error('Failed to remove patient:', err)
+  }
 }
 
-function submitBooking() {
-  // Add the patient to the waiting list as "Waiting" once booked
-  patients.value.unshift({
-    id: Date.now(),
-    name: bookingForm.name,
-    doctor: bookingForm.doctor,
-    time: bookingForm.time,
-    status: 'Waiting',
-    wait: 0,
-    note: bookingForm.reason,
-    flag: false
-  })
-  closeBooking()
-}
-
+// ─── Check In modal ───────────────────────────────────────
 function openCheckIn() {
   checkInForm.name = ''
   checkInForm.doctor = ''
+  checkInForm.time = ''
   checkInForm.note = ''
+  checkInSearch.value = ''
+  checkInAppointmentId.value = ''
+  searchResults.value = []
+  checkInError.value = ''
   showCheckIn.value = true
 }
 
 function closeCheckIn() {
   showCheckIn.value = false
+  searchResults.value = []
+  checkInError.value = ''
 }
 
-function submitCheckIn() {
-  const now = new Date()
-  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+function onCheckInSearch() {
+  clearTimeout(searchTimeout)
+  if (checkInSearch.value.trim().length < 2) {
+    searchResults.value = []
+    return
+  }
+  searchTimeout = setTimeout(async () => {
+    try {
+      searchResults.value = await api.searchPatients(checkInSearch.value.trim())
+    } catch {
+      searchResults.value = []
+    }
+  }, 300)
+}
 
-  patients.value.unshift({
-    id: Date.now(),
-    name: checkInForm.name,
-    doctor: checkInForm.doctor,
-    time,
-    status: 'Checked-in',
-    wait: 0,
-    note: checkInForm.note,
-    flag: false
-  })
+function selectPatient(result) {
+  checkInForm.name = `${result.firstName} ${result.lastName}`
+  checkInForm.doctor = result.doctor || ''
+  checkInForm.time = result.appointmentTime || ''
+  checkInAppointmentId.value = result.appointmentId || ''
+  checkInSearch.value = `${result.firstName} ${result.lastName}`
+  searchResults.value = []
+}
 
-  closeCheckIn()
+async function submitCheckIn() {
+  checkInError.value = ''
+  if (!checkInAppointmentId.value) {
+    checkInError.value = 'Please select a patient who has an upcoming appointment.'
+    return
+  }
+  try {
+    const entry = await api.checkInPatient(checkInAppointmentId.value, checkInForm.note)
+    patients.value.unshift(entry)
+    doctors.value = await api.getDoctorsOverview()
+    closeCheckIn()
+  } catch (err) {
+    checkInError.value = err?.response?.data?.message || 'Failed to check in patient.'
+  }
+}
+
+// ─── Book Appointment modal ───────────────────────────────
+function openBooking() {
+  bookingForm.date = ''
+  bookingForm.time = ''
+  bookingForm.reason = ''
+  bookingSearch.value = ''
+  bookingSearchResults.value = []
+  bookingPatientId.value = ''
+  bookingDoctorId.value = ''
+  bookingError.value = ''
+  showBooking.value = true
+}
+
+function closeBooking() {
+  showBooking.value = false
+  bookingError.value = ''
+}
+
+function onBookingSearch() {
+  clearTimeout(bookingSearchTimeout)
+  if (bookingSearch.value.trim().length < 2) {
+    bookingSearchResults.value = []
+    return
+  }
+  bookingSearchTimeout = setTimeout(async () => {
+    try {
+      bookingSearchResults.value = await api.searchPatients(bookingSearch.value.trim())
+    } catch {
+      bookingSearchResults.value = []
+    }
+  }, 300)
+}
+
+function selectBookingPatient(result) {
+  bookingSearch.value = `${result.firstName} ${result.lastName}`
+  bookingPatientId.value = result.id
+  bookingSearchResults.value = []
+}
+
+async function submitBooking() {
+  bookingError.value = ''
+  if (!bookingPatientId.value) {
+    bookingError.value = 'Please select a patient from the search results.'
+    return
+  }
+  try {
+    const scheduledStartTime = new Date(`${bookingForm.date}T${bookingForm.time}`).toISOString()
+    const scheduledEndTime = new Date(
+      new Date(`${bookingForm.date}T${bookingForm.time}`).getTime() + 30 * 60 * 1000
+    ).toISOString()
+
+    await api.createAppointment(bookingPatientId.value, {
+      doctorId: bookingDoctorId.value,
+      scheduledStartTime,
+      scheduledEndTime,
+      reasonForVisit: bookingForm.reason,
+    })
+    closeBooking()
+  } catch (err) {
+    bookingError.value = err?.response?.data?.message || 'Failed to book appointment.'
+  }
 }
 </script>
 
@@ -439,25 +560,63 @@ tr:hover {
   padding: 24px;
 }
 
-/* Status colors */
-.status {
+/* Status select */
+.status-select {
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.waiting {
+.status-select.waiting {
   background: #71b141;
   color: white;
 }
 
-.in-consultation {
+.status-select.in-consultation {
   background: #3a5814;
   color: white;
 }
 
-.checked-in {
+.status-select.checked-in {
   background: #dcd8b5;
+  color: #333;
+}
+
+/* Row actions */
+.actions-cell {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.open-btn {
+  padding: 6px 10px;
+  border: none;
+  background: #10260a;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.open-btn:hover {
+  background: #1e4010;
+}
+
+.remove-btn {
+  padding: 5px 8px;
+  border: none;
+  background: #c0392b;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.remove-btn:hover {
+  background: #a93226;
 }
 
 /* Sidebar */
@@ -491,20 +650,6 @@ tr:hover {
 .flag {
   color: #8e5d35;
   margin-right: 5px;
-}
-
-/* Open button */
-.open-btn {
-  padding: 6px 10px;
-  border: none;
-  background: #10260a;
-  color: white;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.open-btn:hover {
-  background: #1e4010;
 }
 
 /* Modal */
@@ -551,6 +696,7 @@ tr:hover {
 }
 
 .form-group input,
+.form-group select,
 .form-group textarea {
   padding: 10px 12px;
   border: 2px solid #ddd;
@@ -560,6 +706,7 @@ tr:hover {
 }
 
 .form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: #3a5814;
@@ -593,5 +740,40 @@ tr:hover {
 
 .submit-btn:hover {
   background: #2c4210;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #3a5814;
+  border-radius: 8px;
+  z-index: 200;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.search-result {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #eee;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.search-result:hover {
+  background: #f0f4ec;
+}
+
+.load-error {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin: 0 0 12px;
 }
 </style>

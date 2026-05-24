@@ -27,6 +27,10 @@ export const api = {
     markAsRead: (messageId) => http.patch(`/messages/${messageId}/read`).then(r => r.data),
     getConversations: (userId) => http.get(`/messages/conversations/${userId}`).then(r => r.data),
 
+    uploadAttachment: (formData) => http.post('/messages/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(r => r.data),
+
     // patient portal
     getPortalData: (patientId) => http.get(`/patient-portal/${patientId}`).then(r => r.data),
     createAppointment: (patientId, data) => http.post(`/patient-portal/${patientId}/appointments`, data).then(r => r.data),
@@ -39,8 +43,16 @@ export const api = {
     getPatientEncounters: (id) => http.get(`/patients/${id}/encounters`).then(r => r.data),
     getAllPatients: () => http.get('/patients').then(r => r.data),
 
-    uploadAttachment: (formData) => http.post('/messages/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-    }).then(r => r.data),
-}
+    // dashboard
+    getTodaysAppointments: () => http.get('/dashboard/appointments/today').then(r => r.data),
 
+    // patient search (for waiting room check-in)
+    searchPatients: (q) => http.get(`/patient-search/search?q=${encodeURIComponent(q)}`).then(r => r.data),
+
+    // waiting room
+    getWaitingRoom: () => http.get('/waiting-room').then(r => r.data),
+    getDoctorsOverview: () => http.get('/waiting-room/doctors').then(r => r.data),
+    checkInPatient: (appointmentId, note, flag) => http.post('/waiting-room/check-in', { appointmentId, note, flag }).then(r => r.data),
+    updatePatientStatus: (id, status) => http.patch(`/waiting-room/${id}/status`, { status }).then(r => r.data),
+    removePatient: (id) => http.delete(`/waiting-room/${id}`).then(r => r.data),
+}

@@ -54,15 +54,12 @@ const patientRoutes = require("./routes/patients.routes");
 const userRoutes = require("./routes/users.routes");
 const messageRoutes = require('./routes/messageRoutes');
 const appointmentRoutes = require('./routes/appointments');
-
+const dashboardRouter = require('./routes/dashboard');
+const patientSearchRouter = require('./routes/patientSearch');
 
 // 2. Mount the routes to their base URLs
-// If a request starts with '/api/patients', send it to Student 2's file
 app.use('/api/auth', authRoutes);
 app.use("/api/patients", patientRoutes);
-// app.use('/api/staff', staffRoutes);
-// app.use('/api/patients', patientRoutes);
-// app.use('/api/clinical', clinicalRoutes); 
 app.use('/api/labs', labsRouter);
 app.use('/api/comms', commsRouter);
 //app.use('/api/fileUploads', fileUploadsRouter);
@@ -77,6 +74,8 @@ app.use("/api/users", userRoutes);
 app.use('/api/calendar', calendarRouter);
 app.use('/api/messages', messageRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/patient-search', patientSearchRouter);
 
 app.get('/api/doctors', authenticateToken, async (req, res) => {
     const doctors = await User.find({ role: 'doctor' });
