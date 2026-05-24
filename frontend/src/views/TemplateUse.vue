@@ -64,7 +64,20 @@
               :disabled="!canGoNext || isSaving" @click="saveAllForms">
               {{ isSaving ? "Saving..." : "Save Consultation" }}
             </button>
+
+            <button class="order-tests-btn" @click="showOrderTests = true">
+              🧪 Order Tests
+            </button>
           </div>
+
+          <!-- Order Tests Modal -->
+          <OrderTestsModal
+            v-if="showOrderTests"
+            :patientName="patient ? `${patient.firstName} ${patient.lastName}` : ''"
+            :patientDob="patient?.dateOfBirth || ''"
+            :doctorName="doctorName"
+            @close="showOrderTests = false"
+          />
         </div>
 
       </div>
@@ -78,6 +91,7 @@ import { useRoute } from "vue-router";
 import { getTemplates, saveTemplateConsultation } from "@/api/template";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
 import MainLayout from "@/components/MainLayout.vue";
+import OrderTestsModal from "@/components/OrderTestsModal.vue";
 import { api } from "@/api/api.js";
 
 const route = useRoute();
@@ -88,6 +102,13 @@ const isSaving = ref(false);
 const error = ref("");
 const currentIndex = ref(0);
 const patient = ref(null);
+const showOrderTests = ref(false);
+
+// Pull doctor name from the JWT stored in localStorage
+const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+const doctorName = storedUser.firstName && storedUser.lastName
+  ? `Dr. ${storedUser.firstName} ${storedUser.lastName}`
+  : storedUser.username || ''
 
 const currentTemplate = computed(() => templates.value[currentIndex.value]);
 const isLastPage = computed(() => currentIndex.value === templates.value.length - 1);
@@ -351,5 +372,23 @@ loadPatient();
   color: #b91c1c;
   font-weight: 700;
   margin-bottom: 18px;
+}
+
+.order-tests-btn {
+  padding: 14px 34px;
+  border: 2px solid #2e7d32;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background: white;
+  color: #2e7d32;
+  transition: all 0.2s ease;
+}
+
+.order-tests-btn:hover {
+  background: #2e7d32;
+  color: white;
+  transform: translateY(-1px);
 }
 </style>
