@@ -2,59 +2,88 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal">
 
-      <div class="modal-header">
-        <h2>🧪 Order Additional Tests</h2>
-        <button class="close-btn" @click="$emit('close')">✕</button>
-      </div>
+      <!-- ── STEP 1: Select tests ─────────────────────────────────────────── -->
+      <template v-if="step === 'select'">
+        <div class="modal-header">
+          <h2>🧪 Order Additional Tests</h2>
+          <button class="close-btn" @click="$emit('close')">✕</button>
+        </div>
 
-      <p class="subtitle">Select the tests to include on the printed order form.</p>
+        <p class="subtitle">Select the tests to include on the order form.</p>
 
-      <!-- Category sections -->
-      <div
-        v-for="category in categories"
-        :key="category"
-        class="category-block"
-      >
-        <div class="category-header">
-          <span class="category-title">{{ category }}</span>
-          <button class="select-all-btn" @click="toggleCategory(category)">
-            {{ allSelectedInCategory(category) ? 'Deselect all' : 'Select all' }}
+        <div v-for="category in categories" :key="category" class="category-block">
+          <div class="category-header">
+            <span class="category-title">{{ category }}</span>
+            <button class="select-all-btn" @click="toggleCategory(category)">
+              {{ allSelectedInCategory(category) ? 'Deselect all' : 'Select all' }}
+            </button>
+          </div>
+
+          <div
+            v-for="test in testsByCategory(category)"
+            :key="test.id"
+            class="test-row"
+            :class="{ selected: selected.includes(test.id), 'already-ordered': alreadyOrderedIds.includes(test.id) }"
+            @click="toggle(test.id)"
+          >
+            <div class="checkbox" :class="{ checked: selected.includes(test.id) }">
+              <span v-if="selected.includes(test.id)">✓</span>
+            </div>
+            <div class="test-info">
+              <span class="test-name">{{ test.name }}</span>
+              <span class="test-desc">{{ test.description }}</span>
+            </div>
+            <span v-if="alreadyOrderedIds.includes(test.id)" class="already-badge">⚠ Already ordered</span>
+          </div>
+        </div>
+
+        <div class="selected-count">
+          {{ selected.length }} test{{ selected.length !== 1 ? 's' : '' }} selected
+        </div>
+
+        <div class="modal-actions">
+          <button class="cancel-btn" @click="$emit('close')">Cancel</button>
+          <button
+            class="done-btn"
+            :disabled="selected.length === 0"
+            :class="{ disabled: selected.length === 0 }"
+            @click="step = 'confirm'"
+          >
+            Done
           </button>
         </div>
+      </template>
 
-        <div
-          v-for="test in testsByCategory(category)"
-          :key="test.id"
-          class="test-row"
-          :class="{ selected: selected.includes(test.id), 'already-ordered': alreadyOrderedIds.includes(test.id) }"
-          @click="toggle(test.id)"
-        >
-          <div class="checkbox" :class="{ checked: selected.includes(test.id) }">
-            <span v-if="selected.includes(test.id)">✓</span>
-          </div>
-          <div class="test-info">
-            <span class="test-name">{{ test.name }}</span>
-            <span class="test-desc">{{ test.description }}</span>
-          </div>
-          <span v-if="alreadyOrderedIds.includes(test.id)" class="already-badge">⚠ Already ordered</span>
+      <!-- ── STEP 2: Confirm + generate ──────────────────────────────────── -->
+      <template v-else>
+        <div class="modal-header">
+          <h2>✅ Ready to Order</h2>
+          <button class="close-btn" @click="$emit('close')">✕</button>
         </div>
-      </div>
 
-      <div class="selected-count">
-        {{ selected.length }} test{{ selected.length !== 1 ? 's' : '' }} selected
-      </div>
+        <p class="subtitle">
+          {{ selected.length }} test{{ selected.length !== 1 ? 's' : '' }} will be ordered for
+          <strong>{{ patientName || 'this patient' }}</strong>.
+        </p>
 
-      <div class="modal-actions">
-        <button class="cancel-btn" @click="$emit('close')">Cancel</button>
-        <button
-          class="generate-btn"
-          :disabled="selected.length === 0"
-          :class="{ disabled: selected.length === 0 }"
-          @click="generatePDF"
-        >
-          📄 Generate PDF
-        </button>
-      </div>
+        <ul class="confirm-list">
+          <li v-for="id in selected" :key="id" class="confirm-item">
+            <span class="confirm-check">✓</span>
+            {{ testById(id)?.name }}
+          </li>
+        </ul>
+
+        <p class="confirm-note">
+          Clicking <strong>Generate PDF</strong> will download the order form and save these tests to the patient's record.
+        </p>
+
+        <div class="modal-actions">
+          <button class="cancel-btn" @click="step = 'select'">Back</button>
+          <button class="generate-btn" @click="generatePDF">
+            📄 Generate PDF
+          </button>
+        </div>
+      </template>
 
     </div>
   </div>
@@ -67,20 +96,25 @@ import { LAB_TESTS, TEST_CATEGORIES } from '../config/labTests.js'
 import { api } from '../api/api.js'
 
 const props = defineProps({
-  patientId:        { type: String, default: '' },
-  patientName:      { type: String, default: '' },
-  patientDob:       { type: String, default: '' },
-  doctorName:       { type: String, default: '' },
-  alreadyOrderedIds:{ type: Array,  default: () => [] },  // testIds already pending
+  patientId:         { type: String, default: '' },
+  patientName:       { type: String, default: '' },
+  patientDob:        { type: String, default: '' },
+  doctorName:        { type: String, default: '' },
+  alreadyOrderedIds: { type: Array,  default: () => [] },
 })
 
-defineEmits(['close'])
+const emit = defineEmits(['close'])
 
+const step = ref('select')   // 'select' | 'confirm'
 const categories = TEST_CATEGORIES
 const selected = ref([])
 
 function testsByCategory(cat) {
   return LAB_TESTS.filter(t => t.category === cat)
+}
+
+function testById(id) {
+  return LAB_TESTS.find(t => t.id === id)
 }
 
 function toggle(id) {
@@ -104,42 +138,36 @@ function toggleCategory(cat) {
 }
 
 function generatePDF() {
+  const selectedTests = LAB_TESTS.filter(t => selected.value.includes(t.id))
+
   const doc = new jsPDF({ unit: 'mm', format: 'letter' })
-  const W = 215.9  // letter width mm
+  const W = 215.9
   const margin = 18
   let y = 20
 
-  // ── Colour palette ──────────────────────────────────────────────────────────
   const green     = [46,  125, 50]
   const darkGreen = [16,  35,  11]
   const lightGray = [245, 245, 245]
   const midGray   = [180, 180, 180]
   const textDark  = [30,  30,  30]
 
-  // ── Header bar ──────────────────────────────────────────────────────────────
+  // Header bar
   doc.setFillColor(...green)
   doc.rect(0, 0, W, 28, 'F')
-
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(16)
   doc.text('VIEW OF THE BAY CLINIC', margin, 12)
-
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
   doc.text('Laboratory & Imaging Order Form', margin, 20)
-
-  const todayStr = new Date().toLocaleDateString('en-CA', {
-    year: 'numeric', month: 'long', day: 'numeric'
-  })
+  const todayStr = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
   doc.text(`Date Issued: ${todayStr}`, W - margin, 20, { align: 'right' })
-
   y = 36
 
-  // ── Patient / Doctor info box ────────────────────────────────────────────────
+  // Patient / Doctor info box
   doc.setFillColor(...lightGray)
   doc.roundedRect(margin, y, W - margin * 2, 22, 3, 3, 'F')
-
   doc.setTextColor(...textDark)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
@@ -147,13 +175,11 @@ function generatePDF() {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
   doc.text(props.patientName || '______________________________', margin + 4, y + 14)
-
   if (props.patientDob) {
     doc.setFontSize(8)
     doc.setTextColor(100, 100, 100)
     doc.text(`DOB: ${new Date(props.patientDob).toLocaleDateString()}`, margin + 4, y + 20)
   }
-
   const midX = W / 2 + 4
   doc.setTextColor(...textDark)
   doc.setFont('helvetica', 'bold')
@@ -162,32 +188,27 @@ function generatePDF() {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
   doc.text(props.doctorName || '______________________________', midX, y + 14)
-
   y += 30
 
-  // ── Divider ─────────────────────────────────────────────────────────────────
+  // Divider
   doc.setDrawColor(...midGray)
   doc.setLineWidth(0.3)
   doc.line(margin, y, W - margin, y)
   y += 6
 
-  // ── Tests by category ────────────────────────────────────────────────────────
-  const selectedTests = LAB_TESTS.filter(t => selected.value.includes(t.id))
+  // Tests by category
   const byCategory = {}
   selectedTests.forEach(t => {
     if (!byCategory[t.category]) byCategory[t.category] = []
     byCategory[t.category].push(t)
   })
 
-  const ROW_H   = 10
-  const CAT_H   = 14
-  const PAGE_H  = 270
+  const ROW_H  = 10
+  const CAT_H  = 14
+  const PAGE_H = 270
 
   Object.entries(byCategory).forEach(([cat, tests]) => {
-    // Page break check for category header
     if (y + CAT_H + ROW_H > PAGE_H) { doc.addPage(); y = 20 }
-
-    // Category header
     doc.setFillColor(...darkGreen)
     doc.rect(margin, y, W - margin * 2, 9, 'F')
     doc.setTextColor(255, 255, 255)
@@ -198,57 +219,43 @@ function generatePDF() {
 
     tests.forEach((test, i) => {
       if (y + ROW_H > PAGE_H) { doc.addPage(); y = 20 }
-
-      // Alternating row background
       if (i % 2 === 0) {
         doc.setFillColor(250, 252, 250)
         doc.rect(margin, y - 1, W - margin * 2, ROW_H, 'F')
       }
-
-      // Checkbox
       doc.setDrawColor(...green)
       doc.setLineWidth(0.5)
       doc.rect(margin + 2, y + 1, 5, 5)
       doc.setFillColor(...green)
-      doc.rect(margin + 3, y + 2, 3, 3, 'F')   // filled = checked
-
-      // Test name
+      doc.rect(margin + 3, y + 2, 3, 3, 'F')
       doc.setTextColor(...textDark)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(10)
       doc.text(test.name, margin + 11, y + 5.5)
-
-      // Description (right-aligned, lighter)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8)
       doc.setTextColor(110, 110, 110)
       doc.text(test.description, W - margin - 2, y + 5.5, { align: 'right', maxWidth: 90 })
-
       y += ROW_H
     })
-
-    y += 4  // gap between categories
+    y += 4
   })
 
-  // ── Signature section ────────────────────────────────────────────────────────
+  // Signature section
   y += 6
   if (y + 30 > PAGE_H) { doc.addPage(); y = 20 }
-
   doc.setDrawColor(...midGray)
   doc.setLineWidth(0.3)
   doc.line(margin, y, W - margin, y)
   y += 8
-
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
   doc.setTextColor(...textDark)
   doc.text('Physician Signature:', margin, y)
   doc.setDrawColor(...midGray)
   doc.line(margin + 42, y + 1, margin + 110, y + 1)
-
   doc.text('Date:', W - margin - 60, y)
   doc.line(W - margin - 48, y + 1, W - margin, y + 1)
-
   y += 14
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(7.5)
@@ -258,7 +265,7 @@ function generatePDF() {
     W / 2, y, { align: 'center' }
   )
 
-  // ── Save to patient record ───────────────────────────────────────────────────
+  // Save to patient record
   if (props.patientId) {
     const testsToSave = selectedTests.map(t => ({ testId: t.id, testName: t.name }))
     api.saveOrderedTests(props.patientId, testsToSave).catch(err => {
@@ -266,9 +273,11 @@ function generatePDF() {
     })
   }
 
-  // ── Download PDF ─────────────────────────────────────────────────────────────
+  // Download
   const safeName = (props.patientName || 'patient').replace(/\s+/g, '_')
   doc.save(`test_order_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`)
+
+  emit('close')
 }
 </script>
 
@@ -276,7 +285,7 @@ function generatePDF() {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -291,9 +300,6 @@ function generatePDF() {
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 12px 40px rgba(0,0,0,0.2);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
 }
 
 .modal-header {
@@ -319,7 +325,6 @@ function generatePDF() {
   padding: 4px 8px;
   border-radius: 4px;
 }
-
 .close-btn:hover { background: #f0f0f0; }
 
 .subtitle {
@@ -328,9 +333,8 @@ function generatePDF() {
   margin: 0 0 18px;
 }
 
-.category-block {
-  margin-bottom: 16px;
-}
+/* ── Step 1 ── */
+.category-block { margin-bottom: 16px; }
 
 .category-header {
   display: flex;
@@ -358,7 +362,6 @@ function generatePDF() {
   border-radius: 4px;
   cursor: pointer;
 }
-
 .select-all-btn:hover { background: rgba(255,255,255,0.1); }
 
 .test-row {
@@ -370,7 +373,6 @@ function generatePDF() {
   border-bottom: 1px solid #f0f0f0;
   transition: background 0.1s;
 }
-
 .test-row:last-child { border-bottom: none; }
 .test-row:hover { background: #f5f9f5; }
 .test-row.selected { background: #eef6ee; }
@@ -404,7 +406,6 @@ function generatePDF() {
   color: white;
   transition: all 0.1s;
 }
-
 .checkbox.checked {
   background: #2e7d32;
   border-color: #2e7d32;
@@ -415,13 +416,11 @@ function generatePDF() {
   flex-direction: column;
   gap: 2px;
 }
-
 .test-name {
   font-size: 0.88rem;
   font-weight: 600;
   color: #111;
 }
-
 .test-desc {
   font-size: 0.75rem;
   color: #888;
@@ -435,6 +434,44 @@ function generatePDF() {
   text-align: right;
 }
 
+/* ── Step 2 ── */
+.confirm-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  border: 1px solid #e8f5e9;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.confirm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111;
+  border-bottom: 1px solid #f0f0f0;
+}
+.confirm-item:last-child { border-bottom: none; }
+.confirm-item:nth-child(even) { background: #f9fdf9; }
+
+.confirm-check {
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.confirm-note {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+/* ── Shared buttons ── */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -452,6 +489,22 @@ function generatePDF() {
   font-size: 0.9rem;
 }
 
+.done-btn {
+  padding: 9px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.done-btn:hover { background: #1b5e20; }
+.done-btn.disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
 .generate-btn {
   padding: 9px 20px;
   border: none;
@@ -462,11 +515,5 @@ function generatePDF() {
   font-weight: 700;
   font-size: 0.9rem;
 }
-
 .generate-btn:hover { background: #1b5e20; }
-
-.generate-btn.disabled {
-  background: #bdbdbd;
-  cursor: not-allowed;
-}
 </style>
