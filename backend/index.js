@@ -28,12 +28,14 @@ mongoose.connection.once("open", () => {
 
 //middleware to log requests
 app.use((req, res, next) => {
-    const time = new Date().toLocaleTimeString();
-    console.log('New request --------------------')
-    console.log(`[${time}] ${req.method} request to ${req.url}`);
-    console.log('Auth', JSON.stringify(req.headers?.authorization, null, 2));
-    console.log('Body:', JSON.stringify(req.body, null, 2));
-    console.log('--------------------------------')
+    if (!req.url.startsWith("/api/messages/conversations")){
+        const time = new Date().toLocaleTimeString();
+        console.log('New request --------------------')
+        console.log(`[${time}] ${req.method} request to ${req.url}`);
+        console.log('Auth', JSON.stringify(req.headers?.authorization, null, 2));
+        console.log('Body:', JSON.stringify(req.body, null, 2));
+        console.log('--------------------------------')
+    }
     next();
 });
 

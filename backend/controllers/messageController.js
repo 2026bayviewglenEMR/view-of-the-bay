@@ -91,7 +91,6 @@ const getConversations = async (req, res) => {
             receiverId: new mongoose.Types.ObjectId(userId),
             isRead: false
           });
-          console.log('unreadCount for', otherId, ':', unreadCount);
         
 
         conversations.push({
