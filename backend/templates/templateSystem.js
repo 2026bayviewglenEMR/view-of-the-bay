@@ -75,8 +75,8 @@ const getTemplates = () => {
         {
           id: "current_medications",
           label: "Current Medications",
-          type: "textarea",
-          default: "",
+          type: "drug-list",
+          default: []
         },
         {
           id: "physical_exam",
@@ -261,8 +261,8 @@ const getTemplates = () => {
         {
           id: "current_medications",
           label: "Current Medications",
-          type: "textarea",
-          default: "Warfarin 5mg Daily\nIbuprofen 400mg As needed",
+          type: "drug-list",
+          default: []
         },
         {
           id: "medication",

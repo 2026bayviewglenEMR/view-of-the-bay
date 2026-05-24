@@ -40,7 +40,26 @@
             No
           </option>
         </select>
+        <div v-else-if="field.type === 'drug-list'" class="drug-list-box">
 
+          <input v-model="drugListSearch[field.id]" @input="searchDrugList(field.id)" class="select"
+            placeholder="Search current medication..." />
+
+          <div v-if="drugListOptions[field.id]?.length > 0" class="drug-options">
+            <div v-for="drug in drugListOptions[field.id]" :key="drug.id" class="drug-option"
+              @click="addCurrentMedication(field.id, drug)">
+              {{ drug.name }}
+            </div>
+          </div>
+
+          <div class="selected-drugs">
+            <div v-for="(drug, index) in formData[field.id]" :key="drug.id" class="selected-drug">
+              {{ drug.name }}
+              <button type="button" @click="removeCurrentMedication(field.id, index)">×</button>
+            </div>
+          </div>
+
+        </div>
         <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field"
           :readonly="field.readonly" />
         <input v-if="field.type === 'select' && field.id === 'medication'" v-model="drugSearch" @input="searchDrugs"
@@ -84,8 +103,8 @@
 
         </div>
 
-        <TextField v-else-if="field.id !== 'medication'" v-model="formData[field.id]" :field="field"
-          :readonly="field.readonly" />
+        <TextField v-else-if="field.id !== 'medication' && field.type !== 'drug-list'" v-model="formData[field.id]"
+          :field="field" :readonly="field.readonly" />
 
       </div>
 
@@ -123,6 +142,8 @@ const formData =
 const drugInteractionResults = ref([]);
 const drugOptions = ref([]);
 const drugSearch = ref("");
+const drugListSearch = ref({});
+const drugListOptions = ref({});
 const loadDrugOptions =
   async () => {
 
@@ -175,13 +196,57 @@ const searchDrugs =
     }
 
   };
+const searchDrugList = async (fieldId) => {
+  const query = drugListSearch.value[fieldId];
+
+  if (!query) {
+    drugListOptions.value[fieldId] = [];
+    return;
+  }
+
+  try {
+    const response = await api.getDrugs(query);
+    drugListOptions.value[fieldId] = response.data;
+  } catch (err) {
+    console.log(err);
+    drugListOptions.value[fieldId] = [];
+  }
+};
+
+const addCurrentMedication = (fieldId, drug) => {
+  if (!Array.isArray(formData[fieldId])) {
+    formData[fieldId] = [];
+  }
+
+  const alreadyAdded = formData[fieldId].some(
+    med => med.id === drug.id
+  );
+
+  if (!alreadyAdded) {
+    formData[fieldId].push({
+      id: drug.id,
+      name: drug.name
+    });
+  }
+
+  drugListSearch.value[fieldId] = "";
+  drugListOptions.value[fieldId] = [];
+
+  checkDrugInteractions();
+};
+
+const removeCurrentMedication = (fieldId, index) => {
+  formData[fieldId].splice(index, 1);
+  checkDrugInteractions();
+};
 
 const checkDrugInteractions =
   async () => {
 
     if (
       !formData.medication ||
-      !formData.current_medications
+      !Array.isArray(formData.current_medications) ||
+      formData.current_medications.length === 0
     ) {
 
       drugInteractionResults.value = [];
@@ -196,13 +261,7 @@ const checkDrugInteractions =
 
     const currentMeds =
       formData.current_medications
-        .split("\n")
-        .map(
-          med =>
-            med
-              .split(" ")[0]
-              .trim()
-        );
+        .map(med => med.id);
 
     for (
       const med
@@ -211,19 +270,10 @@ const checkDrugInteractions =
 
       try {
 
-        const search =
-          await api.getDrugs(med);
-
-        const matched =
-          search.data?.[0];
-
-        if (!matched)
-          continue;
-
         const interactions =
           await api.getInteractions(
             selectedDrugId,
-            matched.id
+            med
           );
 
         drugInteractionResults.value
@@ -280,6 +330,17 @@ watch(
       ) {
 
         formData[field.id] = [];
+
+      }
+
+      else if (
+        field.type === "drug-list"
+      ) {
+
+        formData[field.id] =
+          Array.isArray(savedValue)
+            ? savedValue
+            : field.default ?? [];
 
       }
 
@@ -342,8 +403,7 @@ const normalFields =
 
   padding: 36px;
 
-  box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .06);
 
   display: flex;
   flex-direction: column;
@@ -362,6 +422,7 @@ const normalFields =
 
 .field {
   display: flex;
+
   flex-direction: column;
 
   gap: 10px;
@@ -370,6 +431,7 @@ const normalFields =
 .field-label,
 .section-title {
   font-size: 17px;
+
   font-weight: 700;
 
   color: #1f2937;
@@ -378,25 +440,20 @@ const normalFields =
 .select {
   width: 100%;
 
-  min-width: 0;
-
-  display: block;
-
   padding: 14px;
 
   border-radius: 12px;
 
   border: 2px solid #d1d5db;
 
-  font-size: 15px;
-
   background: white;
 
-  box-sizing: border-box;
+  font-size: 15px;
 }
 
 .checkbox-section {
   display: flex;
+
   flex-direction: column;
 
   gap: 18px;
@@ -414,73 +471,218 @@ const normalFields =
 
   background: #f9fafb;
 
-  border: 2px solid #e5e7eb;
-
   border-radius: 16px;
+
+  border: 2px solid #e5e7eb;
 }
 
+.checkbox-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.checkbox-item input {
+  width: 18px;
+
+  height: 18px;
+}
+
+/* ---------- DRUG SEARCH ---------- */
+
 .drug-options {
+  margin-top: 10px;
+
   border: 2px solid #d1d5db;
-  border-radius: 12px;
+
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  max-height: 250px;
+
   background: white;
-  max-height: 220px;
+
   overflow-y: auto;
 }
 
 .drug-option {
-  padding: 12px 14px;
+  padding: 14px;
+
   cursor: pointer;
+
+  transition: .15s;
 }
 
 .drug-option:hover {
   background: #f3f4f6;
 }
 
-.checkbox-item {
+/* ---------- CURRENT MEDICATIONS ---------- */
+
+.drug-list-box {
+  background:
+    linear-gradient(180deg,
+      #f8fafc,
+      #eef7f1);
+
+  border: 2px solid #dce7e0;
+
+  border-radius: 20px;
+
+  padding: 12px;
+
   display: flex;
-  align-items: center;
+
+  flex-direction: column;
 
   gap: 12px;
-
-  font-size: 15px;
-  font-weight: 500;
-
-  color: #111827;
 }
 
-.checkbox-item input {
-  width: 18px;
-  height: 18px;
+.drug-list-box .select {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  margin: 0;
+}
+
+.selected-drugs {
+  margin-top: 18px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fill,
+      minmax(260px, 1fr));
+
+  gap: 14px;
+}
+
+.selected-drug {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  padding:
+
+    16px 18px 16px 56px;
+
+  background: white;
+
+  border-radius: 18px;
+
+  min-height: 72px;
+
+  border:
+    2px solid #d9eadf;
+
+  box-shadow:
+    0 6px 16px rgba(0,
+      0,
+      0,
+      .06);
+
+  font-weight: 700;
+
+  color:
+    #10231b;
+
+  word-break:
+    break-word;
+
+  transition:
+    .15s;
+}
+
+.selected-drug:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 10px 20px rgba(0,
+      0,
+      0,
+      .08);
+}
+
+.selected-drug::before {
+  content: "💊";
+
+  position: absolute;
+
+  left: 16px;
+
+  font-size: 22px;
+}
+
+.selected-drug button {
+  margin-left: auto;
+
+  width: 34px;
+
+  height: 34px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #ffe2e2;
+
+  color: #d62828;
+
+  font-size: 18px;
 
   cursor: pointer;
+
+  flex-shrink: 0;
 }
+
+.selected-drug button:hover {
+  background: #ffbcbc;
+}
+
+/* ---------- INTERACTIONS ---------- */
 
 .drug-interaction-box {
   min-height: 90px;
+
   padding: 14px;
+
   border-radius: 12px;
+
   background: #f9fafb;
+
   border: 2px solid #e5e7eb;
-  color: #10231b;
 }
 
 .safe {
   background: #dcebd9;
-  color: #1b4332;
+
   padding: 12px;
+
   border-radius: 10px;
+
   font-weight: 700;
 }
 
 .warning {
   background: #fff0c7;
+
   border-left: 6px solid #ffc800;
+
   padding: 12px;
-  border-radius: 10px;
+
   margin-top: 10px;
+
+  border-radius: 10px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width:1100px) {
 
   .form {
     width: 95%;
@@ -491,6 +693,10 @@ const normalFields =
   }
 
   .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .selected-drugs {
     grid-template-columns: 1fr;
   }
 

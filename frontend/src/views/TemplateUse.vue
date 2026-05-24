@@ -8,7 +8,8 @@
           <h2 class="panel-title">🏥 Patient Summary</h2>
           <div class="panel-section">
             <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
-            <div class="patient-meta" v-if="patient.dateOfBirth">DOB: {{ new Date(patient.dateOfBirth).toLocaleDateString() }}</div>
+            <div class="patient-meta" v-if="patient.dateOfBirth">DOB: {{ new
+              Date(patient.dateOfBirth).toLocaleDateString() }}</div>
             <div class="patient-meta" v-if="patient.gender">Gender: {{ patient.gender }}</div>
           </div>
           <div class="panel-section">
@@ -21,7 +22,8 @@
           <div class="panel-section">
             <h3 class="panel-section-title">💊 Medications</h3>
             <ul class="panel-list" v-if="patient.executiveSummary?.activeMedications?.length">
-              <li v-for="med in patient.executiveSummary.activeMedications" :key="med.name">{{ med.name }} {{ med.dosage }}</li>
+              <li v-for="med in patient.executiveSummary.activeMedications" :key="med.name">{{ med.name }} {{ med.dosage
+                }}</li>
             </ul>
             <p class="panel-empty" v-else>None listed</p>
           </div>
@@ -45,35 +47,21 @@
 
           <p v-if="error" class="error-message">{{ error }}</p>
 
-          <TemplateRenderer
-            v-if="currentTemplate"
-            :template="currentTemplate"
-            :initialData="currentInitialData"
-            @update="updateFormData"
-          />
+          <TemplateRenderer v-if="currentTemplate" :template="currentTemplate" :initialData="currentInitialData"
+            @update="updateFormData" />
 
           <p v-else>Loading templates...</p>
 
           <div class="navigation-buttons">
             <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">Back</button>
 
-            <button
-              v-if="!isLastPage"
-              class="next-btn"
-              :class="{ disabled: !canGoNext }"
-              :disabled="!canGoNext"
-              @click="nextTemplate"
-            >
+            <button v-if="!isLastPage" class="next-btn" :class="{ disabled: !canGoNext }" :disabled="!canGoNext"
+              @click="nextTemplate">
               Next
             </button>
 
-            <button
-              v-else
-              class="save-btn"
-              :class="{ disabled: !canGoNext || isSaving }"
-              :disabled="!canGoNext || isSaving"
-              @click="saveAllForms"
-            >
+            <button v-else class="save-btn" :class="{ disabled: !canGoNext || isSaving }"
+              :disabled="!canGoNext || isSaving" @click="saveAllForms">
               {{ isSaving ? "Saving..." : "Save Consultation" }}
             </button>
           </div>
@@ -118,7 +106,10 @@ const currentInitialData = computed(() => {
     return {
       ...savedCurrentPage,
       allergies: savedCurrentPage.allergies || source.allergies || "",
-      current_medications: savedCurrentPage.current_medications || source.current_medications || ""
+      current_medications:
+        savedCurrentPage.current_medications?.length
+          ? savedCurrentPage.current_medications
+          : source.current_medications || []
     };
   }
 
@@ -210,7 +201,7 @@ loadPatient();
   background: white;
   border-radius: 12px;
   padding: 18px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   border-left: 4px solid #2D6A4F;
   align-self: flex-start;
   position: sticky;
