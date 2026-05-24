@@ -11,6 +11,7 @@
                 <div class="patients-table">
                     <div class="table-header">
                         <div class="col-name">Patient Name</div>
+                        <div class="col-name">Doctor Name</div>
                         <div class="col-time">Appointment Time</div>
                         <div class="col-status">Status</div>
                         <div class="col-actions">Details</div>
@@ -18,6 +19,7 @@
                     <div class="table-body">
                         <div v-for="patient in patients" :key="patient.id" class="table-row">
                             <div class="col-name">{{ patient.name }}</div>
+                            <div class="col-name">{{ patient.doctorName }}</div>
                             <div class="col-time">{{ patient.appointmentTime }}</div>
                             <div class="col-status">
                                 <span :class="['status-badge', patient.status.toLowerCase()]">
@@ -46,41 +48,45 @@
 
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { View, Edit } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import MainLayout from '../components/MainLayout.vue';
 import CalendarView from '../components/CalendarView.vue';
+import { api } from '@/api/api';
 
 const router = useRouter();
 const pageTitle = ref('Dashboard');
+const patients = ref([]);
 
-const patients = ref([
-    {
-        id: 1,
-        name: 'John Doe',
-        appointmentTime: '2:00 PM',
-        status: 'Scheduled'
-    },
-    {
-        id: 2,
-        name: 'Jane Smith',
-        appointmentTime: '2:30 PM',
-        status: 'In Progress'
-    },
-    {
-        id: 3,
-        name: 'Michael Johnson',
-        appointmentTime: '3:00 PM',
-        status: 'Waiting'
-    },
-    {
-        id: 4,
-        name: 'Sarah Williams',
-        appointmentTime: '3:30 PM',
-        status: 'Completed'
+// Fetch data safely once the component loads into the DOM
+onMounted(async () => {
+    try {
+        // 1. Await the response from your backend server
+        const response = await api.getAppointments();
+        
+        // 2. Safely grab the array (handles either raw arrays or Axios wrappers)
+        const appointmentsArray = response.data || response;
+
+        // 3. Map the populated Mongoose objects to your frontend table structures
+        patients.value = appointmentsArray.map(appointment => {
+            const dateObj = new Date(appointment.scheduledStartTime);
+            const date = dateObj.toLocaleDateString(); 
+            const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            return {
+                id: appointment._id,
+                // Fixed the typo so it reads lastName
+                name: `${appointment.patientId?.firstName || 'Unknown'} ${appointment.patientId?.lastName || ''}`,
+                doctorName: `${appointment.doctorId.firstName} ${appointment.doctorId.lastName}`,
+                appointmentTime: `${date} ${time}`,
+                status: appointment.status || 'Scheduled',
+            };
+        });
+    } catch (error) {
+        console.error("Failed to load appointments:", error.message);
     }
-]);
+});
 
 const openTemplate = (id) => {
     router.push(`/diagnose/${id}`);
