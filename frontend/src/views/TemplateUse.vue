@@ -1,83 +1,86 @@
 <template>
   <MainLayout>
-    <div class="consultation-outer">
+    <template #default="{ sidebarOpen }">
+      <div class="consultation-outer" :class="{ 'sidebar-open': sidebarOpen }">
 
-      <div class="templates-page">
-        <h1 class="title">Patient Examination</h1>
-
-        <p v-if="error" class="error-message">{{ error }}</p>
-
-        <TemplateRenderer
-          v-if="currentTemplate"
-          :template="currentTemplate"
-          :initialData="currentInitialData"
-          @update="updateFormData"
-        />
-
-        <p v-else>Loading templates...</p>
-
-        <div class="navigation-buttons">
-          <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">Back</button>
-
-          <button
-            v-if="!isLastPage"
-            class="next-btn"
-            :class="{ disabled: !canGoNext }"
-            :disabled="!canGoNext"
-            @click="nextTemplate"
-          >
-            Next
-          </button>
-
-          <button
-            v-else
-            class="save-btn"
-            :class="{ disabled: !canGoNext || isSaving }"
-            :disabled="!canGoNext || isSaving"
-            @click="saveAllForms"
-          >
-            {{ isSaving ? "Saving..." : "Save Consultation" }}
-          </button>
+        <!-- Patient Summary Panel (RIGHT) -->
+        <div class="patient-panel" v-if="patient">
+          <h2 class="panel-title">🏥 Patient Summary</h2>
+          <div class="panel-section">
+            <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
+            <div class="patient-meta" v-if="patient.dateOfBirth">DOB: {{ new Date(patient.dateOfBirth).toLocaleDateString() }}</div>
+            <div class="patient-meta" v-if="patient.gender">Gender: {{ patient.gender }}</div>
+          </div>
+          <div class="panel-section">
+            <h3 class="panel-section-title">⚠️ Allergies</h3>
+            <ul class="panel-list" v-if="patient.executiveSummary?.allergies?.length">
+              <li v-for="a in patient.executiveSummary.allergies" :key="a" class="allergy-item">{{ a }}</li>
+            </ul>
+            <p class="panel-empty" v-else>None listed</p>
+          </div>
+          <div class="panel-section">
+            <h3 class="panel-section-title">💊 Medications</h3>
+            <ul class="panel-list" v-if="patient.executiveSummary?.activeMedications?.length">
+              <li v-for="med in patient.executiveSummary.activeMedications" :key="med.name">{{ med.name }} {{ med.dosage }}</li>
+            </ul>
+            <p class="panel-empty" v-else>None listed</p>
+          </div>
+          <div class="panel-section" v-if="patient.clinicalHistory?.conditions?.length">
+            <h3 class="panel-section-title">🩺 Conditions</h3>
+            <ul class="panel-list">
+              <li v-for="c in patient.clinicalHistory.conditions" :key="c">{{ c }}</li>
+            </ul>
+          </div>
+          <div class="panel-section" v-if="patient.clinicalHistory?.surgeries?.length">
+            <h3 class="panel-section-title">🔪 Surgeries</h3>
+            <ul class="panel-list">
+              <li v-for="s in patient.clinicalHistory.surgeries" :key="s">{{ s }}</li>
+            </ul>
+          </div>
         </div>
+
+        <!-- Main Form Area -->
+        <div class="templates-page">
+          <h1 class="title">Patient Examination</h1>
+
+          <p v-if="error" class="error-message">{{ error }}</p>
+
+          <TemplateRenderer
+            v-if="currentTemplate"
+            :template="currentTemplate"
+            :initialData="currentInitialData"
+            @update="updateFormData"
+          />
+
+          <p v-else>Loading templates...</p>
+
+          <div class="navigation-buttons">
+            <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">Back</button>
+
+            <button
+              v-if="!isLastPage"
+              class="next-btn"
+              :class="{ disabled: !canGoNext }"
+              :disabled="!canGoNext"
+              @click="nextTemplate"
+            >
+              Next
+            </button>
+
+            <button
+              v-else
+              class="save-btn"
+              :class="{ disabled: !canGoNext || isSaving }"
+              :disabled="!canGoNext || isSaving"
+              @click="saveAllForms"
+            >
+              {{ isSaving ? "Saving..." : "Save Consultation" }}
+            </button>
+          </div>
+        </div>
+
       </div>
-
-      <!-- Patient Summary Panel -->
-      <div class="patient-panel" v-if="patient">
-        <h2 class="panel-title">🏥 Patient Summary</h2>
-        <div class="panel-section">
-          <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
-          <div class="patient-meta" v-if="patient.dateOfBirth">DOB: {{ new Date(patient.dateOfBirth).toLocaleDateString() }}</div>
-          <div class="patient-meta" v-if="patient.gender">Gender: {{ patient.gender }}</div>
-        </div>
-        <div class="panel-section">
-          <h3 class="panel-section-title">⚠️ Allergies</h3>
-          <ul class="panel-list" v-if="patient.executiveSummary?.allergies?.length">
-            <li v-for="a in patient.executiveSummary.allergies" :key="a" class="allergy-item">{{ a }}</li>
-          </ul>
-          <p class="panel-empty" v-else>None listed</p>
-        </div>
-        <div class="panel-section">
-          <h3 class="panel-section-title">💊 Medications</h3>
-          <ul class="panel-list" v-if="patient.executiveSummary?.activeMedications?.length">
-            <li v-for="med in patient.executiveSummary.activeMedications" :key="med.name">{{ med.name }} {{ med.dosage }}</li>
-          </ul>
-          <p class="panel-empty" v-else>None listed</p>
-        </div>
-        <div class="panel-section" v-if="patient.clinicalHistory?.conditions?.length">
-          <h3 class="panel-section-title">🩺 Conditions</h3>
-          <ul class="panel-list">
-            <li v-for="c in patient.clinicalHistory.conditions" :key="c">{{ c }}</li>
-          </ul>
-        </div>
-        <div class="panel-section" v-if="patient.clinicalHistory?.surgeries?.length">
-          <h3 class="panel-section-title">🔪 Surgeries</h3>
-          <ul class="panel-list">
-            <li v-for="s in patient.clinicalHistory.surgeries" :key="s">{{ s }}</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
+    </template>
   </MainLayout>
 </template>
 
@@ -198,17 +201,7 @@ loadPatient();
   gap: 24px;
   align-items: flex-start;
   width: 100%;
-}
-
-.templates-page {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px;
-  background: #e8e4cf;
-  border-radius: 12px;
+  transition: all 0.3s ease;
 }
 
 .patient-panel {
@@ -222,6 +215,27 @@ loadPatient();
   align-self: flex-start;
   position: sticky;
   top: 0;
+  transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.consultation-outer.sidebar-open .patient-panel {
+  width: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  opacity: 0;
+}
+
+.templates-page {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+  background: #e8e4cf;
+  border-radius: 12px;
 }
 
 .panel-title {
