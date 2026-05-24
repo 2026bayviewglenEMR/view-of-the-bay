@@ -5,137 +5,176 @@
       <p>Administrators cannot perform clinical consultations.</p>
     </div>
 
-    <div v-else class="consultation-wrapper">
-      <el-card shadow="never" class="stepper-card">
-        <el-steps :active="currentStep - 1" finish-status="success" align-center>
-          <el-step
-            v-for="(step, index) in consultationConfig"
-            :key="index"
-            :title="step.title"
-            :description="step.description"
-          />
-        </el-steps>
-      </el-card>
+    <div v-else class="consultation-outer">
+      <div class="consultation-wrapper">
+        <el-card shadow="never" class="stepper-card">
+          <el-steps :active="currentStep - 1" finish-status="success" align-center>
+            <el-step
+              v-for="(step, index) in consultationConfig"
+              :key="index"
+              :title="step.title"
+              :description="step.description"
+            />
+          </el-steps>
+        </el-card>
 
-      <el-card shadow="never" class="content-card">
-        <el-form label-position="top" :model="formData">
-          <div class="step-pane">
-            <h2>{{ currentStepConfig.title }}</h2>
-            <p class="step-description">{{ currentStepConfig.description }}</p>
+        <el-card shadow="never" class="content-card">
+          <el-form label-position="top" :model="formData">
+            <div class="step-pane">
+              <h2>{{ currentStepConfig.title }}</h2>
+              <p class="step-description">{{ currentStepConfig.description }}</p>
 
-            <el-row :gutter="20">
-              <el-col
-                v-for="field in currentStepConfig.fields"
-                :key="field.modelKey"
-                :span="field.span || 24"
-              >
-                <el-form-item :label="field.label">
-                  <el-input
-                    v-if="field.type === 'text-input'"
-                    v-model="formData[field.modelKey]"
-                    :placeholder="field.placeholder"
-                  />
-
-                  <el-input
-                    v-else-if="field.type === 'textarea'"
-                    v-model="formData[field.modelKey]"
-                    type="textarea"
-                    :rows="field.rows || 4"
-                    :placeholder="field.placeholder"
-                  />
-
-                  <el-input-number
-                    v-else-if="field.type === 'number-input'"
-                    v-model="formData[field.modelKey]"
-                    :min="field.min"
-                    :max="field.max"
-                    style="width: 100%"
-                  />
-
-                  <el-select
-                    v-else-if="field.type === 'multi-select'"
-                    v-model="formData[field.modelKey]"
-                    multiple
-                    placeholder="Select all that apply"
-                    style="width: 100%"
-                  >
-                    <el-option
-                      v-for="opt in field.options"
-                      :key="opt"
-                      :label="opt"
-                      :value="opt"
-                    />
-                  </el-select>
-
-                  <div v-else-if="field.type === 'scale'" class="scale-wrapper">
-                    <el-slider
+              <el-row :gutter="20">
+                <el-col
+                  v-for="field in currentStepConfig.fields"
+                  :key="field.modelKey"
+                  :span="field.span || 24"
+                >
+                  <el-form-item :label="field.label">
+                    <el-input
+                      v-if="field.type === 'text-input'"
                       v-model="formData[field.modelKey]"
-                      :min="field.min || 0"
-                      :max="field.max || 10"
-                      show-stops
+                      :placeholder="field.placeholder"
                     />
-                    <div class="scale-labels">
-                      <span>{{ field.minLabel || "Min" }}</span>
-                      <span>{{ field.maxLabel || "Max" }}</span>
+
+                    <el-input
+                      v-else-if="field.type === 'textarea'"
+                      v-model="formData[field.modelKey]"
+                      type="textarea"
+                      :rows="field.rows || 4"
+                      :placeholder="field.placeholder"
+                    />
+
+                    <el-input-number
+                      v-else-if="field.type === 'number-input'"
+                      v-model="formData[field.modelKey]"
+                      :min="field.min"
+                      :max="field.max"
+                      style="width: 100%"
+                    />
+
+                    <el-select
+                      v-else-if="field.type === 'multi-select'"
+                      v-model="formData[field.modelKey]"
+                      multiple
+                      placeholder="Select all that apply"
+                      style="width: 100%"
+                    >
+                      <el-option
+                        v-for="opt in field.options"
+                        :key="opt"
+                        :label="opt"
+                        :value="opt"
+                      />
+                    </el-select>
+
+                    <div v-else-if="field.type === 'scale'" class="scale-wrapper">
+                      <el-slider
+                        v-model="formData[field.modelKey]"
+                        :min="field.min || 0"
+                        :max="field.max || 10"
+                        show-stops
+                      />
+                      <div class="scale-labels">
+                        <span>{{ field.minLabel || "Min" }}</span>
+                        <span>{{ field.maxLabel || "Max" }}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div v-else-if="field.type === 'draw'" class="draw-canvas-placeholder">
-                    <span class="icon">Draw</span>
-                    <p>Interactive Drawing Canvas Area</p>
-                    <small>
-                      Save the image base64 to formData.{{ field.modelKey }}
-                    </small>
-                    <el-button size="small" plain style="margin-top: 10px;">
-                      Clear Canvas
-                    </el-button>
-                  </div>
-                </el-form-item>
-              </el-col>
-            </el-row>
+                    <div v-else-if="field.type === 'draw'" class="draw-canvas-placeholder">
+                      <span class="icon">Draw</span>
+                      <p>Interactive Drawing Canvas Area</p>
+                      <small>
+                        Save the image base64 to formData.{{ field.modelKey }}
+                      </small>
+                      <el-button size="small" plain style="margin-top: 10px;">
+                        Clear Canvas
+                      </el-button>
+                    </div>
+                  </el-form-item>
+                </el-col>
+              </el-row>
 
-            <div
-              v-if="currentStepConfig.key === 'diagnosePrescribe' && prescriptionTemplate"
-              class="prescription-template"
-            >
-              <TemplateRenderer
-                :template="prescriptionTemplate"
-                :initialData="prescriptionData"
-                @update="updatePrescriptionData"
-              />
+              <div
+                v-if="currentStepConfig.key === 'diagnosePrescribe' && prescriptionTemplate"
+                class="prescription-template"
+              >
+                <TemplateRenderer
+                  :template="prescriptionTemplate"
+                  :initialData="prescriptionData"
+                  @update="updatePrescriptionData"
+                />
+              </div>
+            </div>
+          </el-form>
+
+          <div class="navigation-buttons">
+            <el-button @click="prevStep" :disabled="currentStep === 1">
+              Previous
+            </el-button>
+
+            <div class="right-buttons">
+              <el-button
+                v-if="currentStep < consultationConfig.length"
+                type="primary"
+                @click="nextStep"
+              >
+                Next Step
+              </el-button>
+
+              <el-button
+                v-else
+                type="success"
+                :loading="isSubmitting"
+                @click="submitConsultation"
+              >
+                Save & Complete Visit
+              </el-button>
             </div>
           </div>
-        </el-form>
+        </el-card>
 
-        <div class="navigation-buttons">
-          <el-button @click="prevStep" :disabled="currentStep === 1">
-            Previous
-          </el-button>
+        <p v-if="error" class="error-message">
+          {{ error }}
+        </p>
+      </div>
 
-          <div class="right-buttons">
-            <el-button
-              v-if="currentStep < consultationConfig.length"
-              type="primary"
-              @click="nextStep"
-            >
-              Next Step
-            </el-button>
-
-            <el-button
-              v-else
-              type="success"
-              :loading="isSubmitting"
-              @click="submitConsultation"
-            >
-              Save & Complete Visit
-            </el-button>
-          </div>
+      <!-- Patient Summary Panel -->
+      <div class="patient-panel" v-if="patient">
+        <h2 class="panel-title">🏥 Patient Summary</h2>
+        <div class="panel-section">
+          <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
+          <div class="patient-meta" v-if="patient.dateOfBirth">DOB: {{ new Date(patient.dateOfBirth).toLocaleDateString() }}</div>
+          <div class="patient-meta" v-if="patient.gender">Gender: {{ patient.gender }}</div>
         </div>
-      </el-card>
+        <div class="panel-section">
+          <h3 class="panel-section-title">⚠️ Allergies</h3>
+          <ul class="panel-list" v-if="patient.executiveSummary?.allergies?.length">
+            <li v-for="a in patient.executiveSummary.allergies" :key="a" class="allergy-item">{{ a }}</li>
+          </ul>
+          <p class="panel-empty" v-else>None listed</p>
+        </div>
+        <div class="panel-section">
+          <h3 class="panel-section-title">💊 Medications</h3>
+          <ul class="panel-list" v-if="patient.executiveSummary?.activeMedications?.length">
+            <li v-for="med in patient.executiveSummary.activeMedications" :key="med.name">{{ med.name }} {{ med.dosage }}</li>
+          </ul>
+          <p class="panel-empty" v-else>None listed</p>
+        </div>
+        <div class="panel-section" v-if="patient.clinicalHistory?.conditions?.length">
+          <h3 class="panel-section-title">🩺 Conditions</h3>
+          <ul class="panel-list">
+            <li v-for="c in patient.clinicalHistory.conditions" :key="c">{{ c }}</li>
+          </ul>
+        </div>
+        <div class="panel-section" v-if="patient.clinicalHistory?.surgeries?.length">
+          <h3 class="panel-section-title">🔪 Surgeries</h3>
+          <ul class="panel-list">
+            <li v-for="s in patient.clinicalHistory.surgeries" :key="s">{{ s }}</li>
+          </ul>
+        </div>
+      </div>
 
-      <p v-if="error" class="error-message">
-        {{ error }}
-      </p>
     </div>
   </MainLayout>
 </template>
@@ -147,12 +186,24 @@ import MainLayout from "../components/MainLayout.vue";
 import TemplateRenderer from "../components/templates/TemplateRenderer.vue";
 import { consultationsApi } from "../api/consultations";
 import { getTemplates } from "../templates/templateSystem";
+import { api } from "../api/api.js";
 
 const route = useRoute();
 const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 const userRole = storedUser.role?.toLowerCase();
 const isAdmin = computed(() => userRole === "admin");
 const patientId = computed(() => route.params.patientId || route.query.patientId);
+
+const patient = ref(null);
+async function loadPatient() {
+  if (!patientId.value) return;
+  try {
+    patient.value = await api.getPatient(patientId.value);
+  } catch (err) {
+    console.error("Failed to load patient", err);
+  }
+}
+loadPatient();
 
 const consultationConfig = [
   {
@@ -232,36 +283,26 @@ const prescriptionTemplate = computed(() =>
 
 const prescriptionSummary = computed(() => {
   const data = prescriptionData.value;
-
   return [
     data.medication ? `Medication: ${data.medication}` : "",
     data.dosage ? `Dosage: ${data.dosage}` : "",
     data.frequency ? `Frequency: ${data.frequency}` : "",
     data.instructions ? `Instructions: ${data.instructions}` : "",
     data.drug_interactions ? `Drug Interactions:\n${data.drug_interactions}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ].filter(Boolean).join("\n");
 });
 
 const prescribedMedications = computed(() => {
-  if (!prescriptionData.value.medication) {
-    return [];
-  }
-
-  return [
-    {
-      medicationName: prescriptionData.value.medication,
-      dosage: prescriptionData.value.dosage || "",
-      instructions: [
-        prescriptionData.value.frequency,
-        prescriptionData.value.instructions,
-        prescriptionData.value.drug_interactions,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    },
-  ];
+  if (!prescriptionData.value.medication) return [];
+  return [{
+    medicationName: prescriptionData.value.medication,
+    dosage: prescriptionData.value.dosage || "",
+    instructions: [
+      prescriptionData.value.frequency,
+      prescriptionData.value.instructions,
+      prescriptionData.value.drug_interactions,
+    ].filter(Boolean).join("\n"),
+  }];
 });
 
 const updatePrescriptionData = (data) => {
@@ -305,7 +346,6 @@ const submitConsultation = async () => {
         prescriptions: prescriptionSummary.value,
         plan: formData.value.plan,
       });
-
       await consultationsApi.completeConsultation(consultationId);
     }
 
@@ -322,12 +362,96 @@ const submitConsultation = async () => {
 </script>
 
 <style scoped>
+.consultation-outer {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+}
+
 .consultation-wrapper {
-  max-width: 1000px;
-  margin: 0 auto;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.patient-panel {
+  width: 220px;
+  flex-shrink: 0;
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-left: 4px solid #2D6A4F;
+  align-self: flex-start;
+  position: sticky;
+  top: 0;
+}
+
+.panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #10231b;
+  margin: 0 0 14px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e8e4cf;
+}
+
+.panel-section {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.panel-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.patient-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #10231b;
+}
+
+.patient-meta {
+  font-size: 12px;
+  color: #777;
+  margin-top: 2px;
+}
+
+.panel-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #555;
+  margin: 0 0 6px 0;
+}
+
+.panel-list {
+  padding-left: 14px;
+  margin: 0;
+  font-size: 12px;
+  color: #333;
+}
+
+.panel-list li {
+  margin-bottom: 3px;
+}
+
+.allergy-item {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.panel-empty {
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
 }
 
 .stepper-card {
