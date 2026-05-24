@@ -6,19 +6,7 @@ const {
 
 const getTemplates = async (req, res) => {
   try {
-    const userRole = req.user.role.toLowerCase();
-
-    if (userRole === "admin") {
-      return res.status(200).json(getClinicTemplateSystem());
-    }
-
-    const userId = req.user.id;
-
-    const templates = await Template.find({
-      $or: [{ authorId: userId }, { isGlobal: true }],
-    }).sort({ updatedAt: -1 });
-
-    return res.status(200).json(templates);
+    return res.status(200).json(getClinicTemplateSystem());
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

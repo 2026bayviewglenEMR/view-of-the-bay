@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Consultation from "@/views/TemplateUse.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,7 +26,7 @@ const router = createRouter({
     {
       path: "/consultation/:patientId",
       name: "consultation",
-      component: Consultation
+      component: () => import('../views/Consultation.vue')
     },
     {
       path: '/diagnose/:patientId',

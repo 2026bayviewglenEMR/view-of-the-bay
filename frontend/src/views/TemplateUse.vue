@@ -5,11 +5,20 @@
       Patient Examination
     </h1>
 
+    <p v-if="error" class="error-message">
+      {{ error }}
+    </p>
+
     <TemplateRenderer
+      v-if="currentTemplate"
       :template="currentTemplate"
       :initialData="currentInitialData"
       @update="updateFormData"
     />
+
+    <p v-else>
+      Loading templates...
+    </p>
 
     <div class="navigation-buttons">
 
@@ -34,11 +43,11 @@
       <button
         v-else
         class="save-btn"
-        :class="{ disabled: !canGoNext }"
-        :disabled="!canGoNext"
+        :class="{ disabled: !canGoNext || isSaving }"
+        :disabled="!canGoNext || isSaving"
         @click="saveAllForms"
       >
-        Save Consultation
+        {{ isSaving ? "Saving..." : "Save Consultation" }}
       </button>
 
     </div>
@@ -55,8 +64,10 @@ import {
 
 import { useRoute } from "vue-router";
 
-import { getTemplates }
-from "@/templates/templateSystem";
+import {
+  getTemplates,
+  saveTemplateConsultation
+} from "@/api/template";
 
 import TemplateRenderer
 from "@/components/templates/TemplateRenderer.vue";
@@ -67,7 +78,13 @@ const patientId =
   route.params.patientId;
 
 const templates =
-  ref(getTemplates());
+  ref([]);
+
+const isSaving =
+  ref(false);
+
+const error =
+  ref("");
 
 const currentIndex =
   ref(0);
@@ -94,6 +111,10 @@ const SOURCE_TEMPLATE =
 
 const currentInitialData =
   computed(() => {
+
+    if (!currentTemplate.value) {
+      return {};
+    }
 
     const savedCurrentPage =
       allForms.value[
@@ -143,6 +164,28 @@ watch(
     immediate: true
   }
 );
+
+async function loadTemplates() {
+
+  error.value = "";
+
+  try {
+
+    templates.value =
+      await getTemplates();
+
+  }
+
+  catch (err) {
+
+    error.value =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      "Unable to load templates.";
+
+  }
+
+}
 
 function updateFormData(data) {
 
@@ -244,13 +287,37 @@ async function saveAllForms() {
     forms: allForms.value
   };
 
-  console.log(payload);
+  isSaving.value = true;
+  error.value = "";
 
-  alert(
-    "Patient examination saved successfully"
-  );
+  try {
+
+    await saveTemplateConsultation(payload);
+
+    alert(
+      "Patient examination saved successfully"
+    );
+
+  }
+
+  catch (err) {
+
+    error.value =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      "Unable to save consultation.";
+
+  }
+
+  finally {
+
+    isSaving.value = false;
+
+  }
 
 }
+
+loadTemplates();
 </script>
 
 <style scoped>
@@ -326,5 +393,11 @@ async function saveAllForms() {
   cursor: not-allowed;
   opacity: 0.75;
   transform: none !important;
+}
+
+.error-message {
+  color: #b91c1c;
+  font-weight: 700;
+  margin-bottom: 18px;
 }
 </style>
