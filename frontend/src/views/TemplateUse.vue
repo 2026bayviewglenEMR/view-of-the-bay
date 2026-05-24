@@ -3,53 +3,8 @@
     <template #default="{ sidebarOpen }">
       <div class="consultation-outer" :class="{ 'sidebar-open': sidebarOpen }">
 
-        <!-- Patient Summary Panel (RIGHT) -->
-        <div class="patient-panel" v-if="patient">
-          <h2 class="panel-title">🏥 Patient Summary</h2>
-          <div class="panel-section">
-            <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
-            <div class="patient-meta" v-if="patient.dateOfBirth">DOB: {{ new
-              Date(patient.dateOfBirth).toLocaleDateString() }}</div>
-            <div class="patient-meta" v-if="patient.gender">Gender: {{ patient.gender }}</div>
-          </div>
-          <div class="panel-section">
-            <h3 class="panel-section-title">⚠️ Allergies</h3>
-            <ul class="panel-list" v-if="patient.executiveSummary?.allergies?.length">
-              <li v-for="a in patient.executiveSummary.allergies" :key="a" class="allergy-item">{{ a }}</li>
-            </ul>
-            <p class="panel-empty" v-else>None listed</p>
-          </div>
-          <div class="panel-section">
-            <h3 class="panel-section-title">💊 Medications</h3>
-            <ul class="panel-list" v-if="patient.executiveSummary?.activeMedications?.length">
-              <li v-for="med in patient.executiveSummary.activeMedications" :key="med.name">{{ med.name }} {{ med.dosage
-                }}</li>
-            </ul>
-            <p class="panel-empty" v-else>None listed</p>
-          </div>
-          <div class="panel-section" v-if="patient.clinicalHistory?.conditions?.length">
-            <h3 class="panel-section-title">🩺 Conditions</h3>
-            <ul class="panel-list">
-              <li v-for="c in patient.clinicalHistory.conditions" :key="c">{{ c }}</li>
-            </ul>
-          </div>
-          <div class="panel-section" v-if="patient.clinicalHistory?.surgeries?.length">
-            <h3 class="panel-section-title">🔪 Surgeries</h3>
-            <ul class="panel-list">
-              <li v-for="s in patient.clinicalHistory.surgeries" :key="s">{{ s }}</li>
-            </ul>
-          </div>
-
-          <div class="panel-section" v-if="pendingTests.length">
-            <h3 class="panel-section-title">🧪 Ordered Tests</h3>
-            <ul class="panel-list">
-              <li v-for="t in pendingTests" :key="t._id" class="ordered-test-item">
-                <span class="ordered-test-name">{{ t.testName }}</span>
-                <span class="ordered-test-meta">{{ t.orderedBy }} · {{ new Date(t.orderedAt).toLocaleDateString() }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <!-- Extracted Sidebar Component -->
+        <PatientSidebar v-if="patient" :patient="patient" />
 
         <!-- Main Form Area -->
         <div class="templates-page">
@@ -57,21 +12,34 @@
 
           <p v-if="error" class="error-message">{{ error }}</p>
 
-          <TemplateRenderer v-if="currentTemplate" :template="currentTemplate" :initialData="currentInitialData"
-            @update="updateFormData" />
-
+          <TemplateRenderer 
+            v-if="currentTemplate" 
+            :template="currentTemplate" 
+            :initialData="currentInitialData"
+            @update="updateFormData" 
+          />
           <p v-else>Loading templates...</p>
 
           <div class="navigation-buttons">
             <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">Back</button>
 
-            <button v-if="!isLastPage" class="next-btn" :class="{ disabled: !canGoNext }" :disabled="!canGoNext"
-              @click="nextTemplate">
+            <button 
+              v-if="!isLastPage" 
+              class="next-btn" 
+              :class="{ disabled: !canGoNext }" 
+              :disabled="!canGoNext"
+              @click="nextTemplate"
+            >
               Next
             </button>
 
-            <button v-else class="save-btn" :class="{ disabled: !canGoNext || isSaving }"
-              :disabled="!canGoNext || isSaving" @click="saveAllForms">
+            <button 
+              v-else 
+              class="save-btn" 
+              :class="{ disabled: !canGoNext || isSaving }"
+              :disabled="!canGoNext || isSaving" 
+              @click="saveAllForms"
+            >
               {{ isSaving ? "Saving..." : "Save Consultation" }}
             </button>
 
@@ -84,7 +52,6 @@
             </button>
           </div>
 
-          <!-- Order Tests Modal -->
           <OrderTestsModal
             v-if="showOrderTests"
             :patientId="patientId"
@@ -102,53 +69,56 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, watchEffect } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getTemplates, saveTemplateConsultation } from "@/api/template";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
 import MainLayout from "@/components/MainLayout.vue";
 import OrderTestsModal from "@/components/OrderTestsModal.vue";
+import PatientSidebar from "./consultation/PatientSidebar.vue";
 import { api } from "@/api/api.js";
 
 const route = useRoute();
 const router = useRouter();
 const patientId = route.params.patientId;
 
-const templates = ref([]);
+// State
+const serverTemplates = ref([]);
 const isSaving = ref(false);
 const error = ref("");
 const currentIndex = ref(0);
 const patient = ref(null);
 const showOrderTests = ref(false);
 
-// Pull doctor name and role from the JWT stored in localStorage
-const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
-const isDoctor = storedUser.role === 'doctor'
+const allForms = ref({});
+const currentFormData = ref({});
+
+// User identity
+const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+const isDoctor = storedUser.role === 'doctor';
 const doctorName = storedUser.firstName && storedUser.lastName
   ? `Dr. ${storedUser.firstName} ${storedUser.lastName}`
-  : storedUser.username || ''
+  : storedUser.username || '';
 
-// Ordered tests derived from patient record
-const pendingTests = computed(() =>
-  (patient.value?.orderedTests || []).filter(t => t.status === 'pending')
-)
-const pendingTestIds = computed(() => pendingTests.value.map(t => t.testId))
+// Modal logic tracking
+const pendingTestIds = computed(() => 
+  (patient.value?.orderedTests || []).filter(t => t.status === 'pending').map(t => t.testId)
+);
 
-// After closing the modal, reload patient so sidebar reflects newly saved tests
 async function onOrderTestsClose() {
-  showOrderTests.value = false
+  showOrderTests.value = false;
   if (patientId) {
-    try { patient.value = await api.getPatient(patientId) } catch {}
+    try { patient.value = await api.getPatient(patientId); } catch {}
   }
 }
 
-const currentTemplate = computed(() => templates.value[currentIndex.value]);
-const isLastPage = computed(() => currentIndex.value === templates.value.length - 1);
+const activeTemplates = computed(() => serverTemplates.value);
 
-const allForms = ref({});
-const currentFormData = ref({});
+const currentTemplate = computed(() => activeTemplates.value[currentIndex.value]);
+const isLastPage = computed(() => currentIndex.value === activeTemplates.value.length - 1);
+
+// Cross-pollination Data Logic
 const SOURCE_TEMPLATE = "basic_diagnosis";
-
 const currentInitialData = computed(() => {
   if (!currentTemplate.value) return {};
 
@@ -159,10 +129,9 @@ const currentInitialData = computed(() => {
     return {
       ...savedCurrentPage,
       allergies: savedCurrentPage.allergies || source.allergies || "",
-      current_medications:
-        savedCurrentPage.current_medications?.length
-          ? savedCurrentPage.current_medications
-          : source.current_medications || []
+      current_medications: savedCurrentPage.current_medications?.length
+        ? savedCurrentPage.current_medications
+        : source.current_medications || []
     };
   }
 
@@ -176,7 +145,7 @@ watch(currentTemplate, () => {
 async function loadTemplates() {
   error.value = "";
   try {
-    templates.value = await getTemplates();
+    serverTemplates.value = await getTemplates();
   } catch (err) {
     error.value = err?.response?.data?.message || err?.response?.data?.error || "Unable to load templates.";
   }
@@ -186,7 +155,6 @@ async function loadPatient() {
   if (!patientId) return;
   try {
     patient.value = await api.getPatient(patientId);
-    // Restore in-progress draft if one exists
     const draft = patient.value?.consultationDraft;
     if (draft?.savedAt && draft.forms && Object.keys(draft.forms).length > 0) {
       allForms.value = draft.forms;
@@ -216,6 +184,7 @@ function updateFormData(data) {
   currentFormData.value = { ...data };
 }
 
+// Field Validation Logic
 const canGoNext = computed(() => {
   if (!currentTemplate.value) return false;
   return currentTemplate.value.fields.some(field => {
@@ -247,7 +216,6 @@ async function saveAllForms() {
 
   try {
     await saveTemplateConsultation(payload);
-    // Clear any saved draft now that the consultation is complete
     try { await api.clearConsultationDraft(patientId); } catch {}
     alert("Patient examination saved successfully");
   } catch (err) {
@@ -271,22 +239,12 @@ loadPatient();
   transition: all 0.3s ease;
 }
 
-.patient-panel {
-  width: 220px;
-  flex-shrink: 0;
-  background: white;
-  border-radius: 12px;
-  padding: 18px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #2D6A4F;
-  align-self: flex-start;
-  position: sticky;
-  top: 0;
-  transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
-  overflow: hidden;
-}
-
-.consultation-outer.sidebar-open .patient-panel {
+/* 
+  Vue 3 Deep Selector 
+  Targets the scoping rules of the extracted PatientSidebar component 
+  when the sidebar-open class wraps it.
+*/
+.consultation-outer.sidebar-open :deep(.patient-panel) {
   width: 0;
   padding: 0;
   border: none;
@@ -304,86 +262,6 @@ loadPatient();
   padding: 32px;
   background: #e8e4cf;
   border-radius: 12px;
-}
-
-.panel-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #10231b;
-  margin: 0 0 14px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e8e4cf;
-}
-
-.panel-section {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.panel-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.patient-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: #10231b;
-}
-
-.patient-meta {
-  font-size: 12px;
-  color: #777;
-  margin-top: 2px;
-}
-
-.panel-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #555;
-  margin: 0 0 6px 0;
-}
-
-.panel-list {
-  padding-left: 14px;
-  margin: 0;
-  font-size: 12px;
-  color: #333;
-}
-
-.panel-list li {
-  margin-bottom: 3px;
-}
-
-.allergy-item {
-  color: #b91c1c;
-  font-weight: 600;
-}
-
-.panel-empty {
-  font-size: 12px;
-  color: #aaa;
-  font-style: italic;
-}
-
-.ordered-test-item {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 5px;
-}
-
-.ordered-test-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: #10231b;
-}
-
-.ordered-test-meta {
-  font-size: 10px;
-  color: #888;
 }
 
 .title {
