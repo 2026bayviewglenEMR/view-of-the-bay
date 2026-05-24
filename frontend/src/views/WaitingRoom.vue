@@ -160,21 +160,46 @@
           <h2>Check In Patient</h2>
 
           <form @submit.prevent="submitCheckIn">
-            <div class="form-group">
-              <label>Patient Name</label>
+            <!-- Patient search -->
+            <div class="form-group" style="position: relative">
+              <label>Search Patient</label>
               <input
-                v-model="checkInForm.name"
-                placeholder="Full name"
+                v-model="checkInSearch"
+                @input="onCheckInSearch"
+                placeholder="Start typing a name..."
+                autocomplete="off"
+                required
+              />
+              <!-- Search results dropdown -->
+              <div v-if="searchResults.length" class="search-dropdown">
+                <div
+                  v-for="result in searchResults"
+                  :key="result.id"
+                  class="search-result"
+                  @mousedown.prevent="selectPatient(result)"
+                >
+                  <strong>{{ result.firstName }} {{ result.lastName }}</strong>
+                  <span v-if="result.doctor"> — {{ result.doctor }}, {{ result.appointmentTime }}</span>
+                  <span v-else> — No upcoming appointment</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto-filled fields (read-only after patient selected) -->
+            <div class="form-group">
+              <label>Assigned Doctor</label>
+              <input
+                v-model="checkInForm.doctor"
+                placeholder="Auto-filled from appointment"
                 required
               />
             </div>
 
             <div class="form-group">
-              <label>Assigned Doctor</label>
+              <label>Appointment Time</label>
               <input
-                v-model="checkInForm.doctor"
-                placeholder="e.g. Dr. Patel"
-                required
+                v-model="checkInForm.time"
+                placeholder="Auto-filled from appointment"
               />
             </div>
 
@@ -204,6 +229,7 @@
 import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../components/MainLayout.vue'
+import { api } from '../api/api'
 
 const router = useRouter()
 
@@ -211,12 +237,16 @@ const search = ref('')
 const activeFilter = ref('All')
 const showCheckIn = ref(false)
 const showBooking = ref(false)
+const checkInSearch = ref('')
+const searchResults = ref([])
+let searchTimeout = null
 
 const filters = ['All', 'Checked-in', 'Waiting', 'In consultation']
 
 const checkInForm = reactive({
   name: '',
   doctor: '',
+  time: '',
   note: ''
 })
 
@@ -323,26 +353,53 @@ function submitBooking() {
   closeBooking()
 }
 
+function onCheckInSearch() {
+  clearTimeout(searchTimeout)
+  if (checkInSearch.value.trim().length < 2) {
+    searchResults.value = []
+    return
+  }
+  searchTimeout = setTimeout(async () => {
+    try {
+      searchResults.value = await api.searchPatients(checkInSearch.value.trim())
+    } catch {
+      searchResults.value = []
+    }
+  }, 300)
+}
+
+function selectPatient(result) {
+  checkInForm.name = `${result.firstName} ${result.lastName}`
+  checkInForm.doctor = result.doctor || ''
+  checkInForm.time = result.appointmentTime || ''
+  checkInSearch.value = `${result.firstName} ${result.lastName}`
+  searchResults.value = []
+}
+
 function openCheckIn() {
   checkInForm.name = ''
   checkInForm.doctor = ''
+  checkInForm.time = ''
   checkInForm.note = ''
+  checkInSearch.value = ''
+  searchResults.value = []
   showCheckIn.value = true
 }
 
 function closeCheckIn() {
   showCheckIn.value = false
+  searchResults.value = []
 }
 
 function submitCheckIn() {
   const now = new Date()
-  const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+  const fallbackTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 
   patients.value.unshift({
     id: Date.now(),
     name: checkInForm.name,
     doctor: checkInForm.doctor,
-    time,
+    time: checkInForm.time || fallbackTime,
     status: 'Checked-in',
     wait: 0,
     note: checkInForm.note,
@@ -593,5 +650,34 @@ tr:hover {
 
 .submit-btn:hover {
   background: #2c4210;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #3a5814;
+  border-radius: 8px;
+  z-index: 200;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.search-result {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #eee;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.search-result:hover {
+  background: #f0f4ec;
 }
 </style>

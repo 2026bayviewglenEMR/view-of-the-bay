@@ -6,7 +6,8 @@
             </div>
             <div class="patients-list">
                 <div class="patients-header">
-                    <h2>Patients</h2>
+                    <h2>{{ isAdmin ? 'All Appointments Today' : 'Your Appointments Today' }}</h2>
+                    <p v-if="loadError" class="load-error">{{ loadError }}</p>
                 </div>
                 <div class="patients-table">
                     <div class="table-header">
@@ -17,22 +18,27 @@
                         <div class="col-actions">Details</div>
                     </div>
                     <div class="table-body">
+                        <div v-if="patients.length === 0" class="table-row empty-row">
+                            <div style="grid-column: 1/-1; text-align:center; color:#999;">
+                                No appointments scheduled for today.
+                            </div>
+                        </div>
                         <div v-for="patient in patients" :key="patient.id" class="table-row">
                             <div class="col-name">{{ patient.name }}</div>
                             <div class="col-name">{{ patient.doctorName }}</div>
                             <div class="col-time">{{ patient.appointmentTime }}</div>
                             <div class="col-status">
-                                <span :class="['status-badge', patient.status.toLowerCase()]">
+                                <span :class="['status-badge', patient.status.toLowerCase().replace(' ', '-')]">
                                     {{ patient.status }}
                                 </span>
                             </div>
                             <div class="col-actions">
-                                <router-link :to="`/patients/${patient.id}`" class="icon-btn" title="View Details">
+                                <router-link :to="`/patients/${patient.patientId}`" class="icon-btn" title="View Details">
                                     <View />
                                 </router-link>
                                 <button
                                     class="icon-btn"
-                                    @click="openTemplate(patient.id)"
+                                    @click="openTemplate(patient.patientId)"
                                     title="Diagnose Patient"
                                 >
                                     <Edit />
@@ -48,48 +54,32 @@
 
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { View, Edit } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 import MainLayout from '../components/MainLayout.vue';
 import CalendarView from '../components/CalendarView.vue';
-import { api } from '@/api/api';
+import { api } from '../api/api';
 
 const router = useRouter();
-const pageTitle = ref('Dashboard');
-const patients = ref([]);
 
-// Fetch data safely once the component loads into the DOM
+const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+const isAdmin = computed(() => storedUser.role === 'admin')
+
+const patients = ref([])
+const loadError = ref('')
+
 onMounted(async () => {
     try {
-        // 1. Await the response from your backend server
-        const response = await api.getAppointments();
-        
-        // 2. Safely grab the array (handles either raw arrays or Axios wrappers)
-        const appointmentsArray = response.data || response;
-
-        // 3. Map the populated Mongoose objects to your frontend table structures
-        patients.value = appointmentsArray.map(appointment => {
-            const dateObj = new Date(appointment.scheduledStartTime);
-            const date = dateObj.toLocaleDateString(); 
-            const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            return {
-                id: appointment.patientId._id,
-                // Fixed the typo so it reads lastName
-                name: `${appointment.patientId?.firstName || 'Unknown'} ${appointment.patientId?.lastName || ''}`,
-                doctorName: `${appointment.doctorId.firstName} ${appointment.doctorId.lastName}`,
-                appointmentTime: `${date} ${time}`,
-                status: appointment.status || 'Scheduled',
-            };
-        });
-    } catch (error) {
-        console.error("Failed to load appointments:", error.message);
+        patients.value = await api.getTodaysAppointments()
+    } catch (err) {
+        console.error('Failed to load appointments:', err)
+        loadError.value = 'Could not load appointments.'
     }
-});
+})
 
-const openTemplate = (id) => {
-    router.push(`/diagnose/${id}`);
+const openTemplate = (patientId) => {
+    router.push(`/diagnose/${patientId}`);
 };
 </script>
 
@@ -242,5 +232,16 @@ const openTemplate = (id) => {
 
 .details-btn:hover {
     background-color: var(--color-primary-dark, #0056b3);
+}
+
+.load-error {
+    color: #b91c1c;
+    font-size: 0.85rem;
+    margin: 4px 0 0;
+}
+
+.empty-row {
+    padding: 20px 16px;
+    color: #999;
 }
 </style>
