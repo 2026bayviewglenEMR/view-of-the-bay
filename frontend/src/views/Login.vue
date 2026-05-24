@@ -53,6 +53,7 @@ const signIn = async () => {
         localStorage.setItem("token", res.token);
         console.log(res.user)
         localStorage.setItem("user", JSON.stringify(res.user));
+        localStorage.setItem("loginTimestamp", Date.now().toString());
 
         router.push("/")
       }
