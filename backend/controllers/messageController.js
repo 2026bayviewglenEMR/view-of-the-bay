@@ -1,4 +1,5 @@
 // controllers/messageController.js
+const mongoose = require("mongoose");
 const Message = require("../models/Message");
 
 // Load all messages between two users
@@ -10,7 +11,13 @@ const getMessages = async (req, res) => {
         { senderId: userId, receiverId: otherUserId },
         { senderId: otherUserId, receiverId: userId },
       ],
-    }).sort({ timestamp: 1 }); // oldest first
+    }).sort({ timestamp: 1 });
+
+    // mark all messages sent TO the current user as read
+    await Message.updateMany(
+      { senderId: otherUserId, receiverId: userId, isRead: false },
+      { isRead: true }
+    );
 
     res.status(200).json(messages);
   } catch (err) {
@@ -78,11 +85,21 @@ const getConversations = async (req, res) => {
 
       if (!seen.has(otherId)) {
         seen.add(otherId);
+
+        const unreadCount = await Message.countDocuments({
+            senderId: new mongoose.Types.ObjectId(otherId),
+            receiverId: new mongoose.Types.ObjectId(userId),
+            isRead: false
+          });
+          console.log('unreadCount for', otherId, ':', unreadCount);
+        
+
         conversations.push({
           otherUserId: otherId,
           lastMessage: msg.content,
           lastTimestamp: msg.timestamp,
-          isRead: msg.isRead
+          isRead: unreadCount === 0,
+          unreadCount
         });
       }
     }
@@ -92,5 +109,4 @@ const getConversations = async (req, res) => {
     res.status(500).json({ error: "Failed to load conversations" });
   }
 };
-
 module.exports = { getMessages, sendMessage, markAsRead, getConversations };

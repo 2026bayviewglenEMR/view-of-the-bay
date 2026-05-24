@@ -12,7 +12,10 @@
           :class="{ active: selectedUser?._id === user._id }"
           @click="selectUser(user)"
         >
-          <div class="contact-name">{{ user.firstName }} {{ user.lastName }}</div>
+          <div class="contact-name" :class="{ unread: unreadMap[user._id] > 0 }">
+            {{ user.firstName }} {{ user.lastName }}
+            <span v-if="unreadMap[user._id] > 0" class="unread-badge">{{ unreadMap[user._id] }}</span>
+          </div>
           <div class="contact-role">{{ user.role }}</div>
         </div>
       </div>
@@ -83,7 +86,9 @@ const messagesContainer = ref(null)
 const pastMessages = ref([])
 const contacts = ref([])
 const selectedUser = ref(null)
+const unreadMap = ref({})
 let pollInterval = null
+let contactsInterval = null
 
 const handleFileChange = (file) => { selectedFile.value = file }
 const removeFile = () => { selectedFile.value = null }
@@ -96,6 +101,7 @@ const loadContacts = async () => {
     const recentMap = {}
     conversations.forEach(c => {
       recentMap[c.otherUserId] = c.lastTimestamp
+      unreadMap.value[c.otherUserId] = c.unreadCount || 0
     })
 
     const others = users.filter(u => u._id !== currentUser)
@@ -114,6 +120,7 @@ const loadContacts = async () => {
 const selectUser = async (user) => {
   selectedUser.value = user
   pastMessages.value = []
+  unreadMap.value[user._id] = 0
   await loadMessages()
 
   if (pollInterval) clearInterval(pollInterval)
@@ -164,10 +171,14 @@ const sendMessage = async () => {
 
 onMounted(() => {
   loadContacts()
+  contactsInterval = setInterval(() => {
+    loadContacts()
+  }, 5000)
 })
 
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval)
+  if (contactsInterval) clearInterval(contactsInterval)
 })
 </script>
 
@@ -212,6 +223,24 @@ onUnmounted(() => {
 
 .contact-name {
   font-weight: 500;
+}
+
+.contact-name.unread {
+  font-weight: 800;
+  color: #000;
+}
+
+.unread-badge {
+  display: inline-block;
+  background: #2D6A4F;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  text-align: center;
+  line-height: 18px;
+  margin-left: 6px;
 }
 
 .contact-role {
