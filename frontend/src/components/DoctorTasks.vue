@@ -1,38 +1,29 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { api } from '@/api/api.js'; // Ensure this path is correct for your project
 
 const isDropdownOpen = ref(false);
 const newTaskText = ref('');
 const tasks = ref([]);
-const baseURL = 'http://localhost:3000';
 
-// 1. Create the reference for the click-outside tripwire
 const componentRef = ref(null);
 
-// 2. The function that checks where the user clicked
 const closeOnClickOutside = (event) => {
   if (componentRef.value && !componentRef.value.contains(event.target)) {
     isDropdownOpen.value = false;
   }
 };
 
-// 3. GET /api/tasks (and start watching for clicks)
 onMounted(async () => {
-  // Start watching for outside clicks
   document.addEventListener('mousedown', closeOnClickOutside);
-
   try {
-    const response = await fetch(`${baseURL}/api/tasks`);
-    if (response.ok) {
-      const allTasks = await response.json();
-      tasks.value = allTasks.filter(task => !task.completed); 
-    }
+    const allTasks = await api.getTasks();
+    tasks.value = allTasks.filter(task => !task.completed); 
   } catch (error) {
     console.error("Error fetching tasks:", error);
   }
 });
 
-// 4. Stop watching for clicks if the component is removed
 onUnmounted(() => {
   document.removeEventListener('mousedown', closeOnClickOutside);
 });
@@ -41,40 +32,27 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-// 5. POST /api/tasks
 const addTask = async () => {
   if (newTaskText.value.trim() === '') return;
   
   try {
-    const response = await fetch(`${baseURL}/api/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        text: newTaskText.value,
-        completed: false
-      })
+    const savedTask = await api.createTask({ 
+      text: newTaskText.value,
+      completed: false
     });
     
-    if (response.ok) {
-      const savedTask = await response.json();
-      tasks.value.push(savedTask);
-      newTaskText.value = ''; // Clear input
-    }
+    tasks.value.push(savedTask);
+    newTaskText.value = ''; // Clear input
   } catch (error) {
     console.error("Error adding task:", error);
   }
 };
 
-// 6. PATCH /api/tasks/:id (Updates the checkbox status)
 const completeTask = async (id) => {
   tasks.value = tasks.value.filter(task => task.id !== id);
   
   try {
-    await fetch(`${baseURL}/api/tasks/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ completed: true })
-    });
+    await api.completeTask(id);
   } catch (error) {
     console.error("Error completing task:", error);
   }

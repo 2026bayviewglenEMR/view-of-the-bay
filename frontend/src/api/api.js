@@ -55,4 +55,13 @@ export const api = {
     checkInPatient: (appointmentId, note, flag) => http.post('/waiting-room/check-in', { appointmentId, note, flag }).then(r => r.data),
     updatePatientStatus: (id, status) => http.patch(`/waiting-room/${id}/status`, { status }).then(r => r.data),
     removePatient: (id) => http.delete(`/waiting-room/${id}`).then(r => r.data),
+
+    // tasks
+    getTasks: () => http.get('/tasks').then(r => r.data),
+    createTask: (data) => http.post('/tasks', data).then(r => r.data),
+    completeTask: (id) => http.patch(`/tasks/${id}`, { completed: true }).then(r => r.data),
+
+    // alerts
+    getAlerts: () => http.get('/alerts').then(r => r.data),
+    deleteAlert: (id) => http.delete(`/alerts/${id}`).then(r => r.data),
 }
