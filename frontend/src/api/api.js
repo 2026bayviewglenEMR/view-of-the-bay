@@ -9,6 +9,8 @@ export const api = {
     getDoctors: () => http.get('/doctors').then(r => r.data),
     getUsers: () => http.get('/users').then(r => r.data),
 
+    getAppointments: () => http.get('/appointments').then(r => r.data),
+
     //drugs
     getInteractions: (id1, id2) => http.get(`/drugs/${id1}/${id2}`).then(r => r.data),
     getDrugs: (query) => http.get(`/drugs/${query}`),
@@ -20,7 +22,7 @@ export const api = {
 
     // messaging
     sendMessage: (senderId, receiverId, content, attachments = []) =>
-    http.post('/messages', { senderId, receiverId, content, attachments }).then(r => r.data),
+        http.post('/messages', { senderId, receiverId, content, attachments }).then(r => r.data),
     loadMessages: (userId, otherUserId) => http.get(`/messages/${userId}/${otherUserId}`).then(r => r.data),
     markAsRead: (messageId) => http.patch(`/messages/${messageId}/read`).then(r => r.data),
     getConversations: (userId) => http.get(`/messages/conversations/${userId}`).then(r => r.data),
