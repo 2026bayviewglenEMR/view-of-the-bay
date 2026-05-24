@@ -230,6 +230,7 @@ loadPatient();
 .templates-page {
   flex: 1;
   min-width: 0;
+  max-width: 65vw;
   display: flex;
   flex-direction: column;
   align-items: center;

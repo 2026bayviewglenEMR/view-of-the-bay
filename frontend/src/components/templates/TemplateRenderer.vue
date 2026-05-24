@@ -73,13 +73,11 @@
           </div>
 
           <div v-else-if="drugInteractionResults.length === 0" class="safe">
-            No known interactions found with the patient’s current medications.
+            No known interactions found with the patient's current medications.
           </div>
 
           <div v-for="interaction in drugInteractionResults" :key="interaction.drug_id" class="warning">
             <strong>{{ formData.medication }} + {{ interaction.name }}</strong>
-
-            <!-- <p><strong>Severity:</strong> {{ interaction.severity }}</p> -->
 
             <p>{{ interaction.description }}</p>
           </div>
@@ -335,7 +333,8 @@ const normalFields =
 
 <style scoped>
 .form {
-  width: 1100px;
+  width: 100%;
+  max-width: 1100px;
 
   background: white;
 
