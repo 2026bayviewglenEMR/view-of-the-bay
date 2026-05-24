@@ -48,11 +48,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const emit = defineEmits(['toggle'])
 
 const isOpen = ref(false)
+
+// Emit the initial state when the component mounts
+onMounted(() => {
+    emit('toggle', isOpen.value)
+})
 
 function expandSidebar() {
     isOpen.value = true
