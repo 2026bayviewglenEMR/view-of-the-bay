@@ -27,7 +27,7 @@
                                 </span>
                             </div>
                             <div class="col-actions">
-                                <router-link :to="`/patient-details/${patient.id}`" class="icon-btn" title="View Details">
+                                <router-link :to="`/patients/${patient.id}`" class="icon-btn" title="View Details">
                                     <View />
                                 </router-link>
                                 <button
@@ -75,7 +75,7 @@ onMounted(async () => {
             const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             return {
-                id: appointment._id,
+                id: appointment.patientId._id,
                 // Fixed the typo so it reads lastName
                 name: `${appointment.patientId?.firstName || 'Unknown'} ${appointment.patientId?.lastName || ''}`,
                 doctorName: `${appointment.doctorId.firstName} ${appointment.doctorId.lastName}`,
