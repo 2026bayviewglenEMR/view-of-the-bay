@@ -152,6 +152,7 @@ const sendMessage = async () => {
     pastMessages.value.push(sentMessage)
     message.value = ""
     selectedFile.value = null
+    loadContacts()
 
     await nextTick()
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
