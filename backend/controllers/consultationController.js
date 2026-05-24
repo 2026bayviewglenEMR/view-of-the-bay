@@ -1,6 +1,7 @@
 const Consultation = require("../models/Consultations");
 const Document = require("../models/Documents");
 const Patient = require("../models/Patient");
+const WaitingRoom = require("../models/waitingRoom.model");
 const { getTemplates } = require("../templates/templateSystem");
 const {
   normalizeTemplateForms,
@@ -196,6 +197,30 @@ const createConsultation = async (req, res) => {
       return res.status(400).json({
         message: "patientId is required.",
       });
+    }
+
+    if (!consultationFields.appointmentId) {
+      return res.status(400).json({
+        message: "appointmentId is required.",
+      });
+    }
+
+    if (consultation.appointmentId) {
+      await WaitingRoom.findOneAndUpdate(
+        { appointmentId: consultation.appointmentId },
+        { status: "In consultation" }
+      );
+    }
+
+    const existing = await Consultation.findOne({
+      appointmentId: consultationFields.appointmentId,
+      status: "in-progress",
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        message: "Consultation already active for this appointment.",
+     });
     }
 
     const consultation = await Consultation.create({
@@ -459,6 +484,12 @@ const completeConsultation = async (req, res) => {
     }
 
     await consultation.save();
+
+    if (consultation.appointmentId) {
+      await WaitingRoom.findOneAndDelete({
+        appointmentId: consultation.appointmentId,
+      });
+    }
 
     return res.status(200).json({
       message: "Consultation completed successfully.",

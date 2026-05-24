@@ -43,4 +43,6 @@ waitingRoomSchema.virtual("wait").get(function () {
 waitingRoomSchema.set("toJSON", { virtuals: true });
 waitingRoomSchema.set("toObject", { virtuals: true });
 
-module.exports = mongoose.model("WaitingRoom", waitingRoomSchema);
+module.exports =
+  mongoose.models.WaitingRoom ||
+  mongoose.model("WaitingRoom", waitingRoomSchema);
