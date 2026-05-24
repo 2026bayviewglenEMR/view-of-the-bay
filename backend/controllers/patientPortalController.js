@@ -4,9 +4,23 @@ const Patient = require("../models/Patient");
 const Appointment = require("../models/Appointment");
 const Consultation = require("../models/Consultations");
 
+const canAccessPatientPortal = (req, patientId) => {
+  if (req.user?.role?.toLowerCase() !== "patient") {
+    return true;
+  }
+
+  return req.user.patientId?.toString() === patientId?.toString();
+};
+
 const getPatientPortalData = async (req, res) => {
   try {
     const { patientId } = req.params;
+
+    if (!canAccessPatientPortal(req, patientId)) {
+      return res.status(403).json({
+        message: "You can only access your own patient record.",
+      });
+    }
 
     const patient = await Patient.findById(patientId);
 
@@ -100,6 +114,12 @@ const createAppointment = async (req, res) => {
     const { patientId } = req.params;
     const { doctorId, scheduledStartTime, scheduledEndTime, reasonForVisit, notes } = req.body;
 
+    if (!canAccessPatientPortal(req, patientId)) {
+      return res.status(403).json({
+        message: "You can only manage your own appointments.",
+      });
+    }
+
     const patient = await Patient.findById(patientId);
     if (!patient) return res.status(404).json({ message: "Patient not found." });
 
@@ -124,8 +144,14 @@ const createAppointment = async (req, res) => {
 
 const updateAppointment = async (req, res) => {
   try {
-    const { appointmentId } = req.params;
+    const { patientId, appointmentId } = req.params;
     const { doctorId, scheduledStartTime, scheduledEndTime, reasonForVisit, notes } = req.body;
+
+    if (!canAccessPatientPortal(req, patientId)) {
+      return res.status(403).json({
+        message: "You can only manage your own appointments.",
+      });
+    }
 
     const startDate = new Date(scheduledStartTime);
 
@@ -151,7 +177,13 @@ const updateAppointment = async (req, res) => {
 
 const deleteAppointment = async (req, res) => {
   try {
-    const { appointmentId } = req.params;
+    const { patientId, appointmentId } = req.params;
+
+    if (!canAccessPatientPortal(req, patientId)) {
+      return res.status(403).json({
+        message: "You can only manage your own appointments.",
+      });
+    }
 
     const deleted = await Appointment.findByIdAndDelete(appointmentId);
     if (!deleted) return res.status(404).json({ message: "Appointment not found." });

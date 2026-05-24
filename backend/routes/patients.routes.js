@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { authenticateToken } = require("../verifyToken");
 
 console.log("patients routes loaded");
 
@@ -11,14 +12,14 @@ const {
   addPatientNote,
 } = require("../controllers/patients.controller");
 
-router.get("/", getAllPatients);
+router.get("/", authenticateToken, getAllPatients);
 
-router.get("/:id", getPatientById);
+router.get("/:id", authenticateToken, getPatientById);
 
-router.get("/:id/summary", getPatientSummary);
+router.get("/:id/summary", authenticateToken, getPatientSummary);
 
-router.get("/:id/encounters", getPatientEncounters);
+router.get("/:id/encounters", authenticateToken, getPatientEncounters);
 
-router.post("/:id/notes", addPatientNote);
+router.post("/:id/notes", authenticateToken, addPatientNote);
 
 module.exports = router;

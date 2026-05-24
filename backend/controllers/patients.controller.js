@@ -2,8 +2,32 @@ const Patient = require("../models/Patient");
 const Consultation = require("../models/Consultations");
 const Appointment = require("../models/Appointment");
 
+const canReadPatient = (req, patientId) => {
+  const role = req.user?.role?.toLowerCase();
+
+  if (role === "doctor" || role === "admin") {
+    return true;
+  }
+
+  if (role === "patient") {
+    return req.user.patientId?.toString() === patientId?.toString();
+  }
+
+  return false;
+};
+
+const canEditPatientClinicalData = (req) => {
+  return req.user?.role?.toLowerCase() === "doctor";
+};
+
 const getAllPatients = async (req, res) => {
   try {
+    if (req.user?.role?.toLowerCase() === "patient") {
+      return res.status(403).json({
+        message: "Patients cannot view other patient records.",
+      });
+    }
+
     const patients = await Patient.find();
 
     res.json(patients);
@@ -18,6 +42,12 @@ const getAllPatients = async (req, res) => {
 
 const getPatientById = async (req, res) => {
   try {
+    if (!canReadPatient(req, req.params.id)) {
+      return res.status(403).json({
+        message: "You can only access your own patient record.",
+      });
+    }
+
     const patient = await Patient.findById(req.params.id);
 
     if (!patient) {
@@ -38,6 +68,12 @@ const getPatientById = async (req, res) => {
 
 const getPatientSummary = async (req, res) => {
   try {
+    if (!canReadPatient(req, req.params.id)) {
+      return res.status(403).json({
+        message: "You can only access your own patient summary.",
+      });
+    }
+
     const patient = await Patient.findById(req.params.id);
 
     if (!patient) {
@@ -67,6 +103,12 @@ const getPatientSummary = async (req, res) => {
 
 const getPatientEncounters = async (req, res) => {
   try {
+    if (!canReadPatient(req, req.params.id)) {
+      return res.status(403).json({
+        message: "You can only access your own patient encounters.",
+      });
+    }
+
     const encounters = await Consultation.find({
       patientId: req.params.id,
     })
@@ -85,6 +127,12 @@ const getPatientEncounters = async (req, res) => {
 
 const addPatientNote = async (req, res) => {
   try {
+    if (!canEditPatientClinicalData(req)) {
+      return res.status(403).json({
+        message: "Only doctors can add clinical notes.",
+      });
+    }
+
     const { note } = req.body;
 
     if (!note) {
