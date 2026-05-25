@@ -6,9 +6,24 @@
                 type="text" 
                 placeholder="Search patients..." 
                 class="search-input"
+                v-model="searchQuery"
                 @input="handleSearch"
+                @focus="showDropdown = searchResults.length > 0"
+                @blur="setTimeout(() => showDropdown = false, 200)"
+                autocomplete="off"
             />
             <span class="search-icon">🔍</span>
+            <div v-if="showDropdown" class="search-dropdown">
+                <div
+                    v-for="patient in searchResults"
+                    :key="patient._id"
+                    class="search-result"
+                    @click="goToPatient(patient._id)"
+                >
+                    <span class="result-name">{{ patient.firstName }} {{ patient.lastName }}</span>
+                    <span class="result-dob">{{ new Date(patient.dateOfBirth).toLocaleDateString() }}</span>
+                </div>
+            </div>
         </div>
         <div class="user-info">
             
@@ -21,10 +36,7 @@
                 </button>
                 <div v-if="menuOpen" class="dropdown-menu">
                     <a href="#" class="menu-item" @click.prevent="goToProfile">Profile</a>
-                    
-                    <!-- Admin Only: Create User -->
                     <a href="#" class="menu-item" v-if="isAdmin" @click.prevent="openCreateUserModal">Create User</a>
-                    
                     <a href="#" class="menu-item" @click.prevent="openPasswordModal">Update Password</a>
                     <a href="#" class="menu-item" @click.prevent="logout">Logout</a>
                 </div>
@@ -110,8 +122,10 @@ const props = defineProps({
 const router = useRouter();
 const menuOpen = ref(false);
 const notificationCount = ref(0);
+const searchQuery = ref("")
+const searchResults = ref([])
+const showDropdown = ref(false)
 
-// MODAL STATE
 const showPasswordModal = ref(false);
 const showCreateUserModal = ref(false);
 const newPasswordInput = ref('');
@@ -124,18 +138,15 @@ const newUser = ref({
     role: 'doctor'
 });
 
-// AUTH COMPUTEDS
 const userName = computed(() => {
     return localStorage.getItem('userName') || 'User';
 });
 
-// Parse the stored user object and check if their role is admin
 const isAdmin = computed(() => {
     try {
         const userStr = localStorage.getItem('user');
         if (userStr) {
             const userObj = JSON.parse(userStr);
-            // Convert to lowercase just in case it was saved as "ADMIN"
             return userObj.role?.toLowerCase() === 'admin';
         }
     } catch (e) {
@@ -144,7 +155,6 @@ const isAdmin = computed(() => {
     return false;
 });
 
-// MENU CONTROLS
 const toggleMenu = () => {
     menuOpen.value = !menuOpen.value;
 };
@@ -162,7 +172,6 @@ const logout = () => {
     router.push('/login');
 };
 
-// PASSWORD MODAL LOGIC
 const openPasswordModal = () => {
     newPasswordInput.value = '';
     showPasswordModal.value = true;
@@ -190,7 +199,6 @@ const submitUpdatePassword = async () => {
     }
 };
 
-// CREATE USER MODAL LOGIC
 const openCreateUserModal = () => {
     newUser.value = { username: '', password: '', firstName: '', lastName: '', email: '', role: 'doctor' };
     showCreateUserModal.value = true;
@@ -217,16 +225,33 @@ const submitCreateUser = async () => {
     }
 };
 
-const handleSearch = (event) => {
-    const query = event.target.value;
-    if (query.length > 0) {
-        router.push(`/patients?search=${encodeURIComponent(query)}`);
+const handleSearch = async (event) => {
+    searchQuery.value = event.target.value
+    if (searchQuery.value.length < 1) {
+        searchResults.value = []
+        showDropdown.value = false
+        return
     }
-};
+    try {
+        const patients = await api.getAllPatients()
+        const q = searchQuery.value.toLowerCase()
+        searchResults.value = patients.filter(p =>
+            `${p.firstName} ${p.lastName}`.toLowerCase().includes(q)
+        ).slice(0, 6)
+        showDropdown.value = searchResults.value.length > 0
+    } catch (err) {
+        console.error("Search failed", err)
+    }
+}
+
+const goToPatient = (id) => {
+    showDropdown.value = false
+    searchQuery.value = ""
+    router.push(`/patients/${id}`)
+}
 </script>
 
 <style scoped>
-/* EXISTING TOP BAR STYLES */
 .top-bar {
     position: sticky;
     top: 0;
@@ -283,6 +308,46 @@ const handleSearch = (event) => {
     position: absolute;
     left: 8px;
     pointer-events: none;
+}
+
+.search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.search-result {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #333;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.search-result:last-child {
+    border-bottom: none;
+}
+
+.search-result:hover {
+    background: #f0f7f4;
+}
+
+.result-name {
+    font-weight: 600;
+}
+
+.result-dob {
+    font-size: 0.8rem;
+    color: #888;
 }
 
 .user-info {
@@ -366,7 +431,6 @@ const handleSearch = (event) => {
     border-radius: 0 0 4px 4px;
 }
 
-/* NEW MODAL STYLES */
 .modal-overlay {
     position: fixed;
     top: 0;
