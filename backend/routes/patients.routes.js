@@ -13,6 +13,7 @@ const {
   saveOrderedTests,
   saveDraft,
   clearDraft,
+  updateExecutiveSummary,
 } = require("../controllers/patients.controller");
 
 router.get("/", authenticateToken, getAllPatients);
@@ -26,6 +27,11 @@ router.get("/:id/encounters", authenticateToken, getPatientEncounters);
 router.post("/:id/notes", authenticateToken, addPatientNote);
 router.post("/:id/ordered-tests", authenticateToken, saveOrderedTests);
 router.put("/:id/consultation-draft", authenticateToken, saveDraft);
+router.patch(
+  "/:id/executive-summary",
+  authenticateToken,
+  updateExecutiveSummary
+);
 router.delete("/:id/consultation-draft", authenticateToken, clearDraft);
 
 module.exports = router;

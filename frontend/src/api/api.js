@@ -16,9 +16,9 @@ export const api = {
     getDrugs: (query) => http.get(`/drugs/${query}`),
 
     //auth
-    signIn: (username, password) => http.post('/auth/signIn', {username, password}).then(r => r.data),
-    updatePassword: (newPassword) => http.post('/auth/updatePassword', {newPassword}).then(r => r.data),
-    createUser: ({username, password, firstName, lastName, email, role}) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
+    signIn: (username, password) => http.post('/auth/signIn', { username, password }).then(r => r.data),
+    updatePassword: (newPassword) => http.post('/auth/updatePassword', { newPassword }).then(r => r.data),
+    createUser: ({ username, password, firstName, lastName, email, role }) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
 
     // messaging
     sendMessage: (senderId, receiverId, content, attachments = []) =>
@@ -42,9 +42,23 @@ export const api = {
     getPatientSummary: (id) => http.get(`/patients/${id}/summary`).then(r => r.data),
     getPatientEncounters: (id) => http.get(`/patients/${id}/encounters`).then(r => r.data),
     getAllPatients: () => http.get('/patients').then(r => r.data),
-    saveOrderedTests: (patientId, tests) => http.post(`/patients/${patientId}/ordered-tests`, { tests }).then(r => r.data),
-    saveConsultationDraft: (patientId, data) => http.put(`/patients/${patientId}/consultation-draft`, data).then(r => r.data),
-    clearConsultationDraft: (patientId) => http.delete(`/patients/${patientId}/consultation-draft`).then(r => r.data),
+    saveOrderedTests: (patientId, tests) =>
+        http.post(`/patients/${patientId}/ordered-tests`, { tests }).then(r => r.data),
+
+    saveConsultationDraft: (patientId, data) =>
+        http.put(`/patients/${patientId}/consultation-draft`, data).then(r => r.data),
+
+    updateExecutiveSummary: (
+        patientId,
+        data
+    ) =>
+        http.patch(
+            `/patients/${patientId}/executive-summary`,
+            data
+        ).then(r => r.data),
+
+    clearConsultationDraft: (patientId) =>
+        http.delete(`/patients/${patientId}/consultation-draft`).then(r => r.data),
 
     // dashboard
     getTodaysAppointments: () => http.get('/dashboard/appointments/today').then(r => r.data),

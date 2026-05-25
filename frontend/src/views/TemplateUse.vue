@@ -281,7 +281,63 @@ async function saveDraft() {
     error.value = "Failed to save draft. Please try again.";
   }
 }
+async function syncExecutiveSummaryFromForms() {
+  const diagnosisForm =
+    allForms.value.basic_diagnosis || {};
 
+  const prescribeForm =
+    allForms.value.prescribe_medication || {};
+
+  const allergies =
+    prescribeForm.allergies ||
+    diagnosisForm.allergies ||
+    "";
+
+  const currentMedications =
+    prescribeForm.current_medications?.length
+      ? prescribeForm.current_medications
+      : diagnosisForm.current_medications || [];
+
+  const prescribedMedications =
+    prescribeForm.medications || [];
+
+  const formattedCurrentMedications =
+    currentMedications.map(med => ({
+      name: med.name || med,
+      dosage: med.dosage || "Not specified",
+      frequency: med.frequency || "Not specified"
+    }));
+
+  const formattedPrescribedMedications =
+    prescribedMedications.map(med => ({
+      name: med.name || med,
+      dosage: prescribeForm.dosage || "Not specified",
+      frequency: prescribeForm.frequency || "Not specified"
+    }));
+
+  const combinedMedications = [
+    ...formattedCurrentMedications,
+    ...formattedPrescribedMedications
+  ];
+
+  const activeMedications =
+    combinedMedications.filter(
+      (med, index, arr) =>
+        arr.findIndex(
+          item =>
+            item.name?.toLowerCase() ===
+            med.name?.toLowerCase()
+        ) === index
+    );
+
+  await api.updateExecutiveSummary(
+    patientId,
+    {
+      allergies,
+      activeMedications
+    }
+  );
+}
 async function saveAllForms() {
   if (!canGoNext.value) return;
   allForms.value = {
@@ -296,7 +352,12 @@ async function saveAllForms() {
   error.value = "";
 
   try {
-    await saveTemplateConsultation({ patientId, forms: allForms.value });
+    await syncExecutiveSummaryFromForms();
+
+    await saveTemplateConsultation({
+      patientId,
+      forms: allForms.value
+    });
     try { await api.clearConsultationDraft(patientId); } catch { }
     alert("Patient examination saved successfully");
     router.push(`/patients/${patientId}`);

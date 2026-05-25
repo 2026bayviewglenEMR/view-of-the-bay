@@ -19,13 +19,17 @@ function getPatientMedications(patient) {
     if (typeof med === "string") {
       return {
         id: med,
-        name: med
+        name: med,
+        dosage: "Not specified",
+        frequency: "Not specified"
       };
     }
 
     return {
       id: med.id || med._id || med.name,
-      name: med.name
+      name: med.name,
+      dosage: med.dosage || "Not specified",
+      frequency: med.frequency || "Not specified"
     };
   });
 }
