@@ -354,49 +354,6 @@ export default {
       }
       this.showPatientModal = true
     },
-    openEditPatient() {
-      this.isEditingPatient = true
-      const [firstName = "", lastName = ""] = this.patient.name.split(" ")
-      this.patientForm = {
-        firstName,
-        lastName,
-        dateOfBirth: this.patient.dob || "",
-        gender: this.patient.gender || "",
-        phone: this.patient.phone || "",
-        address: this.patient.address || "",
-        insurance: this.patient.insurance || "",
-      }
-      this.showPatientModal = true
-    },
-    closePatientModal() {
-      this.showPatientModal = false
-    },
-    async savePatient() {
-      try {
-        const payload = {
-          firstName: this.patientForm.firstName,
-          lastName: this.patientForm.lastName,
-          dateOfBirth: this.patientForm.dateOfBirth,
-          gender: this.patientForm.gender,
-          demographics: {
-            phone: this.patientForm.phone,
-            address: this.patientForm.address,
-            insurance: this.patientForm.insurance,
-          },
-        }
-
-        this.patient = {
-          ...this.patient,
-          name: `${payload.firstName} ${payload.lastName}`,
-          dob: payload.dateOfBirth,
-          gender: payload.gender,
-          phone: payload.demographics.phone,
-          address: payload.demographics.address,
-          insurance: payload.demographics.insurance,
-        }
-
-  this.showPatientModal = true
-},
 
 openEditPatient() {
   this.isEditingPatient = true
