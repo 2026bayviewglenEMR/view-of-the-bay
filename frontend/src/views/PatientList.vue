@@ -10,7 +10,7 @@
 
       <div class="patient-list">
         <div
-          v-for="patient in patients"
+          v-for="patient in filteredPatients"
           :key="patient._id"
           class="patient-card"
           @click="goToPatient(patient._id)"
@@ -22,7 +22,7 @@
           </div>
         </div>
 
-        <p v-if="patients.length === 0">No patients found.</p>
+        <p v-if="filteredPatients.length === 0">No patients found.</p>
       </div>
 
       <div v-if="showAddPatientModal" class="modal-overlay">
@@ -52,12 +52,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '../components/MainLayout.vue'
 import { api } from '../api/api.js'
 
 const router = useRouter()
+const route = useRoute()
 const patients = ref([])
 const showAddPatientModal = ref(false)
 
@@ -69,6 +70,16 @@ const newPatient = ref({
   phone: '',
   address: '',
   insurance: ''
+})
+
+const searchQuery = computed(() => route.query.search || "")
+
+const filteredPatients = computed(() => {
+  if (!searchQuery.value) return patients.value
+  const q = searchQuery.value.toLowerCase()
+  return patients.value.filter(p =>
+    `${p.firstName} ${p.lastName}`.toLowerCase().includes(q)
+  )
 })
 
 const goToPatient = (id) => {

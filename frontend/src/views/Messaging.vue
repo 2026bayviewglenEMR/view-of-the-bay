@@ -5,8 +5,13 @@
       <!-- Contacts Sidebar -->
       <div class="sidebar">
         <div class="sidebar-title">Contacts</div>
+        <input
+          v-model="contactSearch"
+          class="contact-search"
+          placeholder="Search contacts..."
+        />
         <div
-          v-for="user in contacts"
+          v-for="user in filteredContacts"
           :key="user._id"
           class="contact"
           :class="{ active: selectedUser?._id === user._id }"
@@ -73,7 +78,7 @@
 
 <script setup>
 import { api } from './../api/api.js'
-import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../components/MainLayout.vue'
 
@@ -87,8 +92,18 @@ const pastMessages = ref([])
 const contacts = ref([])
 const selectedUser = ref(null)
 const unreadMap = ref({})
+const contactSearch = ref("")
 let pollInterval = null
 let contactsInterval = null
+
+const filteredContacts = computed(() => {
+  if (!contactSearch.value) return contacts.value
+  const q = contactSearch.value.toLowerCase()
+  return contacts.value.filter(u =>
+    `${u.firstName} ${u.lastName}`.toLowerCase().includes(q) ||
+    u.role.toLowerCase().includes(q)
+  )
+})
 
 const handleFileChange = (file) => { selectedFile.value = file }
 const removeFile = () => { selectedFile.value = null }
@@ -204,6 +219,22 @@ onUnmounted(() => {
   padding: 16px;
   font-weight: bold;
   border-bottom: 1px solid #ccc;
+}
+
+.contact-search {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  background: #fafafa;
+}
+
+.contact-search:focus {
+  background: white;
+  border-bottom-color: #2D6A4F;
 }
 
 .contact {
