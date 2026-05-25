@@ -71,9 +71,6 @@
               <button class="consultation-btn" @click="startConsultation">
                 Start Consultation
               </button>
-              <button class="secondary-action-btn">Add Diagnosis</button>
-              <button class="secondary-action-btn">Update Medications</button>
-              <button class="secondary-action-btn">Edit Clinical History</button>
             </template>
 <template v-else-if="role === 'admin'">
   <button
