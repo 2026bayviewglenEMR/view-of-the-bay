@@ -42,6 +42,8 @@ export const api = {
     getPatientSummary: (id) => http.get(`/patients/${id}/summary`).then(r => r.data),
     getPatientEncounters: (id) => http.get(`/patients/${id}/encounters`).then(r => r.data),
     getAllPatients: () => http.get('/patients').then(r => r.data),
+    createPatient: (data) => http.post('/patients', data).then(r => r.data),
+    updatePatient: (id, data) => http.put(`/patients/${id}`, data).then(r => r.data),
     saveOrderedTests: (patientId, tests) =>
         http.post(`/patients/${patientId}/ordered-tests`, { tests }).then(r => r.data),
 

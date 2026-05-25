@@ -55,7 +55,9 @@ const getWaitingRoom = async (req, res) => {
       })
       .sort({ "appointmentId.scheduledStartTime": 1 });
 
-    res.json(entries.map(formatEntry));
+    const validEntries = entries.filter(e => e.appointmentId !== null);
+
+    res.json(validEntries.map(formatEntry));
   } catch (err) {
     console.error("getWaitingRoom:", err);
     res.status(500).json({ message: "Failed to fetch waiting room" });

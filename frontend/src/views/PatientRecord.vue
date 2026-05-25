@@ -275,6 +275,9 @@ patientForm: {
         dob: patient.dateOfBirth
           ? new Date(patient.dateOfBirth).toLocaleDateString()
           : "-",
+        rawDob: patient.dateOfBirth
+          ? new Date(patient.dateOfBirth).toISOString().split('T')[0]
+          : "",
         gender: patient.gender || "-",
         phone: patient.demographics?.phone || "-",
         address: patient.demographics?.address || "-",
@@ -353,7 +356,7 @@ openEditPatient() {
   this.patientForm = {
     firstName,
     lastName,
-    dateOfBirth: this.patient.dob || "",
+    dateOfBirth: this.patient.rawDob || "",
     gender: this.patient.gender || "",
     phone: this.patient.phone || "",
     address: this.patient.address || "",
@@ -381,32 +384,18 @@ async savePatient() {
       },
     }
 
-    /*
-      FRONTEND-ONLY VERSION:
-      Updates local state immediately.
-
-      LATER:
-      Replace this with:
-      await api.createPatient(payload)
-      or
-      await api.updatePatient(...)
-    */
-
-    this.patient = {
-      ...this.patient,
-      name: `${payload.firstName} ${payload.lastName}`,
-      dob: payload.dateOfBirth,
-      gender: payload.gender,
-      phone: payload.demographics.phone,
-      address: payload.demographics.address,
-      insurance: payload.demographics.insurance,
+    if (this.isEditingPatient) {
+      const updated = await api.updatePatient(this.patient.id, payload);
+      this.mapPatient(updated);
+    } else {
+      const created = await api.createPatient(payload);
+      this.$router.push(`/patients/${created._id}`);
     }
 
     this.showPatientModal = false
-
   } catch (err) {
     console.error(err)
-    alert("Failed to save patient.")
+    alert(err?.response?.data?.message || "Failed to save patient.")
   }
 },
   },
