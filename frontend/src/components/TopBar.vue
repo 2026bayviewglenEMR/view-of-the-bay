@@ -236,7 +236,8 @@ const handleSearch = async (event) => {
         const patients = await api.getAllPatients()
         const q = searchQuery.value.toLowerCase()
         searchResults.value = patients.filter(p =>
-            `${p.firstName} ${p.lastName}`.toLowerCase().includes(q)
+            p.firstName.toLowerCase().startsWith(q) ||
+            p.lastName.toLowerCase().startsWith(q)
         ).slice(0, 6)
         showDropdown.value = searchResults.value.length > 0
     } catch (err) {
