@@ -187,27 +187,22 @@ export default {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
     return {
-
-      
-      
       role: currentUser.role?.toLowerCase() || "doctor",
       currentUser,
       isLoading: false,
       accessDenied: false,
       errorMessage: "",
       showPatientModal: false,
-
-isEditingPatient: false,
-
-patientForm: {
-  firstName: "",
-  lastName: "",
-  dateOfBirth: "",
-  gender: "",
-  phone: "",
-  address: "",
-  insurance: "",
-},
+      isEditingPatient: false,
+      patientForm: {
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        gender: "",
+        phone: "",
+        address: "",
+        insurance: "",
+      },
       consultationDraft: null,
       patient: {
         id: "",
@@ -228,8 +223,20 @@ patientForm: {
       allergies: [],
       medications: [],
       timeline: [],
-      
     };
+  },
+  watch: {
+    '$route.params.id': {
+      handler(newId) {
+        if (newId && this.role !== 'patient') {
+          this.isLoading = true
+          this.errorMessage = ""
+          this.loadStaffPatientRecord(newId).finally(() => {
+            this.isLoading = false
+          })
+        }
+      }
+    }
   },
   async mounted() {
     const id = this.getRequestedPatientId();
@@ -265,7 +272,6 @@ patientForm: {
       if (this.role === "patient") {
         return this.currentUser.patientId;
       }
-
       return this.$route.params.id;
     },
     mapPatient(patient) {
@@ -321,7 +327,6 @@ patientForm: {
     async loadStaffPatientRecord(id) {
       const patient = await api.getPatient(id);
       this.mapPatient(patient);
-
       const encounters = await api.getPatientEncounters(id);
       this.mapTimeline(encounters);
     },
@@ -329,86 +334,65 @@ patientForm: {
       this.$router.push(`/diagnose/${this.patient.id}`)
     },
     openAddPatient() {
-  this.isEditingPatient = false
+      this.isEditingPatient = false
+      this.patientForm = {
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        gender: "",
+        phone: "",
+        address: "",
+        insurance: "",
+      }
+      this.showPatientModal = true
+    },
+    openEditPatient() {
+      this.isEditingPatient = true
+      const [firstName = "", lastName = ""] = this.patient.name.split(" ")
+      this.patientForm = {
+        firstName,
+        lastName,
+        dateOfBirth: this.patient.dob || "",
+        gender: this.patient.gender || "",
+        phone: this.patient.phone || "",
+        address: this.patient.address || "",
+        insurance: this.patient.insurance || "",
+      }
+      this.showPatientModal = true
+    },
+    closePatientModal() {
+      this.showPatientModal = false
+    },
+    async savePatient() {
+      try {
+        const payload = {
+          firstName: this.patientForm.firstName,
+          lastName: this.patientForm.lastName,
+          dateOfBirth: this.patientForm.dateOfBirth,
+          gender: this.patientForm.gender,
+          demographics: {
+            phone: this.patientForm.phone,
+            address: this.patientForm.address,
+            insurance: this.patientForm.insurance,
+          },
+        }
 
-  this.patientForm = {
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
-    gender: "",
-    phone: "",
-    address: "",
-    insurance: "",
-  }
+        this.patient = {
+          ...this.patient,
+          name: `${payload.firstName} ${payload.lastName}`,
+          dob: payload.dateOfBirth,
+          gender: payload.gender,
+          phone: payload.demographics.phone,
+          address: payload.demographics.address,
+          insurance: payload.demographics.insurance,
+        }
 
-  this.showPatientModal = true
-},
-
-openEditPatient() {
-  this.isEditingPatient = true
-
-  const [firstName = "", lastName = ""] =
-    this.patient.name.split(" ")
-
-  this.patientForm = {
-    firstName,
-    lastName,
-    dateOfBirth: this.patient.dob || "",
-    gender: this.patient.gender || "",
-    phone: this.patient.phone || "",
-    address: this.patient.address || "",
-    insurance: this.patient.insurance || "",
-  }
-
-  this.showPatientModal = true
-},
-
-closePatientModal() {
-  this.showPatientModal = false
-},
-
-async savePatient() {
-  try {
-    const payload = {
-      firstName: this.patientForm.firstName,
-      lastName: this.patientForm.lastName,
-      dateOfBirth: this.patientForm.dateOfBirth,
-      gender: this.patientForm.gender,
-      demographics: {
-        phone: this.patientForm.phone,
-        address: this.patientForm.address,
-        insurance: this.patientForm.insurance,
-      },
-    }
-
-    /*
-      FRONTEND-ONLY VERSION:
-      Updates local state immediately.
-
-      LATER:
-      Replace this with:
-      await api.createPatient(payload)
-      or
-      await api.updatePatient(...)
-    */
-
-    this.patient = {
-      ...this.patient,
-      name: `${payload.firstName} ${payload.lastName}`,
-      dob: payload.dateOfBirth,
-      gender: payload.gender,
-      phone: payload.demographics.phone,
-      address: payload.demographics.address,
-      insurance: payload.demographics.insurance,
-    }
-
-    this.showPatientModal = false
-
-  } catch (err) {
-    console.error(err)
-    alert("Failed to save patient.")
-  }
-},
+        this.showPatientModal = false
+      } catch (err) {
+        console.error(err)
+        alert("Failed to save patient.")
+      }
+    },
   },
 };
 </script>
@@ -430,7 +414,6 @@ async savePatient() {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  
 }
 
 .consultation-btn,
