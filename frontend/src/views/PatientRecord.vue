@@ -31,6 +31,11 @@
 </div>
   <MainLayout>
     <div class="patient-record-page">
+
+      <button v-if="role === 'doctor' || role === 'admin'" class="back-btn" @click="$router.push('/patients')">
+        ← Back to Patients
+      </button>
+
       <section v-if="accessDenied" class="card access-denied">
         <h1>Access Denied</h1>
         <p>You can only view your own patient record.</p>
@@ -71,9 +76,6 @@
               <button class="consultation-btn" @click="startConsultation">
                 Start Consultation
               </button>
-              <button class="secondary-action-btn">Add Diagnosis</button>
-              <button class="secondary-action-btn">Update Medications</button>
-              <button class="secondary-action-btn">Edit Clinical History</button>
             </template>
 <template v-else-if="role === 'admin'">
   <button
@@ -190,27 +192,22 @@ export default {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
     return {
-
-      
-      
       role: currentUser.role?.toLowerCase() || "doctor",
       currentUser,
       isLoading: false,
       accessDenied: false,
       errorMessage: "",
       showPatientModal: false,
-
-isEditingPatient: false,
-
-patientForm: {
-  firstName: "",
-  lastName: "",
-  dateOfBirth: "",
-  gender: "",
-  phone: "",
-  address: "",
-  insurance: "",
-},
+      isEditingPatient: false,
+      patientForm: {
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        gender: "",
+        phone: "",
+        address: "",
+        insurance: "",
+      },
       consultationDraft: null,
       patient: {
         id: "",
@@ -231,8 +228,20 @@ patientForm: {
       allergies: [],
       medications: [],
       timeline: [],
-      
     };
+  },
+  watch: {
+    '$route.params.id': {
+      handler(newId) {
+        if (newId && this.role !== 'patient') {
+          this.isLoading = true
+          this.errorMessage = ""
+          this.loadStaffPatientRecord(newId).finally(() => {
+            this.isLoading = false
+          })
+        }
+      }
+    }
   },
   async mounted() {
     const id = this.getRequestedPatientId();
@@ -263,7 +272,6 @@ patientForm: {
       if (this.role === "patient") {
         return "me";
       }
-
       return this.$route.params.id;
     },
     formatMedication(medication) {
@@ -327,6 +335,9 @@ patientForm: {
         dob: patient.dateOfBirth
           ? new Date(patient.dateOfBirth).toLocaleDateString()
           : "-",
+        rawDob: patient.dateOfBirth
+          ? new Date(patient.dateOfBirth).toISOString().split('T')[0]
+          : "",
         gender: patient.gender || "-",
         phone: patient.demographics?.phone || "-",
         address: patient.demographics?.address || "-",
@@ -373,7 +384,6 @@ patientForm: {
     async loadStaffPatientRecord(id) {
       const patient = await api.getPatient(id);
       this.mapPatient(patient);
-
       const encounters = await api.getPatientEncounters(id);
       this.mapTimeline(encounters);
     },
@@ -381,20 +391,18 @@ patientForm: {
       this.$router.push(`/diagnose/${this.patient.id}`)
     },
     openAddPatient() {
-  this.isEditingPatient = false
-
-  this.patientForm = {
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
-    gender: "",
-    phone: "",
-    address: "",
-    insurance: "",
-  }
-
-  this.showPatientModal = true
-},
+      this.isEditingPatient = false
+      this.patientForm = {
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        gender: "",
+        phone: "",
+        address: "",
+        insurance: "",
+      }
+      this.showPatientModal = true
+    },
 
 openEditPatient() {
   this.isEditingPatient = true
@@ -405,7 +413,7 @@ openEditPatient() {
   this.patientForm = {
     firstName,
     lastName,
-    dateOfBirth: this.patient.dob || "",
+    dateOfBirth: this.patient.rawDob || "",
     gender: this.patient.gender || "",
     phone: this.patient.phone || "",
     address: this.patient.address || "",
@@ -433,32 +441,18 @@ async savePatient() {
       },
     }
 
-    /*
-      FRONTEND-ONLY VERSION:
-      Updates local state immediately.
-
-      LATER:
-      Replace this with:
-      await api.createPatient(payload)
-      or
-      await api.updatePatient(...)
-    */
-
-    this.patient = {
-      ...this.patient,
-      name: `${payload.firstName} ${payload.lastName}`,
-      dob: payload.dateOfBirth,
-      gender: payload.gender,
-      phone: payload.demographics.phone,
-      address: payload.demographics.address,
-      insurance: payload.demographics.insurance,
+    if (this.isEditingPatient) {
+      const updated = await api.updatePatient(this.patient.id, payload);
+      this.mapPatient(updated);
+    } else {
+      const created = await api.createPatient(payload);
+      this.$router.push(`/patients/${created._id}`);
     }
 
     this.showPatientModal = false
-
   } catch (err) {
     console.error(err)
-    alert("Failed to save patient.")
+    alert(err?.response?.data?.message || "Failed to save patient.")
   }
 },
   },
@@ -468,6 +462,24 @@ async savePatient() {
 <style scoped>
 .patient-record-page {
   padding: 24px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #2d6a4f;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
 }
 
 .patient-header {
@@ -482,7 +494,6 @@ async savePatient() {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  
 }
 
 .consultation-btn,

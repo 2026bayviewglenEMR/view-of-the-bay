@@ -105,9 +105,7 @@
           <h2>Quick Actions</h2>
 
           <div class="actions">
-            <button @click="router.push('/dashboard')">📅 Master Calendar</button>
             <button @click="openBooking">📝 Book Appointment</button>
-            <button @click="router.push('/patientPortal')">🔄 Reschedule</button>
             <button @click="router.push('/patients')">📂 Open Patient Tabs</button>
           </div>
 

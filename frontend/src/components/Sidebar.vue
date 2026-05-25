@@ -34,9 +34,6 @@ const navConfig = [
     { path: '/dashboard',     label: 'Dashboard',      icon: '📊', roles: ['doctor', 'admin'] },
     { path: '/patients',      label: 'Patient Records', icon: '👥', roles: ['doctor', 'admin', 'patient'] },
     { path: '/messaging',     label: 'Messaging',      icon: '💬', roles: ['doctor', 'admin', 'patient'] },
-    // { path: '/templates',     label: 'Templates',      icon: '📋' },
-    { path: '/tasks',         label: 'Tasks',          icon: '✓', roles: ['doctor', 'admin'] },
-    // { path: '/alerts',        label: 'Alerts',         icon: '🔔' },
     { path: '/waitingroom',   label: 'Waiting Room',   icon: '🪑', roles: ['admin'] },
     { path: '/PatientPortal', label: 'Patient Portal', icon: '🌀', roles: ['patient'] }
 ]
