@@ -32,6 +32,7 @@ export const api = {
     }).then(r => r.data),
 
     // patient portal
+    getOwnPortalData: () => http.get('/patient-portal/me').then(r => r.data),
     getPortalData: (patientId) => http.get(`/patient-portal/${patientId}`).then(r => r.data),
     createAppointment: (patientId, data) => http.post(`/patient-portal/${patientId}/appointments`, data).then(r => r.data),
     updateAppointment: (patientId, appointmentId, data) => http.put(`/patient-portal/${patientId}/appointments/${appointmentId}`, data).then(r => r.data),

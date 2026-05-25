@@ -14,6 +14,7 @@ const {
 router.get("/debug/db", debugDatabase);
 router.get("/debug/patients", listPatientsForTesting);
 
+router.get("/me", authenticateToken, getPatientPortalData);
 router.get("/:patientId", authenticateToken, getPatientPortalData);
 router.post("/:patientId/appointments", authenticateToken, createAppointment);
 router.put("/:patientId/appointments/:appointmentId", authenticateToken, updateAppointment);

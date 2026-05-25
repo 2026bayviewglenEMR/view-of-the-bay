@@ -242,11 +242,6 @@ patientForm: {
       return;
     }
 
-    if (this.role === "patient" && this.currentUser.patientId !== id) {
-      this.accessDenied = true;
-      return;
-    }
-
     try {
       this.isLoading = true;
       this.errorMessage = "";
@@ -266,10 +261,64 @@ patientForm: {
   methods: {
     getRequestedPatientId() {
       if (this.role === "patient") {
-        return this.currentUser.patientId;
+        return "me";
       }
 
       return this.$route.params.id;
+    },
+    formatMedication(medication) {
+      if (!medication) {
+        return "";
+      }
+
+      if (typeof medication === "string") {
+        return medication;
+      }
+
+      return [
+        medication.name || medication.medicationName || medication.drugName || medication.label || medication.id,
+        medication.dosage || medication.dose,
+        medication.frequency,
+        medication.instructions,
+      ]
+        .filter(Boolean)
+        .join(" ");
+    },
+    formatTimelineText(value) {
+      if (Array.isArray(value)) {
+        return value
+          .map(this.formatTimelineText)
+          .filter(Boolean)
+          .join(", ");
+      }
+
+      if (value && typeof value === "object") {
+        return this.formatMedication(value);
+      }
+
+      return value || "";
+    },
+    getEncounterCurrentMedications(encounter) {
+      return (
+        encounter.templateForms?.basic_diagnosis?.current_medications ||
+        encounter.templateForms?.prescribe_medication?.current_medications ||
+        []
+      );
+    },
+    formatEncounterNotes(encounter) {
+      const notes = this.formatTimelineText(encounter.notes || encounter.examFindings);
+      const currentMedications = this.formatTimelineText(
+        this.getEncounterCurrentMedications(encounter)
+      );
+
+      if (!notes || !currentMedications) {
+        return notes || "-";
+      }
+
+      return notes.replace(
+        /Current medications:\s*(?:\[object Object\]\s*,?\s*)+/g,
+        `Current medications: ${currentMedications} `
+      ).trim();
     },
     mapPatient(patient) {
       this.patient = {
@@ -293,9 +342,9 @@ patientForm: {
       };
 
       this.allergies = patient.executiveSummary?.allergies || [];
-      this.medications = (patient.executiveSummary?.activeMedications || []).map((med) =>
-        `${med.name} ${med.dosage} ${med.frequency || ""}`.trim()
-      );
+      this.medications = (patient.executiveSummary?.activeMedications || [])
+        .map(this.formatMedication)
+        .filter(Boolean);
 
       const draft = patient.consultationDraft;
       this.consultationDraft = (draft?.savedAt && draft.forms && Object.keys(draft.forms).length > 0)
@@ -313,11 +362,11 @@ patientForm: {
         diagnosis: Array.isArray(encounter.diagnoses)
           ? encounter.diagnoses.join(", ")
           : encounter.diagnosis || "-",
-        notes: encounter.notes || encounter.examFindings || "-",
+        notes: this.formatEncounterNotes(encounter),
       }));
     },
     async loadPatientOwnRecord(id) {
-      const data = await api.getPortalData(id);
+      const data = await api.getOwnPortalData();
       this.mapPatient(data.patient);
       this.mapTimeline(data.consultations);
     },

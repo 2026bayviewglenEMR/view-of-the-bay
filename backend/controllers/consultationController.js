@@ -35,9 +35,35 @@ const toNumber = (value) => {
   return Number.isNaN(numberValue) ? undefined : numberValue;
 };
 
+const formatStructuredValue = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map(formatStructuredValue)
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  if (value && typeof value === "object") {
+    return [
+      value.name || value.medicationName || value.drugName || value.label || value.id,
+      value.dosage || value.dose,
+      value.frequency,
+      value.instructions,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  return value;
+};
+
 const addNote = (notes, label, value) => {
   if (!value) return;
-  notes.push(`${label}: ${value}`);
+
+  const formattedValue = formatStructuredValue(value);
+  if (!formattedValue) return;
+
+  notes.push(`${label}: ${formattedValue}`);
 };
 
 const buildTemplateConsultationFields = (forms, templates, notes) => {

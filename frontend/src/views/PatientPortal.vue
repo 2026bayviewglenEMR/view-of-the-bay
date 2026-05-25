@@ -143,14 +143,12 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api/api'
 import MainLayout from '../components/MainLayout.vue'
 
-const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
-const patientId = storedUser.patientId ?? null
-
 const filter = ref('all')
 const confirmationMessage = ref('')
 const loading = ref(true)
 const errorMessage = ref('')
 
+const patientId = ref(null)
 const patient = ref(null)
 const patientName = computed(() => {
   if (!patient.value) return 'Unknown Patient'
@@ -182,18 +180,14 @@ async function loadDoctors() {
 }
 
 async function loadPatientPortalData() {
-  if (!patientId) {
-    errorMessage.value = 'No patient record linked to your account. Please contact your clinic.'
-    loading.value = false
-    return
-  }
   try {
     loading.value = true
     errorMessage.value = ''
 
-    const data = await api.getPortalData(patientId)
+    const data = await api.getOwnPortalData()
 
     patient.value = data.patient
+    patientId.value = data.patient?._id || null
     consultations.value = data.consultations || []
 
     appointments.value = (data.appointments || []).map((appointment) => {
@@ -251,6 +245,11 @@ function startReschedule(appointment) {
 }
 
 async function scheduleAppointment() {
+  if (!patientId.value) {
+    errorMessage.value = 'No patient record linked to your account. Please contact your clinic.'
+    return
+  }
+
   try {
     const startDateTime = new Date(`${newAppointment.date}T${newAppointment.time}`)
     const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000)
@@ -265,7 +264,7 @@ async function scheduleAppointment() {
     }
 
     if (editingAppointmentId.value) {
-      const updated = await api.updateAppointment(patientId, editingAppointmentId.value, payload)
+      const updated = await api.updateAppointment(patientId.value, editingAppointmentId.value, payload)
       appointments.value = appointments.value.map(app =>
         app.id === editingAppointmentId.value
           ? {
@@ -280,7 +279,7 @@ async function scheduleAppointment() {
       )
       editingAppointmentId.value = null
     } else {
-      const created = await api.createAppointment(patientId, payload)
+      const created = await api.createAppointment(patientId.value, payload)
       appointments.value.unshift({
         id: created._id,
         doctorId: created.doctorId,
@@ -311,8 +310,13 @@ async function scheduleAppointment() {
 }
 
 async function deleteAppointment(id) {
+  if (!patientId.value) {
+    errorMessage.value = 'No patient record linked to your account. Please contact your clinic.'
+    return
+  }
+
   try {
-    await api.deleteAppointment(patientId, id)
+    await api.deleteAppointment(patientId.value, id)
     appointments.value = appointments.value.filter(app => app.id !== id)
   } catch (error) {
     console.error('Error deleting appointment:', error)
