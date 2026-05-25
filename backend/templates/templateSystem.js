@@ -92,6 +92,111 @@ const getTemplates = () => {
         { id: "drug_interactions", label: "Drug Interaction Results", type: "drug-interaction", default: "" },
       ]
     },
+    {
+      id: "clinical_assessment",
+      name: "Assessment & Diagnosis",
+      isMandatory: false,
+      fields: [
+        { id: "working_diagnosis", label: "Working Diagnosis", type: "text", default: "" },
+        { id: "differential_diagnosis", label: "Differential Diagnosis", type: "textarea", default: "" },
+        { id: "clinical_impression", label: "Clinical Impression", type: "textarea", default: "" },
+        {
+          id: "severity",
+          label: "Severity",
+          type: "select",
+          options: ["Mild", "Moderate", "Severe", "Critical"],
+          default: "",
+        },
+      ],
+    },
+    {
+      id: "diagnostic_orders",
+      name: "Diagnostic Orders",
+      isMandatory: false,
+      fields: [
+        { id: "order_title", label: "Order Title", type: "text", default: "" },
+        {
+          id: "test_type",
+          label: "Test Type",
+          type: "select",
+          options: ["Laboratory", "Imaging", "Pathology", "Cardiology", "Pulmonary", "Other"],
+          default: "",
+        },
+        {
+          id: "priority",
+          label: "Priority",
+          type: "select",
+          options: ["Routine", "Urgent", "STAT"],
+          default: "",
+        },
+        { id: "clinical_question", label: "Clinical Question / Indication", type: "textarea", default: "" },
+        { id: "instructions", label: "Special Instructions", type: "textarea", default: "" },
+      ],
+    },
+    {
+      id: "surgery_request",
+      name: "Surgery Request",
+      isMandatory: false,
+      fields: [
+        { id: "procedure", label: "Procedure / Surgical Service", type: "text", default: "" },
+        {
+          id: "urgency",
+          label: "Urgency",
+          type: "select",
+          options: ["Elective", "Semi-urgent", "Urgent", "Emergency"],
+          default: "",
+        },
+        { id: "reason", label: "Reason / Relevant Findings", type: "textarea", default: "" },
+        { id: "pre_op_notes", label: "Pre-op Notes", type: "textarea", default: "" },
+      ],
+    },
+    {
+      id: "referral_request",
+      name: "Referral Request",
+      isMandatory: false,
+      fields: [
+        { id: "refer_to", label: "Refer To", type: "text", default: "" },
+        {
+          id: "priority",
+          label: "Priority",
+          type: "select",
+          options: ["Routine", "Urgent", "Emergency"],
+          default: "",
+        },
+        { id: "reason", label: "Referral Reason", type: "textarea", default: "" },
+        { id: "supporting_findings", label: "Supporting Findings", type: "textarea", default: "" },
+      ],
+    },
+    {
+      id: "patient_instructions",
+      name: "Patient Instructions",
+      isMandatory: false,
+      fields: [
+        { id: "home_care", label: "Home Care Instructions", type: "textarea", default: "" },
+        { id: "medication_guidance", label: "Medication Guidance", type: "textarea", default: "" },
+        { id: "return_precautions", label: "Return Precautions", type: "textarea", default: "" },
+      ],
+    },
+    {
+      id: "follow_up_plan",
+      name: "Follow-up Plan",
+      isMandatory: false,
+      fields: [
+        { id: "timeline", label: "Follow-up Timeline", type: "text", default: "" },
+        { id: "with_whom", label: "Follow-up With", type: "text", default: "" },
+        { id: "monitoring_plan", label: "Monitoring Plan", type: "textarea", default: "" },
+        { id: "follow_up_required", label: "Follow-up Required", type: "boolean", default: "" },
+      ],
+    },
+    {
+      id: "clinical_notes",
+      name: "Clinical Notes",
+      isMandatory: false,
+      fields: [
+        { id: "notes", label: "Additional Clinical Notes", type: "textarea", default: "" },
+        { id: "care_team_notes", label: "Care Team Notes", type: "textarea", default: "" },
+      ],
+    },
   ];
 };
 

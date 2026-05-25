@@ -47,8 +47,16 @@ const buildTemplateConsultationFields = (forms, templates, notes) => {
   const vitalsForm = normalizedForms.vitals_check || {};
   const mentalHealthForm = normalizedForms.mental_health || {};
   const medicationForm = normalizedForms.prescribe_medication || {};
+  const assessmentForm = normalizedForms.clinical_assessment || {};
+  const diagnosticOrdersForm = normalizedForms.diagnostic_orders || {};
+  const surgeryRequestForm = normalizedForms.surgery_request || {};
+  const referralRequestForm = normalizedForms.referral_request || {};
+  const patientInstructionsForm = normalizedForms.patient_instructions || {};
+  const followUpPlanForm = normalizedForms.follow_up_plan || {};
+  const clinicalNotesForm = normalizedForms.clinical_notes || {};
 
   const consultationNotes = [];
+  const treatmentPlanParts = [];
 
   addNote(consultationNotes, "Notes", notes);
   addNote(consultationNotes, "Symptom notes", symptomsForm.additional_notes);
@@ -66,6 +74,30 @@ const buildTemplateConsultationFields = (forms, templates, notes) => {
   addNote(consultationNotes, "Current mood", mentalHealthForm.current_mood);
   addNote(consultationNotes, "Mental health notes", mentalHealthForm.additional_notes);
   addNote(consultationNotes, "Medication instructions", medicationForm.instructions);
+  addNote(consultationNotes, "Differential diagnosis", assessmentForm.differential_diagnosis);
+  addNote(consultationNotes, "Clinical impression", assessmentForm.clinical_impression);
+  addNote(consultationNotes, "Diagnostic order", diagnosticOrdersForm.order_title);
+  addNote(consultationNotes, "Diagnostic indication", diagnosticOrdersForm.clinical_question);
+  addNote(consultationNotes, "Surgery request", surgeryRequestForm.procedure);
+  addNote(consultationNotes, "Surgery reason", surgeryRequestForm.reason);
+  addNote(consultationNotes, "Referral", referralRequestForm.refer_to);
+  addNote(consultationNotes, "Referral reason", referralRequestForm.reason);
+  addNote(consultationNotes, "Clinical notes", clinicalNotesForm.notes);
+  addNote(consultationNotes, "Care team notes", clinicalNotesForm.care_team_notes);
+
+  addNote(treatmentPlanParts, "Treatment plan", diagnosisForm.treatment_plan);
+  addNote(treatmentPlanParts, "Patient home care", patientInstructionsForm.home_care);
+  addNote(treatmentPlanParts, "Medication guidance", patientInstructionsForm.medication_guidance);
+  addNote(treatmentPlanParts, "Return precautions", patientInstructionsForm.return_precautions);
+  addNote(treatmentPlanParts, "Follow-up timeline", followUpPlanForm.timeline);
+  addNote(treatmentPlanParts, "Follow-up with", followUpPlanForm.with_whom);
+  addNote(treatmentPlanParts, "Monitoring plan", followUpPlanForm.monitoring_plan);
+  addNote(treatmentPlanParts, "Surgery request", surgeryRequestForm.procedure);
+  addNote(treatmentPlanParts, "Referral", referralRequestForm.refer_to);
+
+  const prescribedMedications = Array.isArray(medicationForm.medications)
+    ? medicationForm.medications
+    : [];
 
   return {
     templateForms: normalizedForms,
@@ -75,21 +107,21 @@ const buildTemplateConsultationFields = (forms, templates, notes) => {
       heartRate: toNumber(vitalsForm.heart_rate),
       temperature: toNumber(vitalsForm.temperature),
       weight: toNumber(vitalsForm.weight),
+      respiratoryRate: toNumber(vitalsForm.respiratory_rate),
     },
     examFindings: diagnosisForm.physical_exam || "",
-    diagnoses: diagnosisForm.diagnosis ? [diagnosisForm.diagnosis] : [],
-    prescriptions: medicationForm.medication
-      ? [
-          {
-            medicationName: medicationForm.medication,
-            dosage: medicationForm.dosage || "",
-            instructions: [medicationForm.frequency, medicationForm.instructions]
-              .filter(Boolean)
-              .join(" - "),
-          },
-        ]
-      : [],
-    treatmentPlan: diagnosisForm.treatment_plan || "",
+    diagnoses: [
+      diagnosisForm.diagnosis,
+      assessmentForm.working_diagnosis,
+    ].filter(Boolean),
+    prescriptions: prescribedMedications.map((medication) => ({
+      medicationName: medication.name || medication.id || medication,
+      dosage: medicationForm.dosage || "",
+      instructions: [medicationForm.frequency, medicationForm.instructions]
+        .filter(Boolean)
+        .join(" - "),
+    })),
+    treatmentPlan: treatmentPlanParts.join("\n"),
     notes: consultationNotes.join("\n"),
   };
 };
