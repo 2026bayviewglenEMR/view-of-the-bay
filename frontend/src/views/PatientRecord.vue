@@ -31,6 +31,11 @@
 </div>
   <MainLayout>
     <div class="patient-record-page">
+
+      <button v-if="role === 'doctor' || role === 'admin'" class="back-btn" @click="$router.push('/patients')">
+        ← Back to Patients
+      </button>
+
       <section v-if="accessDenied" class="card access-denied">
         <h1>Access Denied</h1>
         <p>You can only view your own patient record.</p>
@@ -400,6 +405,24 @@ export default {
 <style scoped>
 .patient-record-page {
   padding: 24px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #2d6a4f;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
 }
 
 .patient-header {
