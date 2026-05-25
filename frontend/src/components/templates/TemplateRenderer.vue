@@ -7,16 +7,8 @@
       </label>
 
       <div class="checkbox-grid">
-        <label
-          v-for="option in checkboxField.options"
-          :key="option"
-          class="checkbox-item"
-        >
-          <input
-            type="checkbox"
-            :value="option"
-            v-model="formData[checkboxField.id]"
-          />
+        <label v-for="option in checkboxField.options" :key="option" class="checkbox-item">
+          <input type="checkbox" :value="option" v-model="formData[checkboxField.id]" />
 
           <span>{{ option }}</span>
         </label>
@@ -24,20 +16,12 @@
     </div>
 
     <div class="fields-grid">
-      <div
-        v-for="field in normalFields"
-        :key="field.id"
-        class="field"
-      >
+      <div v-for="field in normalFields" :key="field.id" class="field">
         <label class="field-label">
           {{ field.label }}
         </label>
 
-        <select
-          v-if="field.type === 'boolean'"
-          v-model="formData[field.id]"
-          class="select"
-        >
+        <select v-if="field.type === 'boolean'" v-model="formData[field.id]" class="select">
           <option disabled value="">
             Select Option
           </option>
@@ -46,96 +30,51 @@
           <option :value="false">No</option>
         </select>
 
-        <div
-          v-else-if="field.type === 'drug-list'"
-          class="drug-list-box"
-        >
-          <input
-            v-model="drugListSearch[field.id]"
-            @input="searchDrugList(field.id)"
-            class="select"
-            placeholder="Search medication..."
-          />
+        <div v-else-if="field.type === 'drug-list'" class="drug-list-box">
+          <input v-model="drugListSearch[field.id]" @input="searchDrugList(field.id)" class="select"
+            placeholder="Search medication..." />
 
-          <div
-            v-if="drugListOptions[field.id]?.length > 0"
-            class="drug-options"
-          >
-            <div
-              v-for="drug in drugListOptions[field.id]"
-              :key="drug.id"
-              class="drug-option"
-              @click="addMedication(field.id, drug)"
-            >
+          <div v-if="drugListOptions[field.id]?.length > 0" class="drug-options">
+            <div v-for="drug in drugListOptions[field.id]" :key="drug.id" class="drug-option"
+              @click="addMedication(field.id, drug)">
               {{ drug.name }}
             </div>
           </div>
 
           <div class="selected-drugs">
-            <div
-              v-for="(drug, index) in formData[field.id]"
-              :key="drug.id"
-              class="selected-drug"
-            >
+            <div v-for="(drug, index) in formData[field.id]" :key="drug.id" class="selected-drug">
               {{ drug.name }}
 
-              <button
-                type="button"
-                @click="removeMedication(field.id, index)"
-              >
+              <button type="button" @click="removeMedication(field.id, index)">
                 ×
               </button>
             </div>
           </div>
         </div>
 
-        <TextAreaField
-          v-else-if="field.type === 'textarea'"
-          v-model="formData[field.id]"
-          :field="field"
-          :readonly="field.readonly"
-        />
+        <TextAreaField v-else-if="field.type === 'textarea'" v-model="formData[field.id]" :field="field"
+          :readonly="field.readonly" />
 
-        <select
-          v-else-if="field.type === 'select'"
-          v-model="formData[field.id]"
-          class="select"
-        >
+        <select v-else-if="field.type === 'select'" v-model="formData[field.id]" class="select">
           <option value="">
             Select Option
           </option>
 
-          <option
-            v-for="option in field.options"
-            :key="option.id || option"
-            :value="option.id || option"
-          >
+          <option v-for="option in field.options" :key="option.id || option" :value="option.id || option">
             {{ option.name || option }}
           </option>
         </select>
 
-        <div
-          v-else-if="field.type === 'drug-interaction'"
-          class="drug-interaction-box"
-        >
-          <div
-            v-if="!Array.isArray(formData.medications) || formData.medications.length === 0"
-          >
+        <div v-else-if="field.type === 'drug-interaction'" class="drug-interaction-box">
+          <div v-if="!Array.isArray(formData.medications) || formData.medications.length === 0">
             Select prescribed medications to check drug interactions.
           </div>
 
-          <div
-            v-else-if="drugInteractionResults.length === 0"
-            class="safe"
-          >
+          <div v-else-if="drugInteractionResults.length === 0" class="safe">
             No known interactions found with the patient's current medications.
           </div>
 
-          <div
-            v-for="interaction in drugInteractionResults"
-            :key="interaction.key"
-            class="warning"
-          >
+          <div v-for="interaction in drugInteractionResults" :key="interaction.key" class="warning">
             <strong>
               {{ interaction.prescribedName }} + {{ interaction.currentName }}
             </strong>
@@ -144,12 +83,7 @@
           </div>
         </div>
 
-        <TextField
-          v-else
-          v-model="formData[field.id]"
-          :field="field"
-          :readonly="field.readonly"
-        />
+        <TextField v-else v-model="formData[field.id]" :field="field" :readonly="field.readonly" />
       </div>
     </div>
 
@@ -316,10 +250,25 @@ watch(
       }
 
       else if (field.type === "drug-list") {
-        formData[field.id] =
+
+        let meds =
           Array.isArray(savedValue)
             ? savedValue
             : field.default ?? [];
+
+        meds = meds.map(med => {
+
+          if (typeof med === "string") {
+            return {
+              id: med,
+              name: med
+            };
+          }
+
+          return med;
+        });
+
+        formData[field.id] = meds;
       }
 
       else {

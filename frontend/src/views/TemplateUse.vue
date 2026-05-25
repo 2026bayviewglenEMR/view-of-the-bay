@@ -7,7 +7,8 @@
 
         <div v-if="showBuilder" class="templates-page plan-builder">
           <h1 class="title">Treatment Plan Setup</h1>
-          <p class="subtitle">Mandatory examination complete. Select any additional actions needed for this patient's disposition.</p>
+          <p class="subtitle">Mandatory examination complete. Select any additional actions needed for this patient's
+            disposition.</p>
 
           <div class="plan-sections">
             <div class="optional-section" v-if="optionalTemplates.length > 0">
@@ -32,34 +33,20 @@
           <h1 class="title">Patient Examination</h1>
           <p v-if="error" class="error-message">{{ error }}</p>
 
-          <TemplateRenderer 
-            v-if="currentTemplate" 
-            :template="currentTemplate" 
-            :initialData="currentInitialData"
-            @update="updateFormData" 
-          />
+          <TemplateRenderer v-if="currentTemplate" :template="currentTemplate" :initialData="currentInitialData"
+            @update="updateFormData" />
           <p v-else>Loading templates...</p>
 
           <div class="navigation-buttons">
             <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">Back</button>
 
-            <button 
-              v-if="!isLastPage || !hasSeenBuilder" 
-              class="next-btn" 
-              :class="{ disabled: !canGoNext }" 
-              :disabled="!canGoNext"
-              @click="nextTemplate"
-            >
+            <button v-if="!isLastPage || !hasSeenBuilder" class="next-btn" :class="{ disabled: !canGoNext }"
+              :disabled="!canGoNext" @click="nextTemplate">
               Next
             </button>
 
-            <button 
-              v-else 
-              class="save-btn" 
-              :class="{ disabled: !canGoNext || isSaving }"
-              :disabled="!canGoNext || isSaving" 
-              @click="saveAllForms"
-            >
+            <button v-else class="save-btn" :class="{ disabled: !canGoNext || isSaving }"
+              :disabled="!canGoNext || isSaving" @click="saveAllForms">
               {{ isSaving ? "Saving..." : "Save Consultation" }}
             </button>
 
@@ -72,15 +59,10 @@
           </div>
         </div>
 
-        <OrderTestsModal
-          v-if="showOrderTests"
-          :patientId="patientId"
+        <OrderTestsModal v-if="showOrderTests" :patientId="patientId"
           :patientName="patient ? `${patient.firstName} ${patient.lastName}` : ''"
-          :patientDob="patient?.dateOfBirth || ''"
-          :doctorName="doctorName"
-          :alreadyOrderedIds="pendingTestIds"
-          @close="onOrderTestsClose"
-        />
+          :patientDob="patient?.dateOfBirth || ''" :doctorName="doctorName" :alreadyOrderedIds="pendingTestIds"
+          @close="onOrderTestsClose" />
 
       </div>
     </template>
@@ -90,7 +72,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getTemplates, saveTemplateConsultation } from "@/api/template"; 
+import { getTemplates, saveTemplateConsultation } from "@/api/template";
 import { api } from "@/api/api.js";
 import { formsConfig } from "./consultation/formsConfig.js";
 
@@ -129,14 +111,14 @@ const doctorName = storedUser.firstName && storedUser.lastName
   : storedUser.username || '';
 
 // Modal logic tracking
-const pendingTestIds = computed(() => 
+const pendingTestIds = computed(() =>
   (patient.value?.orderedTests || []).filter(t => t.status === 'pending').map(t => t.testId)
 );
 
 async function onOrderTestsClose() {
   showOrderTests.value = false;
   if (patientId) {
-    try { patient.value = await api.getPatient(patientId); } catch {}
+    try { patient.value = await api.getPatient(patientId); } catch { }
   }
 }
 
@@ -152,10 +134,10 @@ const isLastPage = computed(() => currentIndex.value === workflowTemplates.value
 // Move out of the builder and assemble the final layout array
 function proceedFromBuilder() {
   const selectedOptionals = optionalTemplates.value.filter(t => selectedOptionalIds.value.includes(t.id));
-  
+
   // Re-assemble the workflow: Mandatory + User Selections
   workflowTemplates.value = [...mandatoryTemplates.value, ...selectedOptionals];
-  
+
   hasSeenBuilder.value = true;
   showBuilder.value = false;
 
@@ -175,15 +157,24 @@ function backFromBuilder() {
 // -------------------------------------------------------------
 // NAVIGATION PAGINATION
 // -------------------------------------------------------------
-const currentInitialData = computed(() => 
-  formsConfig.getInitialData(currentTemplate.value, allForms.value)
+const currentInitialData = computed(() =>
+  formsConfig.getInitialData(
+    currentTemplate.value,
+    allForms.value,
+    patient.value
+  )
 );
 
-watch(currentTemplate, () => {
-  currentFormData.value = { ...currentInitialData.value };
-}, { immediate: true });
-
-const canGoNext = computed(() => 
+watch(
+  [currentTemplate, currentInitialData],
+  () => {
+    currentFormData.value = {
+      ...currentInitialData.value
+    };
+  },
+  { immediate: true }
+);
+const canGoNext = computed(() =>
   formsConfig.validateStep(currentTemplate.value, currentFormData.value)
 );
 
@@ -193,12 +184,18 @@ function updateFormData(data) {
 
 function nextTemplate() {
   if (!canGoNext.value) return;
-  allForms.value[currentTemplate.value.id] = { ...currentFormData.value };
-  
+  allForms.value = {
+    ...allForms.value,
+
+    [currentTemplate.value.id]: {
+      ...currentFormData.value
+    }
+  };
+
   // If we haven't reached the end, go to next page
   if (!isLastPage.value) {
     currentIndex.value++;
-  } 
+  }
   // If we reached the end of the mandatory section and haven't seen the builder yet
   else if (!hasSeenBuilder.value) {
     showBuilder.value = true;
@@ -206,12 +203,18 @@ function nextTemplate() {
 }
 
 function previousTemplate() {
-  allForms.value[currentTemplate.value.id] = { ...currentFormData.value };
-  
+  allForms.value = {
+    ...allForms.value,
+
+    [currentTemplate.value.id]: {
+      ...currentFormData.value
+    }
+  };
+
   // If going back from the very first optional form, re-open the builder
   if (hasSeenBuilder.value && currentIndex.value === mandatoryTemplates.value.length) {
     showBuilder.value = true;
-  } 
+  }
   // Standard go back
   else if (currentIndex.value > 0) {
     currentIndex.value--;
@@ -223,9 +226,9 @@ function previousTemplate() {
 // -------------------------------------------------------------
 async function loadTemplates() {
   try {
-    const res = await getTemplates(); 
+    const res = await getTemplates();
     serverTemplates.value = res.data || res; // Handle raw arrays or Axios wrappers
-    
+
     // Initialize the workflow array with just the mandatory ones
     workflowTemplates.value = [...mandatoryTemplates.value];
   } catch (err) {
@@ -238,17 +241,17 @@ async function loadPatient() {
   try {
     patient.value = await api.getPatient(patientId);
     const draft = patient.value?.consultationDraft;
-    
+
     if (draft?.savedAt && draft.forms && Object.keys(draft.forms).length > 0) {
       allForms.value = draft.forms;
-      
+
       const draftKeys = Object.keys(draft.forms);
       const draftOptionals = optionalTemplates.value.filter(t => draftKeys.includes(t.id));
       selectedOptionalIds.value = draftOptionals.map(t => t.id);
-      
+
       workflowTemplates.value = [...mandatoryTemplates.value, ...draftOptionals];
       currentIndex.value = draft.currentIndex ?? 0;
-      
+
       if (draftOptionals.length > 0) {
         hasSeenBuilder.value = true;
       }
@@ -260,7 +263,13 @@ async function loadPatient() {
 
 async function saveDraft() {
   if (currentTemplate.value) {
-    allForms.value[currentTemplate.value.id] = { ...currentFormData.value };
+    allForms.value = {
+      ...allForms.value,
+
+      [currentTemplate.value.id]: {
+        ...currentFormData.value
+      }
+    };
   }
   try {
     await api.saveConsultationDraft(patientId, {
@@ -275,14 +284,20 @@ async function saveDraft() {
 
 async function saveAllForms() {
   if (!canGoNext.value) return;
-  allForms.value[currentTemplate.value.id] = { ...currentFormData.value };
+  allForms.value = {
+    ...allForms.value,
+
+    [currentTemplate.value.id]: {
+      ...currentFormData.value
+    }
+  };
 
   isSaving.value = true;
   error.value = "";
 
   try {
-    await saveTemplateConsultation({ patientId, forms: allForms.value }); 
-    try { await api.clearConsultationDraft(patientId); } catch {}
+    await saveTemplateConsultation({ patientId, forms: allForms.value });
+    try { await api.clearConsultationDraft(patientId); } catch { }
     alert("Patient examination saved successfully");
     router.push(`/patients/${patientId}`);
   } catch (err) {
@@ -339,6 +354,7 @@ onMounted(async () => {
 .plan-builder {
   align-items: stretch;
 }
+
 .subtitle {
   color: #555;
   margin-top: -16px;
@@ -346,18 +362,21 @@ onMounted(async () => {
   font-size: 1.1rem;
   text-align: center;
 }
+
 .plan-sections {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
+
 .optional-section {
   background: white;
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
 .optional-section h3 {
   margin-top: 0;
   margin-bottom: 16px;
@@ -365,11 +384,13 @@ onMounted(async () => {
   border-bottom: 2px solid #e8e4cf;
   padding-bottom: 8px;
 }
+
 .checkbox-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+
 .opt-label {
   display: flex;
   align-items: center;
@@ -387,7 +408,12 @@ onMounted(async () => {
   margin-top: 26px;
   margin-bottom: 20px;
 }
-.back-btn, .next-btn, .save-btn, .save-draft-btn, .order-tests-btn {
+
+.back-btn,
+.next-btn,
+.save-btn,
+.save-draft-btn,
+.order-tests-btn {
   padding: 14px 34px;
   border: none;
   border-radius: 12px;
@@ -396,13 +422,58 @@ onMounted(async () => {
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.back-btn { background: #d9d9d9; color: black; }
-.next-btn, .save-btn { background: #2e7d32; color: white; }
-.next-btn:hover, .save-btn:hover, .back-btn:hover { transform: translateY(-1px); }
-.disabled { background: #bdbdbd !important; cursor: not-allowed; opacity: 0.75; transform: none !important; }
-.error-message { color: #b91c1c; font-weight: 700; margin-bottom: 18px; }
-.save-draft-btn { border: 2px solid #b45309; background: white; color: #b45309; }
-.save-draft-btn:hover { background: #b45309; color: white; transform: translateY(-1px); }
-.order-tests-btn { border: 2px solid #2e7d32; background: white; color: #2e7d32; }
-.order-tests-btn:hover { background: #2e7d32; color: white; transform: translateY(-1px); }
+
+.back-btn {
+  background: #d9d9d9;
+  color: black;
+}
+
+.next-btn,
+.save-btn {
+  background: #2e7d32;
+  color: white;
+}
+
+.next-btn:hover,
+.save-btn:hover,
+.back-btn:hover {
+  transform: translateY(-1px);
+}
+
+.disabled {
+  background: #bdbdbd !important;
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none !important;
+}
+
+.error-message {
+  color: #b91c1c;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.save-draft-btn {
+  border: 2px solid #b45309;
+  background: white;
+  color: #b45309;
+}
+
+.save-draft-btn:hover {
+  background: #b45309;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.order-tests-btn {
+  border: 2px solid #2e7d32;
+  background: white;
+  color: #2e7d32;
+}
+
+.order-tests-btn:hover {
+  background: #2e7d32;
+  color: white;
+  transform: translateY(-1px);
+}
 </style>
