@@ -563,7 +563,7 @@ const completeConsultation = async (req, res) => {
 
 const completeTemplateConsultation = async (req, res) => {
   try {
-    const { patientId, appointmentId, doctorId, dateOfVisit, notes } =
+    const { patientId, appointmentId, doctorId, dateOfVisit, notes, soapNote } =
       req.body;
     const forms = req.body.forms || req.body.templateForms || req.body.formData;
 
@@ -595,6 +595,7 @@ const completeTemplateConsultation = async (req, res) => {
       doctorId: doctorId || req.user.id,
       dateOfVisit: dateOfVisit || new Date(),
       ...templateConsultationFields,
+      wizardData: soapNote ? { soapNote } : {},
       status: "completed",
       currentStep: "complete",
       completedSteps: ["complete"],
