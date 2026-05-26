@@ -81,7 +81,21 @@
             @update="updateFormData" />
           <p v-else>Loading templates...</p>
 
-          <div v-if="isLastPage && hasSeenBuilder" class="soap-preview">
+          <div v-if="saved" class="save-success">
+            <div class="save-success-icon">✓</div>
+            <h3 class="save-success-title">Consultation Saved</h3>
+            <p class="save-success-sub">The SOAP note and examination data have been recorded.</p>
+            <div class="save-success-actions">
+              <button class="download-pdf-btn" @click="downloadSOAPPdf">
+                📄 Download Summary PDF
+              </button>
+              <button class="go-record-btn" @click="router.push(`/patients/${patientId}`)">
+                Go to Patient Record →
+              </button>
+            </div>
+          </div>
+
+          <div v-if="isLastPage && hasSeenBuilder && !saved" class="soap-preview">
             <h3 class="soap-title">SOAP Note Preview</h3>
             <p class="soap-subtitle">Auto-generated from your entries. Saved with this consultation.</p>
             <div class="soap-sections">
@@ -104,7 +118,7 @@
             </div>
           </div>
 
-          <div class="navigation-buttons">
+          <div v-if="!saved" class="navigation-buttons">
             <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">Back</button>
 
             <button v-if="!isLastPage || !hasSeenBuilder" class="next-btn" :class="{ disabled: !canGoNext }"
@@ -136,6 +150,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { jsPDF } from "jspdf";
 import { getTemplates, saveTemplateConsultation } from "@/api/template";
 import { api } from "@/api/api.js";
 import { formsConfig } from "./consultation/formsConfig.js";
@@ -211,6 +226,7 @@ const selectedOptionalIds = ref([]);
 
 const patient = ref(null);
 const isSaving = ref(false);
+const saved = ref(false);
 const error = ref("");
 
 
@@ -544,13 +560,130 @@ async function saveAllForms() {
       soapNote: soapNote.value,
     });
     try { await api.clearConsultationDraft(patientId); } catch { }
-    alert("Patient examination saved successfully");
-    router.push(`/patients/${patientId}`);
+    saved.value = true;
   } catch (err) {
     error.value = err?.response?.data?.message || err?.response?.data?.error || "Unable to save consultation.";
   } finally {
     isSaving.value = false;
   }
+}
+
+function downloadSOAPPdf() {
+  const doc = new jsPDF({ unit: 'mm', format: 'letter' });
+  const W = 215.9;
+  const margin = 18;
+  let y = 20;
+
+  const green     = [46, 125, 50];
+  const darkGreen = [16, 35, 11];
+  const lightGray = [245, 245, 245];
+  const midGray   = [180, 180, 180];
+  const textDark  = [30, 30, 30];
+
+  // Header bar
+  doc.setFillColor(...green);
+  doc.rect(0, 0, W, 28, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('VIEW OF THE BAY CLINIC', margin, 12);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Consultation Summary & SOAP Note', margin, 20);
+  const todayStr = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+  doc.text(`Date: ${todayStr}`, W - margin, 20, { align: 'right' });
+  y = 36;
+
+  // Patient / Doctor info box
+  const patientName = patient.value
+    ? `${patient.value.firstName} ${patient.value.lastName}`
+    : 'Unknown Patient';
+  const patientDob = patient.value?.dateOfBirth
+    ? new Date(patient.value.dateOfBirth).toLocaleDateString()
+    : null;
+
+  doc.setFillColor(...lightGray);
+  doc.roundedRect(margin, y, W - margin * 2, 22, 3, 3, 'F');
+  doc.setTextColor(...textDark);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('PATIENT', margin + 4, y + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(patientName, margin + 4, y + 14);
+  if (patientDob) {
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`DOB: ${patientDob}`, margin + 4, y + 20);
+  }
+  const midX = W / 2 + 4;
+  doc.setTextColor(...textDark);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('PHYSICIAN', midX, y + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(doctorName || 'Attending Physician', midX, y + 14);
+  y += 30;
+
+  // Divider
+  doc.setDrawColor(...midGray);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, W - margin, y);
+  y += 8;
+
+  const PAGE_H = 270;
+
+  const sections = [
+    { label: 'S — Subjective', content: soapNote.value.subjective || 'No subjective data entered.' },
+    { label: 'O — Objective',  content: soapNote.value.objective  || 'No objective data entered.' },
+    { label: 'A — Assessment', content: soapNote.value.assessment || 'No assessment entered.' },
+    { label: 'P — Plan',       content: soapNote.value.plan       || 'No plan entered.' },
+  ];
+
+  sections.forEach(({ label, content }) => {
+    // Section header
+    if (y + 14 > PAGE_H) { doc.addPage(); y = 20; }
+    doc.setFillColor(...darkGreen);
+    doc.rect(margin, y, W - margin * 2, 9, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(label.toUpperCase(), margin + 4, y + 6.2);
+    y += 12;
+
+    // Content — split by newline, wrap each line
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...textDark);
+    const lines = content.split('\n');
+    lines.forEach(line => {
+      const wrapped = doc.splitTextToSize(line || ' ', W - margin * 2 - 8);
+      wrapped.forEach(wl => {
+        if (y + 6 > PAGE_H) { doc.addPage(); y = 20; }
+        doc.text(wl, margin + 4, y);
+        y += 6;
+      });
+    });
+    y += 6;
+  });
+
+  // Footer
+  if (y + 20 > PAGE_H) { doc.addPage(); y = 20; }
+  doc.setDrawColor(...midGray);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, W - margin, y);
+  y += 8;
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7.5);
+  doc.setTextColor(150, 150, 150);
+  doc.text(
+    'Generated by ClinicOS · View of the Bay Clinic · For authorized medical use only',
+    W / 2, y, { align: 'center' }
+  );
+
+  const safeName = patientName.replace(/\s+/g, '_');
+  doc.save(`soap_summary_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
 onMounted(async () => {
@@ -902,6 +1035,85 @@ onMounted(async () => {
   color: #333;
   white-space: pre-line;
   line-height: 1.5;
+}
+
+.save-success {
+  width: 100%;
+  margin-top: 24px;
+  padding: 32px 24px;
+  background: #f0faf3;
+  border: 1px solid #a3d9b1;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.save-success-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #2d6a4f;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.save-success-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #10231b;
+}
+
+.save-success-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #4a7c60;
+}
+
+.save-success-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.download-pdf-btn {
+  padding: 11px 22px;
+  border: 2px solid #2d6a4f;
+  border-radius: 10px;
+  background: white;
+  color: #2d6a4f;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.download-pdf-btn:hover {
+  background: #2d6a4f;
+  color: white;
+}
+
+.go-record-btn {
+  padding: 11px 22px;
+  border: none;
+  border-radius: 10px;
+  background: #2d6a4f;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.go-record-btn:hover {
+  background: #1e4d38;
 }
 
 .save-draft-btn {
