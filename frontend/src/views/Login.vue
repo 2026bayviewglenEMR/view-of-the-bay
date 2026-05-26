@@ -15,13 +15,9 @@
         </el-form-item>
 
         <el-button @click.prevent @click="signIn" type="primary" class="full-width">Log In</el-button>
-        <el-button @click="testServer" type="primary" class="full-width">Test Server</el-button>
-        <el-button @click="getInteraction" type="primary" class="full-width">Get Interaction</el-button>
-        <el-button @click="getDrug" type="primary" class="full-width">getDrug</el-button>
       </el-form>
       
       <div class="footer">
-        <el-link @click="forgotPassword" type="info">Forgot Password?</el-link>
         <el-alert
           v-if="error"
           title="Error"
