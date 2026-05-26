@@ -3,7 +3,7 @@
     <div class="chat-page">
 
       <!-- Contacts Sidebar -->
-      <div class="sidebar">
+      <div class="sidebar" ref="sidebarRef">
         <div class="sidebar-title">Contacts</div>
         <input
           v-model="contactSearch"
@@ -24,6 +24,12 @@
           <div class="contact-role">{{ user.role }}</div>
         </div>
       </div>
+
+      <!-- Resize Handle -->
+      <div 
+        class="resize-handle" 
+        @mousedown="startResize"
+      ></div>
 
       <!-- Chat Section -->
       <div class="chat-section">
@@ -88,6 +94,7 @@ const currentUser = currentUserObj?.id
 const message = ref("")
 const selectedFile = ref(null)
 const messagesContainer = ref(null)
+const sidebarRef = ref(null)
 const pastMessages = ref([])
 const contacts = ref([])
 const selectedUser = ref(null)
@@ -95,6 +102,8 @@ const unreadMap = ref({})
 const contactSearch = ref("")
 let pollInterval = null
 let contactsInterval = null
+let isResizing = false
+let startX = 0
 
 const filteredContacts = computed(() => {
   if (!contactSearch.value) return contacts.value
@@ -184,6 +193,30 @@ const sendMessage = async () => {
   }
 }
 
+const startResize = (e) => {
+  isResizing = true
+  startX = e.clientX
+  document.addEventListener('mousemove', doResize)
+  document.addEventListener('mouseup', stopResize)
+}
+
+const doResize = (e) => {
+  if (!isResizing || !sidebarRef.value) return
+  
+  const diff = e.clientX - startX
+  const currentWidth = sidebarRef.value.offsetWidth
+  const newWidth = Math.max(150, currentWidth + diff)
+  
+  sidebarRef.value.style.width = newWidth + 'px'
+  startX = e.clientX
+}
+
+const stopResize = () => {
+  isResizing = false
+  document.removeEventListener('mousemove', doResize)
+  document.removeEventListener('mouseup', stopResize)
+}
+
 onMounted(() => {
   loadContacts()
   contactsInterval = setInterval(() => {
@@ -194,6 +227,8 @@ onMounted(() => {
 onUnmounted(() => {
   if (pollInterval) clearInterval(pollInterval)
   if (contactsInterval) clearInterval(contactsInterval)
+  document.removeEventListener('mousemove', doResize)
+  document.removeEventListener('mouseup', stopResize)
 })
 </script>
 
@@ -213,6 +248,7 @@ onUnmounted(() => {
   border-right: 1px solid #ccc;
   overflow-y: auto;
   flex-shrink: 0;
+  min-width: 150px;
 }
 
 .sidebar-title {
@@ -361,5 +397,17 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   margin-top: 8px;
+}
+
+.resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.resize-handle:hover {
+  background: #2D6A4F;
 }
 </style>
