@@ -4,6 +4,9 @@ const jwt = require("jsonwebtoken");
 const { authenticateToken, requireRole } = require("../verifyToken.js");
 const bcrypt = require("bcrypt");
 const User = require("../models/User.js");
+const upload = require("../config/multer.js");
+const fs = require("fs");
+const path = require("path");
 
 const passwordSaltRounds = 10;
 
@@ -98,6 +101,39 @@ router.post('/updatePassword', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error("Error updating password:", error);
         return res.status(500).json({ message: "An error occurred" });
+    }
+});
+
+router.get('/me', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to fetch user" });
+    }
+});
+
+router.post('/avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Delete old profile picture file if it exists
+        if (user.profilePicture) {
+            const oldPath = path.join('uploads', user.profilePicture);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+
+        user.profilePicture = req.file.filename;
+        await user.save();
+
+        res.json({ profilePicture: req.file.filename });
+    } catch (err) {
+        console.error("Avatar upload error:", err);
+        res.status(500).json({ message: "Failed to upload avatar" });
     }
 });
 

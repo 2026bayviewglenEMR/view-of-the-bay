@@ -19,6 +19,8 @@ export const api = {
     signIn: (username, password) => http.post('/auth/signIn', { username, password }).then(r => r.data),
     updatePassword: (newPassword) => http.post('/auth/updatePassword', { newPassword }).then(r => r.data),
     createUser: ({ username, password, firstName, lastName, email, role }) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
+    getMe: () => http.get('/auth/me').then(r => r.data),
+    uploadAvatar: (formData) => http.post('/auth/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data),
 
     // messaging
     sendMessage: (senderId, receiverId, content, attachments = []) =>

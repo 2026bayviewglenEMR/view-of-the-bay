@@ -32,7 +32,9 @@
 
             <div class="profile-menu">
                 <button class="profile-button" @click="toggleMenu">
-                    👤 {{ userName }}
+                    <img v-if="avatarUrl" :src="avatarUrl" class="profile-avatar" alt="Profile" />
+                    <span v-else class="profile-emoji">👤</span>
+                    {{ userName }}
                 </button>
                 <div v-if="menuOpen" class="dropdown-menu">
                     <a href="#" class="menu-item" @click.prevent="goToProfile">Profile</a>
@@ -108,6 +110,7 @@
 import { defineProps, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '../api/api.js';
+import { currentUser, getAvatarUrl } from '../composables/useUser.js';
 
 import PatientAlerts from './PatientAlerts.vue';
 import DoctorTasks from './DoctorTasks.vue';
@@ -141,6 +144,8 @@ const newUser = ref({
 const userName = computed(() => {
     return localStorage.getItem('userName') || 'User';
 });
+
+const avatarUrl = computed(() => getAvatarUrl(currentUser.value?.profilePicture));
 
 const isAdmin = computed(() => {
     try {
@@ -393,6 +398,18 @@ const goToPatient = (id) => {
     font-size: 0.9rem;
     transition: background-color 0.2s;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
 }
 
 .profile-button:hover {

@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Patient',
     default: null
+  },
+  profilePicture: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true // Automatically adds 'createdAt' and 'updatedAt' fields!
