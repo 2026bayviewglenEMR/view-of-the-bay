@@ -6,6 +6,7 @@ require('dotenv').config();
 const { authenticateToken, requireRole } = require("./verifyToken.js");
 
 const User = require("./models/User.js");
+const scheduler = require('./scheduler'); // 👈 ADD THIS
 
 const app = express();
 const PORT = 3000;
@@ -24,6 +25,7 @@ mongoose.connect(MONGO_URI)
 mongoose.connection.once("open", () => {
   console.log("DB NAME:", mongoose.connection.name);
   console.log("HOST:", mongoose.connection.host);
+  scheduler.start(); // 👈 ADD THIS
 });
 
 //middleware to log requests
