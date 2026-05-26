@@ -72,11 +72,11 @@
           </div>
 
           <div class="action-buttons">
-            <template v-if="role === 'doctor' || role === 'admin'">
+            <template v-if="role === 'doctor' || role === 'admin' || role === 'patient'">
               <button v-if="role === 'doctor'" class="consultation-btn" @click="startConsultation">
                 Start Consultation
               </button>
-              <button class="secondary-action-btn" @click="openAddPatient">
+              <button v-if="role !== 'patient'" class="secondary-action-btn" @click="openAddPatient">
                 Add Patient
               </button>
               <button class="secondary-action-btn" @click="openEditPatient">
