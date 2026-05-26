@@ -249,6 +249,7 @@ onUnmounted(() => {
   overflow-y: auto;
   flex-shrink: 0;
   min-width: 150px;
+  max-width: 67vw;
 }
 
 .sidebar-title {
