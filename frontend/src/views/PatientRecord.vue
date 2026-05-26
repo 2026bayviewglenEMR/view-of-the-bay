@@ -128,7 +128,29 @@
                   <h3>{{ visit.date }} - {{ visit.reason }}</h3>
                   <p><strong>Doctor:</strong> {{ visit.doctor }}</p>
                   <p><strong>Diagnosis:</strong> {{ visit.diagnosis || "-" }}</p>
-                  <p><strong>Notes:</strong> {{ visit.notes || "-" }}</p>
+
+                  <div v-if="visit.soapNote" class="soap-note-block">
+                    <div class="soap-note-header">SOAP Note</div>
+                    <div class="soap-note-grid">
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">S</span>
+                        <span class="soap-note-text">{{ visit.soapNote.subjective || "-" }}</span>
+                      </div>
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">O</span>
+                        <span class="soap-note-text">{{ visit.soapNote.objective || "-" }}</span>
+                      </div>
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">A</span>
+                        <span class="soap-note-text">{{ visit.soapNote.assessment || "-" }}</span>
+                      </div>
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">P</span>
+                        <span class="soap-note-text">{{ visit.soapNote.plan || "-" }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p v-else><strong>Notes:</strong> {{ visit.notes || "-" }}</p>
                 </div>
               </div>
               <p v-else>No visits yet.</p>
@@ -365,6 +387,7 @@ export default {
           ? encounter.diagnoses.join(", ")
           : encounter.diagnosis || "-",
         notes: this.formatEncounterNotes(encounter),
+        soapNote: encounter.wizardData?.soapNote || null,
       }));
     },
     async loadPatientOwnRecord(id) {
@@ -604,6 +627,52 @@ async savePatient() {
 
 .timeline-item:last-child {
   border-bottom: none;
+}
+
+.soap-note-block {
+  margin-top: 10px;
+  background: #f8fdf9;
+  border: 1px solid #b7dfc8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.soap-note-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #2d6a4f;
+  padding: 8px 12px;
+  background: #e8f3ed;
+  border-bottom: 1px solid #b7dfc8;
+}
+
+.soap-note-grid {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.soap-note-row {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.soap-note-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2d6a4f;
+}
+
+.soap-note-text {
+  font-size: 13px;
+  color: #333;
+  white-space: pre-line;
+  line-height: 1.5;
 }
 
 .readonly-note {
