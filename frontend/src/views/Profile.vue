@@ -111,10 +111,12 @@ import { currentUser, updateUser, getAvatarUrl } from "../composables/useUser.js
 
 const router = useRouter();
 
-const user = currentUser;
+// Read directly from localStorage so each login always shows the correct user
+const user = ref(JSON.parse(localStorage.getItem("user") || 'null'));
 const uploadingAvatar = ref(false);
 
-const avatarUrl = computed(() => getAvatarUrl(user.value?.profilePicture));
+// Avatar uses currentUser so it stays reactive when a photo is uploaded
+const avatarUrl = computed(() => getAvatarUrl(currentUser.value?.profilePicture ?? user.value?.profilePicture));
 
 const initials = computed(() => {
   if (!user.value) return '?';
@@ -131,7 +133,8 @@ async function handleAvatarUpload(event) {
     const formData = new FormData();
     formData.append('avatar', file);
     const { profilePicture } = await api.uploadAvatar(formData);
-    updateUser({ profilePicture });
+    updateUser({ profilePicture }); // updates shared composable → TopBar reacts
+    user.value = { ...user.value, profilePicture }; // updates local ref → this page reacts
   } catch (err) {
     alert('Failed to upload photo. Please try again.');
   } finally {

@@ -107,10 +107,10 @@
 </template>
 
 <script setup>
-import { defineProps, ref, computed } from 'vue';
+import { defineProps, ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '../api/api.js';
-import { currentUser, getAvatarUrl } from '../composables/useUser.js';
+import { currentUser, syncUser, getAvatarUrl } from '../composables/useUser.js';
 
 import PatientAlerts from './PatientAlerts.vue';
 import DoctorTasks from './DoctorTasks.vue';
@@ -159,6 +159,8 @@ const isAdmin = computed(() => {
     }
     return false;
 });
+
+onMounted(() => syncUser());
 
 const toggleMenu = () => {
     menuOpen.value = !menuOpen.value;
