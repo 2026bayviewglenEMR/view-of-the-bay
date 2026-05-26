@@ -124,16 +124,13 @@
             <button v-if="isDoctor" class="save-draft-btn" @click="saveDraft">
               💾 Save & Continue Later
             </button>
-            <button v-if="isDoctor" class="order-tests-btn" @click="showOrderTests = true">
+            <button v-if="isDoctor" class="order-tests-btn" @click="router.push(`/order-tests/${patientId}`)">
               🧪 Order Tests
             </button>
           </div>
         </div>
 
-        <OrderTestsModal v-if="showOrderTests" :patientId="patientId"
-          :patientName="patient ? `${patient.firstName} ${patient.lastName}` : ''"
-          :patientDob="patient?.dateOfBirth || ''" :doctorName="doctorName" :alreadyOrderedIds="pendingTestIds"
-          @close="onOrderTestsClose" />
+
 
       </div>
     </template>
@@ -149,7 +146,7 @@ import { formsConfig } from "./consultation/formsConfig.js";
 
 import MainLayout from "@/components/MainLayout.vue";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
-import OrderTestsModal from "./consultation/OrderTestsModal.vue";
+
 import PatientSidebar from "./consultation/PatientSidebar.vue";
 
 const route = useRoute();
@@ -219,7 +216,7 @@ const selectedOptionalIds = ref([]);
 const patient = ref(null);
 const isSaving = ref(false);
 const error = ref("");
-const showOrderTests = ref(false);
+
 
 const allForms = ref({});
 const currentFormData = ref({});
@@ -231,17 +228,7 @@ const doctorName = storedUser.firstName && storedUser.lastName
   ? `Dr. ${storedUser.firstName} ${storedUser.lastName}`
   : storedUser.username || '';
 
-// Modal logic tracking
-const pendingTestIds = computed(() =>
-  (patient.value?.orderedTests || []).filter(t => t.status === 'pending').map(t => t.testId)
-);
 
-async function onOrderTestsClose() {
-  showOrderTests.value = false;
-  if (patientId) {
-    try { patient.value = await api.getPatient(patientId); } catch { }
-  }
-}
 
 // -------------------------------------------------------------
 // DYNAMIC WORKFLOW & BUILDER LOGIC
