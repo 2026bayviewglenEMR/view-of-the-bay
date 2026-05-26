@@ -1,4 +1,4 @@
-const Document = require("../models/Document");
+const Document = require("../models/Documents");
 const fs = require("fs");
 
 // Helper: safely parse arrays (in case they come as JSON strings)
