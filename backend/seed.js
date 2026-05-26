@@ -374,10 +374,10 @@ async function seed() {
       treatmentPlan: 'Increase metformin to 1000mg twice daily. Repeat HbA1c in 3 months. Referral to dietitian.',
       notes: 'HbA1c 8.2% (up from 7.8%). Patient reports poor dietary adherence during recent travel.',
       soap: {
-        subjective: 'Chief complaint: Fatigue and increased thirst for 4 weeks\nDuration: 4 weeks\nSymptoms: Fatigue, increased thirst, frequent urination (nocturia x2)\nPain level: 2/10\nHistory: Patient reports difficulty sticking to diabetic diet during recent family trip. Increased carbohydrate intake noted.',
-        objective: 'BP: 138/84 mmHg · HR: 78 bpm · Temp: 36.7°C\nFindings: Heart RRR, no murmurs. Abdomen soft. Bilateral lower extremity pulses intact. Monofilament sensation preserved bilaterally. No peripheral edema.',
-        assessment: 'Diagnosis: T2DM with suboptimal glycemic control — HbA1c 8.2% (target <7%). Hypertension remains stable on current regimen.',
-        plan: 'Treatment: Increase Metformin to 1000mg twice daily with meals. Continue Lisinopril 10mg and Atorvastatin 20mg. Order repeat HbA1c in 3 months. Referral to registered dietitian for medical nutrition therapy. Annual eye exam referral sent.',
+        subjective: 'Symptoms: Fatigue, Increased thirst, Frequent urination\nChief complaint: Fatigue and increased thirst for 4 weeks\nPain level: 2/10\nDuration: 4 weeks',
+        objective: 'Temp: 36.7°C · HR: 78 bpm · BP: 138/84 · RR: 16\nPhysical exam: Heart RRR, no murmurs. Abdomen soft. Bilateral lower extremity pulses intact. Monofilament sensation preserved bilaterally. No peripheral edema.',
+        assessment: 'Diagnosis: Type 2 Diabetes Mellitus – suboptimal glycemic control (HbA1c 8.2%, target <7%). Hypertension stable on current regimen.',
+        plan: 'Treatment: Increase Metformin to 1000mg twice daily with meals. Continue Lisinopril 10mg and Atorvastatin 20mg. Referral to registered dietitian for medical nutrition therapy. Annual eye exam referral.\nFollow-up needed: Yes\nNotes: Repeat HbA1c in 3 months. Patient reports poor dietary adherence during recent travel.',
       },
     },
     {
@@ -388,10 +388,10 @@ async function seed() {
       treatmentPlan: 'Prednisone 40mg x 5 days. Increase albuterol to q4h while awake. Follow-up in 1 week.',
       notes: 'URTI onset 5 days ago triggered exacerbation. No antibiotic indicated — no purulent sputum, afebrile.',
       soap: {
-        subjective: 'Chief complaint: Worsening shortness of breath and productive cough for 5 days\nDuration: 5 days (acute on chronic)\nSymptoms: Dyspnea on exertion, productive cough, increased sputum volume (clear/white)\nPain level: 3/10 (chest tightness)\nHistory: Viral URI onset 5 days ago. Increased albuterol from once daily to 4x/day without adequate relief.',
-        objective: 'BP: 132/78 mmHg · HR: 88 bpm · Temp: 37.1°C · RR: 20 breaths/min · O2 Sat: 94% on room air\nFindings: Diffuse bilateral expiratory wheezes. Prolonged expiratory phase. No dullness to percussion. No accessory muscle use at rest.',
-        assessment: 'Diagnosis: Mild-moderate COPD exacerbation — viral URI trigger. No evidence of bacterial superinfection (afebrile, clear sputum). Baseline O2 sat normally 97%.',
-        plan: 'Treatment: Prednisone 40mg orally daily x5 days. Increase albuterol to q4h while awake. Continue tiotropium 18mcg once daily. Educate patient: ER if O2 Sat <90% or increased work of breathing. Follow-up in 1 week for reassessment.',
+        subjective: 'Symptoms: Shortness of Breath, Cough, Increased sputum production\nChief complaint: Worsening shortness of breath and productive cough\nPain level: 3/10\nDuration: 5 days (acute on chronic)',
+        objective: 'Temp: 37.1°C · HR: 88 bpm · BP: 132/78 · RR: 20\nPhysical exam: O2 Sat 94% on room air. Diffuse bilateral expiratory wheezes. Prolonged expiratory phase. No dullness to percussion. No accessory muscle use at rest.',
+        assessment: 'Diagnosis: COPD exacerbation mild-moderate – viral URI trigger. No evidence of bacterial superinfection (afebrile, clear sputum). Baseline O2 sat 97%.',
+        plan: 'Treatment: Prednisone 40mg orally daily x5 days. Increase albuterol to q4h while awake. Continue tiotropium 18mcg once daily.\nFollow-up needed: Yes\nNotes: ER if O2 Sat <90% or increased work of breathing. Follow-up in 1 week for reassessment.',
       },
     },
     {
@@ -402,10 +402,10 @@ async function seed() {
       treatmentPlan: 'Increase furosemide to 80mg daily x3 days then revert to 40mg. Fluid restriction 1.5L/day. Daily weights.',
       notes: 'Dietary sodium indiscretion (high-sodium restaurant meal 4 days ago). Renal function stable — Cr 1.4 (baseline).',
       soap: {
-        subjective: 'Chief complaint: Swollen legs and shortness of breath lying flat for 3 days\nDuration: 3 days\nSymptoms: Bilateral leg swelling, orthopnea (requires 2 pillows), dyspnea on moderate exertion\nPain level: 2/10\nHistory: High-sodium meal at restaurant 4 days ago. Weight up 3kg in 4 days. No missed medications.',
-        objective: 'BP: 118/72 mmHg · HR: 68 bpm (paced) · Temp: 36.6°C · Weight: 84kg (+3kg from baseline)\nFindings: JVD at 45°. Bilateral pitting edema 2+ to mid-shin. Bibasilar crackles on auscultation. No S3. INR 2.6 (therapeutic). Digoxin 0.8 ng/mL (appropriate). Cr 1.4 (stable baseline).',
-        assessment: 'Diagnosis: CHF decompensation secondary to dietary sodium indiscretion. AFib rate-controlled via pacemaker. No evidence of ACS or arrhythmia. Renal function at baseline.',
-        plan: 'Treatment: Increase furosemide to 80mg daily x3 days, then return to 40mg. Strict fluid restriction 1.5L/day. Low-sodium diet counseling (<2g/day). Daily home weights — call clinic if >1kg in 24h or >2kg in 48h. Follow-up in 1 week.',
+        subjective: 'Symptoms: Shortness of Breath, Leg swelling\nChief complaint: Swollen legs and shortness of breath lying flat\nPain level: 2/10\nDuration: 3 days',
+        objective: 'Temp: 36.6°C · HR: 68 bpm · BP: 118/72 · RR: 18 · Weight: 84kg\nPhysical exam: JVD at 45°. Bilateral pitting edema 2+ to mid-shin. Bibasilar crackles on auscultation. No S3. INR 2.6 (therapeutic). Digoxin 0.8 ng/mL. Cr 1.4 (stable baseline).',
+        assessment: 'Diagnosis: CHF decompensation secondary to dietary sodium indiscretion. AFib rate-controlled via pacemaker. No ACS or arrhythmia. Renal function at baseline.\nAllergies: Penicillin, Iodine contrast',
+        plan: 'Treatment: Increase furosemide to 80mg daily x3 days then return to 40mg. Strict fluid restriction 1.5L/day. Low-sodium diet (<2g/day). Daily home weights.\nFollow-up needed: Yes\nNotes: Call clinic if weight up >1kg in 24h or >2kg in 48h. High-sodium meal (restaurant) identified as trigger.',
       },
     },
     {
@@ -416,10 +416,10 @@ async function seed() {
       treatmentPlan: 'Increase amitriptyline to 25mg at bedtime. Referral to neurology for CGRP inhibitor evaluation. Continue sumatriptan PRN.',
       notes: '12 migraine days this month — meets criteria for chronic migraine. Amitriptyline 10mg insufficient.',
       soap: {
-        subjective: 'Chief complaint: Worsening migraines — 12 days this month\nDuration: Chronic, progressively worsening over 3 months\nSymptoms: Right-sided pulsating headache, nausea, photophobia, phonophobia\nPain level: 7/10 during episodes\nHistory: Amitriptyline 10mg prophylaxis since January — partial response. Sumatriptan 50mg abortive — effective within 2 hours but migraines recurring. No recent head trauma.',
-        objective: 'BP: 118/74 mmHg · HR: 72 bpm · Temp: 36.7°C\nFindings: Cranial nerves II–XII intact. No papilledema. Fundoscopy normal. HEENT unremarkable. Neck supple — no meningismus. Romberg negative.',
-        assessment: 'Diagnosis: Chronic migraine (>15 headache days/month, >8 with migraine features) — inadequately controlled on amitriptyline 10mg prophylaxis.',
-        plan: 'Treatment: Increase amitriptyline to 25mg at bedtime. Continue sumatriptan 50mg PRN for breakthrough episodes. Urgent neurology referral for CGRP inhibitor evaluation (erenumab/fremanezumab). Headache diary to track frequency, duration, and triggers. Lifestyle counseling: regular sleep schedule, avoid red wine and aged cheese.',
+        subjective: 'Symptoms: Headache, Nausea, Dizziness\nChief complaint: Worsening migraines – 12 days this month\nPain level: 7/10\nDuration: 3 months (progressive worsening)',
+        objective: 'Temp: 36.7°C · HR: 72 bpm · BP: 118/74 · RR: 14\nPhysical exam: Cranial nerves II–XII intact. No papilledema. Fundoscopy normal. HEENT unremarkable. Neck supple, no meningismus. Romberg negative.',
+        assessment: 'Diagnosis: Chronic migraine (>15 headache days/month, >8 with migraine features) – inadequately controlled on amitriptyline 10mg prophylaxis.',
+        plan: 'Treatment: Increase amitriptyline to 25mg at bedtime. Continue sumatriptan 50mg PRN for breakthrough episodes. Urgent neurology referral for CGRP inhibitor evaluation (erenumab/fremanezumab).\nFollow-up needed: Yes\nNotes: Headache diary – track frequency, duration, triggers. Lifestyle: regular sleep, avoid red wine and aged cheese.',
       },
     },
     {
@@ -430,10 +430,10 @@ async function seed() {
       treatmentPlan: 'Continue semaglutide 0.5mg weekly. Titrate to 1mg at week 16 if tolerated. Repeat HbA1c in 3 months.',
       notes: 'Initial follow-up after starting semaglutide. Patient reports mild nausea — improving. Encouraged to take with food.',
       soap: {
-        subjective: 'Chief complaint: Mild nausea since starting semaglutide 3 weeks ago\nDuration: 3 weeks\nSymptoms: Nausea (mild, particularly after injection), reduced appetite, fatigue\nPain level: 1/10\nHistory: Started semaglutide 0.5mg weekly 3 weeks ago. Nausea occurs 1–2 days post-injection and resolves spontaneously. Dietary modifications in progress.',
-        objective: 'BP: 126/80 mmHg · HR: 74 bpm · Temp: 36.8°C · Weight: 96kg (-2kg since last visit) · BMI: 31\nFindings: Abdomen soft, non-tender. No hepatomegaly. No injection site erythema or lipodystrophy. LDL 88 mg/dL (at goal).',
-        assessment: 'Diagnosis: T2DM — moderate control, improving. HbA1c 7.9% (down from 8.4%). Hyperlipidemia at LDL goal on atorvastatin. Semaglutide-related GI side effects — expected and transient.',
-        plan: 'Treatment: Continue semaglutide 0.5mg once weekly. Advise to take with food and remain upright 30 min post-injection. Plan dose escalation to 1mg at week 16 if nausea resolved. Continue metformin 1000mg twice daily. Continue atorvastatin 40mg. Repeat HbA1c, CMP, urine ACR in 3 months.',
+        subjective: 'Symptoms: Fatigue, Nausea\nChief complaint: Mild nausea since starting semaglutide\nPain level: 1/10\nDuration: 3 weeks',
+        objective: 'Temp: 36.8°C · HR: 74 bpm · BP: 126/80 · RR: 14 · Weight: 96kg · BMI: 31\nPhysical exam: Abdomen soft, non-tender. No hepatomegaly. No injection site erythema or lipodystrophy. LDL 88 mg/dL (at goal).',
+        assessment: 'Diagnosis: Type 2 Diabetes Mellitus – moderate control, improving. HbA1c 7.9% (down from 8.4%). Hyperlipidemia at LDL goal on atorvastatin. Semaglutide-related GI side effects – expected and transient.',
+        plan: 'Treatment: Continue semaglutide 0.5mg once weekly with food. Plan dose escalation to 1mg at week 16. Continue metformin 1000mg twice daily and atorvastatin 40mg.\nFollow-up needed: Yes\nNotes: Remain upright 30 min post-injection. Repeat HbA1c, CMP, urine ACR in 3 months.',
       },
     },
   ];
