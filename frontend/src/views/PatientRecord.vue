@@ -456,7 +456,9 @@ async savePatient() {
     }
 
     if (this.isEditingPatient) {
-      const updated = await api.updatePatient(this.patient.id, payload);
+      const updated = this.role === 'patient'
+        ? await api.updateOwnPatient(payload)
+        : await api.updatePatient(this.patient.id, payload);
       this.mapPatient(updated);
     } else {
       const created = await api.createPatient(payload);
