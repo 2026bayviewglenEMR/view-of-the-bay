@@ -8,7 +8,7 @@
         <div v-if="showBuilder" class="templates-page plan-builder">
           <div class="step-tracker" aria-label="Consultation steps">
             <div
-              v-for="step in visibleStepItems"
+              v-for="step in consultationPhaseItems"
               :key="step.id"
               class="step-chip"
               :class="{ active: step.active, complete: step.complete }"
@@ -19,33 +19,49 @@
           </div>
 
           <p class="step-count">Step {{ currentStepNumber }} of {{ totalStepCount }}</p>
-          <h1 class="title">Treatment Plan Setup</h1>
-          <p class="subtitle">Mandatory examination complete. Select any additional actions needed for this patient's
-            disposition.</p>
+          <h1 class="title">Plan & Options</h1>
+          <p class="subtitle">Select the extra forms this visit needs, then complete them inside step 4.</p>
 
           <div class="plan-sections">
-            <div class="optional-section" v-if="optionalTemplates.length > 0">
-              <h3>Available Actions & Forms</h3>
-              <div class="checkbox-grid">
-                <label v-for="t in optionalTemplates" :key="t.id" class="opt-label">
-                  <input type="checkbox" :value="t.id" v-model="selectedOptionalIds" />
-                  {{ t.name }}
-                </label>
+            <template v-if="optionalTemplateGroups.length > 0">
+              <div
+                v-for="group in optionalTemplateGroups"
+                :key="group.name"
+                class="optional-section"
+              >
+                <h3>{{ group.name }}</h3>
+                <div class="option-card-grid">
+                  <label v-for="template in group.templates" :key="template.id" class="option-card">
+                    <input type="checkbox" :value="template.id" v-model="selectedOptionalIds" />
+                    <span class="option-card-number">{{ getOptionalDisplayNumber(template.id) }}</span>
+                    <span>
+                      <strong>{{ template.name }}</strong>
+                      <small>{{ getOptionalDescription(template.id) }}</small>
+                    </span>
+                  </label>
+                </div>
               </div>
-            </div>
+            </template>
             <p v-else class="panel-empty">No optional templates available from server.</p>
           </div>
 
           <div class="navigation-buttons">
             <button class="back-btn" @click="backFromBuilder">Back to Examination</button>
-            <button class="next-btn" @click="proceedFromBuilder">Continue to Plan ➔</button>
+            <button
+              class="next-btn"
+              :class="{ disabled: selectedOptionalIds.length === 0 }"
+              :disabled="selectedOptionalIds.length === 0"
+              @click="proceedFromBuilder"
+            >
+              Continue to Plan
+            </button>
           </div>
         </div>
 
         <div v-else class="templates-page">
           <div class="step-tracker" aria-label="Consultation steps">
             <div
-              v-for="step in visibleStepItems"
+              v-for="step in consultationPhaseItems"
               :key="step.id"
               class="step-chip"
               :class="{ active: step.active, complete: step.complete }"
@@ -56,8 +72,14 @@
           </div>
 
           <p class="step-count">Step {{ currentStepNumber }} of {{ totalStepCount }}</p>
-          <h1 class="title">Patient Examination</h1>
+          <h1 class="title">{{ pageTitle }}</h1>
+          <p v-if="currentPhaseSubtitle" class="subtitle">{{ currentPhaseSubtitle }}</p>
           <p v-if="error" class="error-message">{{ error }}</p>
+
+          <div v-if="isInPlanOptions && selectedPlanSteps.length" class="selected-actions-strip">
+            <span>Step 4 options</span>
+            <strong>{{ currentOptionalPosition }}</strong>
+          </div>
 
           <TemplateRenderer v-if="currentTemplate" :template="currentTemplate" :initialData="currentInitialData"
             @update="updateFormData" />
@@ -229,40 +251,102 @@ const optionalTemplates = computed(() => serverTemplates.value.filter(t => t.isM
 
 const currentTemplate = computed(() => workflowTemplates.value[currentIndex.value]);
 const isLastPage = computed(() => currentIndex.value === workflowTemplates.value.length - 1);
-const visibleStepItems = computed(() => {
-  if (showBuilder.value) {
-    return [
-      ...mandatoryTemplates.value.map((template, index) => ({
-        id: template.id,
-        name: template.name,
-        number: index + 1,
-        active: false,
-        complete: true
-      })),
-      {
-        id: "plan-builder",
-        name: "Plan Setup",
-        number: mandatoryTemplates.value.length + 1,
-        active: true,
-        complete: false
-      }
-    ];
-  }
-
-  return workflowTemplates.value.map((template, index) => ({
+const planStepNumber = computed(() => mandatoryTemplates.value.length + 1);
+const isInPlanOptions = computed(() =>
+  showBuilder.value || currentIndex.value >= mandatoryTemplates.value.length
+);
+const selectedPlanSteps = computed(() =>
+  workflowTemplates.value.slice(mandatoryTemplates.value.length)
+);
+const consultationPhaseItems = computed(() => [
+  ...mandatoryTemplates.value.map((template, index) => ({
     id: template.id,
     name: template.name,
     number: index + 1,
-    active: index === currentIndex.value,
-    complete: index < currentIndex.value
-  }));
-});
+    active: !showBuilder.value && currentIndex.value === index,
+    complete: showBuilder.value || currentIndex.value > index
+  })),
+  {
+    id: "plan-options",
+    name: "Plan & Options",
+    number: planStepNumber.value,
+    active: isInPlanOptions.value,
+    complete: false
+  }
+]);
 const currentStepNumber = computed(() =>
-  showBuilder.value ? mandatoryTemplates.value.length + 1 : currentIndex.value + 1
+  isInPlanOptions.value ? planStepNumber.value : currentIndex.value + 1
 );
-const totalStepCount = computed(() =>
-  showBuilder.value ? mandatoryTemplates.value.length + 1 : workflowTemplates.value.length
+const totalStepCount = computed(() => planStepNumber.value);
+const pageTitle = computed(() =>
+  isInPlanOptions.value ? "Plan & Options" : "Patient Examination"
 );
+const currentPhaseSubtitle = computed(() => {
+  if (showBuilder.value) {
+    return "Choose the additional care actions for this visit.";
+  }
+
+  if (isInPlanOptions.value) {
+    return currentTemplate.value?.name
+      ? `Complete ${currentTemplate.value.name} as part of step 4.`
+      : "";
+  }
+
+  return currentTemplate.value?.name || "";
+});
+const currentOptionalPosition = computed(() => {
+  const optionIndex = currentIndex.value - mandatoryTemplates.value.length + 1;
+  const optionTotal = selectedPlanSteps.value.length;
+
+  if (optionTotal <= 0 || optionIndex < 1) {
+    return "No options selected";
+  }
+
+  return `Option ${optionIndex} of ${optionTotal}`;
+});
+const optionalDescriptions = {
+  mental_health: "Mood, stress, sleep, and support.",
+  prescribe_medication: "Prescriptions and interaction checks.",
+  clinical_assessment: "Working diagnosis and severity.",
+  diagnostic_orders: "Labs, imaging, or other tests.",
+  surgery_request: "Procedure request and urgency.",
+  referral_request: "Specialist or service referral.",
+  patient_instructions: "Home care and return precautions.",
+  follow_up_plan: "Timeline and monitoring plan.",
+  clinical_notes: "Additional care-team notes."
+};
+const optionalTemplateGroups = computed(() => {
+  const groups = [
+    { name: "Assessment", ids: ["clinical_assessment", "mental_health"], templates: [] },
+    { name: "Orders & Requests", ids: ["diagnostic_orders", "surgery_request", "referral_request"], templates: [] },
+    { name: "Treatment & Follow-up", ids: ["prescribe_medication", "patient_instructions", "follow_up_plan"], templates: [] },
+    { name: "Notes", ids: ["clinical_notes"], templates: [] }
+  ];
+
+  optionalTemplates.value.forEach(template => {
+    const group = groups.find(item => item.ids.includes(template.id)) || groups[groups.length - 1];
+    group.templates.push(template);
+  });
+
+  return groups.filter(group => group.templates.length > 0);
+});
+const getOptionalDescription = (templateId) =>
+  optionalDescriptions[templateId] || "Additional visit form.";
+const getOptionalDisplayNumber = (templateId) => {
+  const index = optionalTemplates.value.findIndex(template => template.id === templateId);
+  return `${planStepNumber.value}.${index + 1}`;
+};
+const syncCurrentForm = () => {
+  if (!currentTemplate.value) return;
+
+  allForms.value = {
+    ...allForms.value,
+
+    [currentTemplate.value.id]: {
+      ...currentFormData.value
+    }
+  };
+};
 
 // Move out of the builder and assemble the final layout array
 function proceedFromBuilder() {
@@ -278,7 +362,7 @@ function proceedFromBuilder() {
   if (selectedOptionals.length > 0) {
     currentIndex.value = mandatoryTemplates.value.length;
   } else {
-    currentIndex.value = mandatoryTemplates.value.length - 1;
+    currentIndex.value = workflowTemplates.value.length - 1;
   }
 }
 
@@ -317,13 +401,7 @@ function updateFormData(data) {
 
 function nextTemplate() {
   if (!canGoNext.value) return;
-  allForms.value = {
-    ...allForms.value,
-
-    [currentTemplate.value.id]: {
-      ...currentFormData.value
-    }
-  };
+  syncCurrentForm();
 
   // If we haven't reached the end, go to next page
   if (!isLastPage.value) {
@@ -336,13 +414,7 @@ function nextTemplate() {
 }
 
 function previousTemplate() {
-  allForms.value = {
-    ...allForms.value,
-
-    [currentTemplate.value.id]: {
-      ...currentFormData.value
-    }
-  };
+  syncCurrentForm();
 
   // If going back from the very first optional form, re-open the builder
   if (hasSeenBuilder.value && currentIndex.value === mandatoryTemplates.value.length) {
@@ -395,15 +467,7 @@ async function loadPatient() {
 }
 
 async function saveDraft() {
-  if (currentTemplate.value) {
-    allForms.value = {
-      ...allForms.value,
-
-      [currentTemplate.value.id]: {
-        ...currentFormData.value
-      }
-    };
-  }
+  syncCurrentForm();
   try {
     await api.saveConsultationDraft(patientId, {
       forms: allForms.value,
@@ -473,13 +537,7 @@ async function syncExecutiveSummaryFromForms() {
 }
 async function saveAllForms() {
   if (!canGoNext.value) return;
-  allForms.value = {
-    ...allForms.value,
-
-    [currentTemplate.value.id]: {
-      ...currentFormData.value
-    }
-  };
+  syncCurrentForm();
 
   isSaving.value = true;
   error.value = "";
@@ -658,6 +716,89 @@ onMounted(async () => {
   cursor: pointer;
   font-weight: 600;
   color: #333;
+}
+
+.option-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.option-card {
+  display: grid;
+  grid-template-columns: auto 38px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 78px;
+  padding: 14px;
+  border: 2px solid #dce7e0;
+  border-radius: 8px;
+  background: #fbfdf9;
+  cursor: pointer;
+}
+
+.option-card:has(input:checked) {
+  border-color: #2d6a4f;
+  background: #eef7f1;
+}
+
+.option-card input {
+  width: 18px;
+  height: 18px;
+}
+
+.option-card-number {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #2d6a4f;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.option-card strong,
+.option-card small {
+  display: block;
+}
+
+.option-card strong {
+  color: #10231b;
+  font-size: 15px;
+}
+
+.option-card small {
+  margin-top: 4px;
+  color: #5f6f66;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.selected-actions-strip {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f8fdf9;
+  border: 2px solid #b7dfc8;
+  color: #1e4d38;
+}
+
+.selected-actions-strip span {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.selected-actions-strip strong {
+  font-size: 14px;
 }
 
 /* Navigation Buttons */
