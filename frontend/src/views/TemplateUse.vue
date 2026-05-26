@@ -6,6 +6,19 @@
         <PatientSidebar v-if="patient" :patient="patient" />
 
         <div v-if="showBuilder" class="templates-page plan-builder">
+          <div class="step-tracker" aria-label="Consultation steps">
+            <div
+              v-for="step in visibleStepItems"
+              :key="step.id"
+              class="step-chip"
+              :class="{ active: step.active, complete: step.complete }"
+            >
+              <span>{{ step.number }}</span>
+              <strong>{{ step.name }}</strong>
+            </div>
+          </div>
+
+          <p class="step-count">Step {{ currentStepNumber }} of {{ totalStepCount }}</p>
           <h1 class="title">Treatment Plan Setup</h1>
           <p class="subtitle">Mandatory examination complete. Select any additional actions needed for this patient's
             disposition.</p>
@@ -30,6 +43,19 @@
         </div>
 
         <div v-else class="templates-page">
+          <div class="step-tracker" aria-label="Consultation steps">
+            <div
+              v-for="step in visibleStepItems"
+              :key="step.id"
+              class="step-chip"
+              :class="{ active: step.active, complete: step.complete }"
+            >
+              <span>{{ step.number }}</span>
+              <strong>{{ step.name }}</strong>
+            </div>
+          </div>
+
+          <p class="step-count">Step {{ currentStepNumber }} of {{ totalStepCount }}</p>
           <h1 class="title">Patient Examination</h1>
           <p v-if="error" class="error-message">{{ error }}</p>
 
@@ -130,6 +156,40 @@ const optionalTemplates = computed(() => serverTemplates.value.filter(t => t.isM
 
 const currentTemplate = computed(() => workflowTemplates.value[currentIndex.value]);
 const isLastPage = computed(() => currentIndex.value === workflowTemplates.value.length - 1);
+const visibleStepItems = computed(() => {
+  if (showBuilder.value) {
+    return [
+      ...mandatoryTemplates.value.map((template, index) => ({
+        id: template.id,
+        name: template.name,
+        number: index + 1,
+        active: false,
+        complete: true
+      })),
+      {
+        id: "plan-builder",
+        name: "Plan Setup",
+        number: mandatoryTemplates.value.length + 1,
+        active: true,
+        complete: false
+      }
+    ];
+  }
+
+  return workflowTemplates.value.map((template, index) => ({
+    id: template.id,
+    name: template.name,
+    number: index + 1,
+    active: index === currentIndex.value,
+    complete: index < currentIndex.value
+  }));
+});
+const currentStepNumber = computed(() =>
+  showBuilder.value ? mandatoryTemplates.value.length + 1 : currentIndex.value + 1
+);
+const totalStepCount = computed(() =>
+  showBuilder.value ? mandatoryTemplates.value.length + 1 : workflowTemplates.value.length
+);
 
 // Move out of the builder and assemble the final layout array
 function proceedFromBuilder() {
@@ -404,11 +464,76 @@ onMounted(async () => {
   border-radius: 12px;
 }
 
+.step-tracker {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.step-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 2px solid #d6d0b6;
+  color: #4b5563;
+}
+
+.step-chip span {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #10231b;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.step-chip strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.step-chip.active {
+  border-color: #2d6a4f;
+  background: #ffffff;
+  color: #10231b;
+}
+
+.step-chip.active span,
+.step-chip.complete span {
+  background: #2d6a4f;
+  color: white;
+}
+
+.step-chip.complete {
+  border-color: #94bfa5;
+}
+
+.step-count {
+  align-self: flex-start;
+  margin: 0 0 8px;
+  color: #2d6a4f;
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .title {
   font-size: 52px;
   font-weight: 700;
   color: #10231b;
-  margin-bottom: 28px;
+  margin: 0 0 28px;
 }
 
 /* Plan Builder Styles */

@@ -10,7 +10,7 @@
         <el-card shadow="never" class="stepper-card">
           <el-steps :active="currentStep - 1" finish-status="success" align-center>
             <el-step
-              v-for="(step, index) in consultationSteps"
+              v-for="(step, index) in numberedConsultationSteps"
               :key="index"
               :title="step.title"
               :description="step.description"
@@ -21,6 +21,7 @@
         <el-card shadow="never" class="content-card">
           <el-form label-position="top" :model="formData">
             <div class="step-pane">
+              <p class="step-count">Step {{ currentStep }} of {{ consultationSteps.length }}</p>
               <h2>{{ currentStepConfig.title }}</h2>
               <p class="step-description">{{ currentStepConfig.description }}</p>
 
@@ -499,6 +500,12 @@ const consultationSteps = computed(() => [
   ...optionalActionSteps.filter((step) => selectedActionKeys.value.includes(step.key)),
   finalStep,
 ]);
+const numberedConsultationSteps = computed(() =>
+  consultationSteps.value.map((step, index) => ({
+    ...step,
+    title: `${index + 1}. ${step.title}`,
+  }))
+);
 
 const currentStepConfig = computed(() => {
   return consultationSteps.value[currentStep.value - 1] || finalStep;
@@ -765,6 +772,13 @@ const submitConsultation = async () => {
   margin-top: 0;
   margin-bottom: 5px;
   color: var(--color-text-1-dark, #333);
+}
+
+.step-count {
+  margin: 0 0 8px;
+  color: #2d6a4f;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .step-description {
