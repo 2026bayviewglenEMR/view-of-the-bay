@@ -79,8 +79,8 @@ export const api = {
 
     // tasks
     getTasks: () => http.get('/tasks').then(r => r.data),
-    createTask: (data) => http.post('/tasks', data).then(r => r.data),
-    completeTask: (id) => http.patch(`/tasks/${id}`, { completed: true }).then(r => r.data),
+    createTask: (taskData) => http.post('/tasks', taskData).then(r => r.data),
+    completeTask: (taskId) => http.post(`/tasks/${taskId}/complete`).then(r => r.data),
 
     // alerts
     getAlerts: () => http.get('/alerts').then(r => r.data),
