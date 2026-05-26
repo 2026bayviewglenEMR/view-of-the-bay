@@ -14,7 +14,8 @@ function updateUser(patch) {
 
 function getAvatarUrl(filename) {
   if (!filename) return null;
-  return `${import.meta.env.VITE_SERVER_URL}/uploads/${filename}`;
+  const base = import.meta.env.VITE_SERVER_URL.replace(/\/api$/, '');
+  return `${base}/uploads/${filename}`;
 }
 
 export { currentUser, syncUser, updateUser, getAvatarUrl };
