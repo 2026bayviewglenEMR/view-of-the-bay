@@ -104,6 +104,11 @@ const patientSchema = new mongoose.Schema(
         status:      { type: String, enum: ['pending', 'completed'], default: 'pending' },
       }
     ],
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   { timestamps: true }
 );

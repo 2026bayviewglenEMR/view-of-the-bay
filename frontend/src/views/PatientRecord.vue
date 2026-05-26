@@ -72,26 +72,17 @@
           </div>
 
           <div class="action-buttons">
-            <template v-if="role === 'doctor'">
-              <button class="consultation-btn" @click="startConsultation">
+            <template v-if="role === 'doctor' || role === 'admin' || role === 'patient'">
+              <button v-if="role === 'doctor'" class="consultation-btn" @click="startConsultation">
                 Start Consultation
               </button>
+              <button v-if="role !== 'patient'" class="secondary-action-btn" @click="openAddPatient">
+                Add Patient
+              </button>
+              <button class="secondary-action-btn" @click="openEditPatient">
+                Edit Demographics
+              </button>
             </template>
-<template v-else-if="role === 'admin'">
-  <button
-    class="secondary-action-btn"
-    @click="openAddPatient"
-  >
-    Add Patient
-  </button>
-
-  <button
-    class="secondary-action-btn"
-    @click="openEditPatient"
-  >
-    Edit Demographics
-  </button>
-</template>
 
             
           </div>
@@ -137,7 +128,29 @@
                   <h3>{{ visit.date }} - {{ visit.reason }}</h3>
                   <p><strong>Doctor:</strong> {{ visit.doctor }}</p>
                   <p><strong>Diagnosis:</strong> {{ visit.diagnosis || "-" }}</p>
-                  <p><strong>Notes:</strong> {{ visit.notes || "-" }}</p>
+
+                  <div v-if="visit.soapNote" class="soap-note-block">
+                    <div class="soap-note-header">SOAP Note</div>
+                    <div class="soap-note-grid">
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">S</span>
+                        <span class="soap-note-text">{{ visit.soapNote.subjective || "-" }}</span>
+                      </div>
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">O</span>
+                        <span class="soap-note-text">{{ visit.soapNote.objective || "-" }}</span>
+                      </div>
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">A</span>
+                        <span class="soap-note-text">{{ visit.soapNote.assessment || "-" }}</span>
+                      </div>
+                      <div class="soap-note-row">
+                        <span class="soap-note-label">P</span>
+                        <span class="soap-note-text">{{ visit.soapNote.plan || "-" }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p v-else><strong>Notes:</strong> {{ visit.notes || "-" }}</p>
                 </div>
               </div>
               <p v-else>No visits yet.</p>
@@ -251,11 +264,6 @@ export default {
       return;
     }
 
-    if (this.role === "patient" && this.currentUser.patientId !== id) {
-      this.accessDenied = true;
-      return;
-    }
-
     try {
       this.isLoading = true;
       this.errorMessage = "";
@@ -275,9 +283,63 @@ export default {
   methods: {
     getRequestedPatientId() {
       if (this.role === "patient") {
-        return this.currentUser.patientId;
+        return "me";
       }
       return this.$route.params.id;
+    },
+    formatMedication(medication) {
+      if (!medication) {
+        return "";
+      }
+
+      if (typeof medication === "string") {
+        return medication;
+      }
+
+      return [
+        medication.name || medication.medicationName || medication.drugName || medication.label || medication.id,
+        medication.dosage || medication.dose,
+        medication.frequency,
+        medication.instructions,
+      ]
+        .filter(Boolean)
+        .join(" ");
+    },
+    formatTimelineText(value) {
+      if (Array.isArray(value)) {
+        return value
+          .map(this.formatTimelineText)
+          .filter(Boolean)
+          .join(", ");
+      }
+
+      if (value && typeof value === "object") {
+        return this.formatMedication(value);
+      }
+
+      return value || "";
+    },
+    getEncounterCurrentMedications(encounter) {
+      return (
+        encounter.templateForms?.basic_diagnosis?.current_medications ||
+        encounter.templateForms?.prescribe_medication?.current_medications ||
+        []
+      );
+    },
+    formatEncounterNotes(encounter) {
+      const notes = this.formatTimelineText(encounter.notes || encounter.examFindings);
+      const currentMedications = this.formatTimelineText(
+        this.getEncounterCurrentMedications(encounter)
+      );
+
+      if (!notes || !currentMedications) {
+        return notes || "-";
+      }
+
+      return notes.replace(
+        /Current medications:\s*(?:\[object Object\]\s*,?\s*)+/g,
+        `Current medications: ${currentMedications} `
+      ).trim();
     },
     mapPatient(patient) {
       this.patient = {
@@ -286,6 +348,9 @@ export default {
         dob: patient.dateOfBirth
           ? new Date(patient.dateOfBirth).toLocaleDateString()
           : "-",
+        rawDob: patient.dateOfBirth
+          ? new Date(patient.dateOfBirth).toISOString().split('T')[0]
+          : "",
         gender: patient.gender || "-",
         phone: patient.demographics?.phone || "-",
         address: patient.demographics?.address || "-",
@@ -301,9 +366,9 @@ export default {
       };
 
       this.allergies = patient.executiveSummary?.allergies || [];
-      this.medications = (patient.executiveSummary?.activeMedications || []).map((med) =>
-        `${med.name} ${med.dosage} ${med.frequency || ""}`.trim()
-      );
+      this.medications = (patient.executiveSummary?.activeMedications || [])
+        .map(this.formatMedication)
+        .filter(Boolean);
 
       const draft = patient.consultationDraft;
       this.consultationDraft = (draft?.savedAt && draft.forms && Object.keys(draft.forms).length > 0)
@@ -321,11 +386,12 @@ export default {
         diagnosis: Array.isArray(encounter.diagnoses)
           ? encounter.diagnoses.join(", ")
           : encounter.diagnosis || "-",
-        notes: encounter.notes || encounter.examFindings || "-",
+        notes: this.formatEncounterNotes(encounter),
+        soapNote: encounter.wizardData?.soapNote || null,
       }));
     },
     async loadPatientOwnRecord(id) {
-      const data = await api.getPortalData(id);
+      const data = await api.getOwnPortalData();
       this.mapPatient(data.patient);
       this.mapTimeline(data.consultations);
     },
@@ -335,7 +401,12 @@ export default {
       const encounters = await api.getPatientEncounters(id);
       this.mapTimeline(encounters);
     },
-    startConsultation() {
+    async startConsultation() {
+      try {
+        await api.startWaitingRoomConsultation(this.patient.id);
+      } catch (err) {
+        console.error("Failed to start waiting room consultation:", err);
+      }
       this.$router.push(`/diagnose/${this.patient.id}`)
     },
     openAddPatient() {
@@ -351,53 +422,60 @@ export default {
       }
       this.showPatientModal = true
     },
-    openEditPatient() {
-      this.isEditingPatient = true
-      const [firstName = "", lastName = ""] = this.patient.name.split(" ")
-      this.patientForm = {
-        firstName,
-        lastName,
-        dateOfBirth: this.patient.dob || "",
-        gender: this.patient.gender || "",
-        phone: this.patient.phone || "",
-        address: this.patient.address || "",
-        insurance: this.patient.insurance || "",
-      }
-      this.showPatientModal = true
-    },
-    closePatientModal() {
-      this.showPatientModal = false
-    },
-    async savePatient() {
-      try {
-        const payload = {
-          firstName: this.patientForm.firstName,
-          lastName: this.patientForm.lastName,
-          dateOfBirth: this.patientForm.dateOfBirth,
-          gender: this.patientForm.gender,
-          demographics: {
-            phone: this.patientForm.phone,
-            address: this.patientForm.address,
-            insurance: this.patientForm.insurance,
-          },
-        }
 
-        this.patient = {
-          ...this.patient,
-          name: `${payload.firstName} ${payload.lastName}`,
-          dob: payload.dateOfBirth,
-          gender: payload.gender,
-          phone: payload.demographics.phone,
-          address: payload.demographics.address,
-          insurance: payload.demographics.insurance,
-        }
+openEditPatient() {
+  this.isEditingPatient = true
 
-        this.showPatientModal = false
-      } catch (err) {
-        console.error(err)
-        alert("Failed to save patient.")
-      }
-    },
+  const [firstName = "", lastName = ""] =
+    this.patient.name.split(" ")
+
+  this.patientForm = {
+    firstName,
+    lastName,
+    dateOfBirth: this.patient.rawDob || "",
+    gender: this.patient.gender || "",
+    phone: this.patient.phone || "",
+    address: this.patient.address || "",
+    insurance: this.patient.insurance || "",
+  }
+
+  this.showPatientModal = true
+},
+
+closePatientModal() {
+  this.showPatientModal = false
+},
+
+async savePatient() {
+  try {
+    const payload = {
+      firstName: this.patientForm.firstName,
+      lastName: this.patientForm.lastName,
+      dateOfBirth: this.patientForm.dateOfBirth,
+      gender: this.patientForm.gender,
+      demographics: {
+        phone: this.patientForm.phone,
+        address: this.patientForm.address,
+        insurance: this.patientForm.insurance,
+      },
+    }
+
+    if (this.isEditingPatient) {
+      const updated = this.role === 'patient'
+        ? await api.updateOwnPatient(payload)
+        : await api.updatePatient(this.patient.id, payload);
+      this.mapPatient(updated);
+    } else {
+      const created = await api.createPatient(payload);
+      this.$router.push(`/patients/${created._id}`);
+    }
+
+    this.showPatientModal = false
+  } catch (err) {
+    console.error(err)
+    alert(err?.response?.data?.message || "Failed to save patient.")
+  }
+},
   },
 };
 </script>
@@ -556,6 +634,52 @@ export default {
 
 .timeline-item:last-child {
   border-bottom: none;
+}
+
+.soap-note-block {
+  margin-top: 10px;
+  background: #f8fdf9;
+  border: 1px solid #b7dfc8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.soap-note-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #2d6a4f;
+  padding: 8px 12px;
+  background: #e8f3ed;
+  border-bottom: 1px solid #b7dfc8;
+}
+
+.soap-note-grid {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.soap-note-row {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.soap-note-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2d6a4f;
+}
+
+.soap-note-text {
+  font-size: 13px;
+  color: #333;
+  white-space: pre-line;
+  line-height: 1.5;
 }
 
 .readonly-note {

@@ -2,7 +2,18 @@ const Consultation = require("../models/Consultations");
 const Document = require("../models/Documents");
 const Patient = require("../models/Patient");
 const WaitingRoom = require("../models/waitingRoom.model");
+const Appointment = require("../models/Appointment");
 const { getTemplates } = require("../templates/templateSystem");
+
+const getActiveWaitingRoomEntry = async (patientId) => {
+  if (!patientId) return null;
+  const entries = await WaitingRoom.find().populate("appointmentId");
+  return entries.find(
+    (entry) =>
+      entry.appointmentId &&
+      entry.appointmentId.patientId.toString() === patientId.toString()
+  );
+};
 const {
   normalizeTemplateForms,
   validateTemplateForms,
@@ -35,9 +46,35 @@ const toNumber = (value) => {
   return Number.isNaN(numberValue) ? undefined : numberValue;
 };
 
+const formatStructuredValue = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map(formatStructuredValue)
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  if (value && typeof value === "object") {
+    return [
+      value.name || value.medicationName || value.drugName || value.label || value.id,
+      value.dosage || value.dose,
+      value.frequency,
+      value.instructions,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  return value;
+};
+
 const addNote = (notes, label, value) => {
   if (!value) return;
-  notes.push(`${label}: ${value}`);
+
+  const formattedValue = formatStructuredValue(value);
+  if (!formattedValue) return;
+
+  notes.push(`${label}: ${formattedValue}`);
 };
 
 const buildTemplateConsultationFields = (forms, templates, notes) => {
@@ -231,28 +268,33 @@ const createConsultation = async (req, res) => {
       });
     }
 
-    if (!consultationFields.appointmentId) {
-      return res.status(400).json({
-        message: "appointmentId is required.",
-      });
+    let appointmentId = consultationFields.appointmentId;
+    if (!appointmentId) {
+      const waitingEntry = await getActiveWaitingRoomEntry(consultationFields.patientId);
+      if (waitingEntry) {
+        appointmentId = waitingEntry.appointmentId._id;
+        consultationFields.appointmentId = appointmentId;
+      }
     }
 
-    if (consultation.appointmentId) {
+    if (appointmentId) {
       await WaitingRoom.findOneAndUpdate(
-        { appointmentId: consultation.appointmentId },
+        { appointmentId },
         { status: "In consultation" }
       );
     }
 
-    const existing = await Consultation.findOne({
-      appointmentId: consultationFields.appointmentId,
-      status: "in-progress",
-    });
+    if (consultationFields.appointmentId) {
+      const existing = await Consultation.findOne({
+        appointmentId: consultationFields.appointmentId,
+        status: "in-progress",
+      });
 
-    if (existing) {
-      return res.status(400).json({
-        message: "Consultation already active for this appointment.",
-     });
+      if (existing) {
+        return res.status(400).json({
+          message: "Consultation already active for this appointment.",
+        });
+      }
     }
 
     const consultation = await Consultation.create({
@@ -537,7 +579,7 @@ const completeConsultation = async (req, res) => {
 
 const completeTemplateConsultation = async (req, res) => {
   try {
-    const { patientId, appointmentId, doctorId, dateOfVisit, notes } =
+    const { patientId, appointmentId, doctorId, dateOfVisit, notes, soapNote } =
       req.body;
     const forms = req.body.forms || req.body.templateForms || req.body.formData;
 
@@ -563,18 +605,33 @@ const completeTemplateConsultation = async (req, res) => {
       notes
     );
 
+    let resolvedAppointmentId = appointmentId;
+    if (!resolvedAppointmentId) {
+      const waitingEntry = await getActiveWaitingRoomEntry(patientId);
+      if (waitingEntry) {
+        resolvedAppointmentId = waitingEntry.appointmentId._id;
+      }
+    }
+
     const consultation = await Consultation.create({
-      appointmentId,
+      appointmentId: resolvedAppointmentId,
       patientId,
       doctorId: doctorId || req.user.id,
       dateOfVisit: dateOfVisit || new Date(),
       ...templateConsultationFields,
+      wizardData: soapNote ? { soapNote } : {},
       status: "completed",
       currentStep: "complete",
       completedSteps: ["complete"],
       skippedSteps: [],
       lockedAt: new Date(),
     });
+
+    if (resolvedAppointmentId) {
+      await WaitingRoom.findOneAndDelete({
+        appointmentId: resolvedAppointmentId,
+      });
+    }
 
     return res.status(201).json({
       message: "Consultation templates saved successfully.",

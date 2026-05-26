@@ -55,7 +55,9 @@ const getWaitingRoom = async (req, res) => {
       })
       .sort({ "appointmentId.scheduledStartTime": 1 });
 
-    res.json(entries.map(formatEntry));
+    const validEntries = entries.filter(e => e.appointmentId !== null);
+
+    res.json(validEntries.map(formatEntry));
   } catch (err) {
     console.error("getWaitingRoom:", err);
     res.status(500).json({ message: "Failed to fetch waiting room" });
@@ -265,6 +267,44 @@ const getPatientDetails = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────
+// PATCH /api/waiting-room/patient/:patientId/start
+// Set waiting room status to In consultation for patient
+// ─────────────────────────────────────────────────────────
+const startPatientConsultation = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+
+    const entries = await WaitingRoom.find().populate("appointmentId");
+    const entry = entries.find(
+      (e) =>
+        e.appointmentId &&
+        e.appointmentId.patientId.toString() === patientId.toString()
+    );
+
+    if (!entry) {
+      return res.status(404).json({ message: "Patient not found in waiting room queue" });
+    }
+
+    entry.status = "In consultation";
+    await entry.save();
+
+    // Populate full details for rendering updated row if needed
+    const populated = await WaitingRoom.findById(entry._id).populate({
+      path: "appointmentId",
+      populate: [
+        { path: "patientId", model: "Patient" },
+        { path: "doctorId",  model: "User" },
+      ],
+    });
+
+    res.json(formatEntry(populated));
+  } catch (err) {
+    console.error("startPatientConsultation:", err);
+    res.status(500).json({ message: "Failed to start consultation in waiting room" });
+  }
+};
+
 module.exports = {
   getWaitingRoom,
   getDoctorsOverview,
@@ -272,4 +312,5 @@ module.exports = {
   updatePatientStatus,
   removePatient,
   getPatientDetails,
+  startPatientConsultation,
 };

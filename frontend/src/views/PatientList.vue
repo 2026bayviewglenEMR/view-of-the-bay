@@ -107,22 +107,26 @@ const resetNewPatientForm = () => {
 }
 
 const savePatient = async () => {
-  const patientToAdd = {
-    _id: crypto.randomUUID(),
-    firstName: newPatient.value.firstName,
-    lastName: newPatient.value.lastName,
-    dateOfBirth: newPatient.value.dateOfBirth,
-    gender: newPatient.value.gender,
-    demographics: {
-      phone: newPatient.value.phone,
-      address: newPatient.value.address,
-      insurance: newPatient.value.insurance
+  try {
+    const patientData = {
+      firstName: newPatient.value.firstName,
+      lastName: newPatient.value.lastName,
+      dateOfBirth: newPatient.value.dateOfBirth,
+      gender: newPatient.value.gender,
+      demographics: {
+        phone: newPatient.value.phone,
+        address: newPatient.value.address,
+        insurance: newPatient.value.insurance
+      }
     }
+    const createdPatient = await api.createPatient(patientData)
+    patients.value.unshift(createdPatient)
+    resetNewPatientForm()
+    closeAddPatientModal()
+  } catch (err) {
+    console.error('Failed to create patient', err)
+    alert(err?.response?.data?.message || 'Failed to create patient.')
   }
-
-  patients.value.unshift(patientToAdd)
-  resetNewPatientForm()
-  closeAddPatientModal()
 }
 
 onMounted(async () => {

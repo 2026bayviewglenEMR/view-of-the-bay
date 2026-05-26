@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authenticateToken } = require("../verifyToken");
+const { authenticateToken, requireRole } = require("../verifyToken");
 
 console.log("patients routes loaded");
 
@@ -14,11 +14,20 @@ const {
   saveDraft,
   clearDraft,
   updateExecutiveSummary,
+  createPatient,
+  updatePatient,
+  updateOwnPatient,
 } = require("../controllers/patients.controller");
 
 router.get("/", authenticateToken, getAllPatients);
 
+router.post("/", authenticateToken, requireRole(["admin", "doctor"]), createPatient);
+
+router.put("/me", authenticateToken, updateOwnPatient);
+
 router.get("/:id", authenticateToken, getPatientById);
+
+router.put("/:id", authenticateToken, requireRole(["admin", "doctor"]), updatePatient);
 
 router.get("/:id/summary", authenticateToken, getPatientSummary);
 

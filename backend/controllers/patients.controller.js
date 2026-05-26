@@ -1,6 +1,8 @@
 const Patient = require("../models/Patient");
 const Consultation = require("../models/Consultations");
 const Appointment = require("../models/Appointment");
+const User = require("../models/User");
+const bcrypt = require("bcrypt");
 
 const canReadPatient = (req, patientId) => {
   const role = req.user?.role?.toLowerCase();
@@ -313,6 +315,139 @@ const clearDraft = async (req, res) => {
   }
 };
 
+const createPatient = async (req, res) => {
+  try {
+    const { firstName, lastName, dateOfBirth, gender, demographics } = req.body;
+
+    if (!firstName || !lastName || !dateOfBirth) {
+      return res.status(400).json({ message: "First name, last name, and date of birth are required." });
+    }
+
+    // 1. Generate unique username
+    let baseUsername = `${firstName.toLowerCase()}.${lastName.toLowerCase()}`.replace(/[^a-z0-9.]/g, "");
+    let username = baseUsername;
+    let userExists = await User.findOne({ username });
+    while (userExists) {
+      const suffix = Math.floor(Math.random() * 1000);
+      username = `${baseUsername}${suffix}`;
+      userExists = await User.findOne({ username });
+    }
+
+    // 2. Hash password
+    const hashedPassword = await bcrypt.hash("password", 10);
+
+    // 3. Create User
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      role: "patient",
+      firstName,
+      lastName,
+      email: `${username}@example.com`,
+      isActive: true,
+    });
+    const savedUser = await newUser.save();
+
+    // 4. Create Patient
+    const newPatient = new Patient({
+      firstName,
+      lastName,
+      dateOfBirth: new Date(dateOfBirth),
+      gender: gender || "",
+      demographics: demographics || {},
+      userId: savedUser._id,
+    });
+    const savedPatient = await newPatient.save();
+
+    // 5. Update User pointing to Patient
+    savedUser.patientId = savedPatient._id;
+    await savedUser.save();
+
+    res.status(201).json(savedPatient);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to create patient record." });
+  }
+};
+
+const updatePatient = async (req, res) => {
+  try {
+    const { firstName, lastName, dateOfBirth, gender, demographics } = req.body;
+    const { id } = req.params;
+
+    const patient = await Patient.findById(id);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found." });
+    }
+
+    if (firstName) patient.firstName = firstName;
+    if (lastName) patient.lastName = lastName;
+    if (dateOfBirth) patient.dateOfBirth = new Date(dateOfBirth);
+    if (gender !== undefined) patient.gender = gender;
+    if (demographics) {
+      patient.demographics = {
+        ...patient.demographics?.toObject(),
+        ...demographics
+      };
+    }
+
+    const savedPatient = await patient.save();
+
+    if (patient.userId) {
+      const user = await User.findById(patient.userId);
+      if (user) {
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        await user.save();
+      }
+    }
+
+    res.json(savedPatient);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update patient record." });
+  }
+};
+
+const updateOwnPatient = async (req, res) => {
+  try {
+    const patientId = req.user?.patientId;
+    if (!patientId) {
+      return res.status(403).json({ message: "No patient record linked to this account." });
+    }
+
+    const { firstName, lastName, dateOfBirth, gender, demographics } = req.body;
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found." });
+    }
+
+    if (firstName) patient.firstName = firstName;
+    if (lastName) patient.lastName = lastName;
+    if (dateOfBirth) patient.dateOfBirth = new Date(dateOfBirth);
+    if (gender !== undefined) patient.gender = gender;
+    if (demographics) {
+      patient.demographics = { ...patient.demographics?.toObject(), ...demographics };
+    }
+
+    const savedPatient = await patient.save();
+
+    if (patient.userId) {
+      const user = await User.findById(patient.userId);
+      if (user) {
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        await user.save();
+      }
+    }
+
+    res.json(savedPatient);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update patient record." });
+  }
+};
+
 module.exports = {
   getAllPatients,
   getPatientById,
@@ -323,4 +458,7 @@ module.exports = {
   saveDraft,
   clearDraft,
   updateExecutiveSummary,
+  createPatient,
+  updatePatient,
+  updateOwnPatient,
 };

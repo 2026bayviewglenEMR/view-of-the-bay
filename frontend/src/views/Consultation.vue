@@ -10,7 +10,7 @@
         <el-card shadow="never" class="stepper-card">
           <el-steps :active="currentStep - 1" finish-status="success" align-center>
             <el-step
-              v-for="(step, index) in consultationSteps"
+              v-for="(step, index) in numberedConsultationSteps"
               :key="index"
               :title="step.title"
               :description="step.description"
@@ -21,6 +21,7 @@
         <el-card shadow="never" class="content-card">
           <el-form label-position="top" :model="formData">
             <div class="step-pane">
+              <p class="step-count">Step {{ currentStep }} of {{ consultationSteps.length }}</p>
               <h2>{{ currentStepConfig.title }}</h2>
               <p class="step-description">{{ currentStepConfig.description }}</p>
 
@@ -122,6 +123,29 @@
                   </el-form-item>
                 </el-col>
               </el-row>
+
+              <div v-if="currentStepConfig.key === 'complete'" class="soap-preview">
+                <h3 class="soap-title">SOAP Note Preview</h3>
+                <p class="soap-subtitle">Auto-generated from your entries. Saved with this consultation.</p>
+                <div class="soap-sections">
+                  <div class="soap-section">
+                    <div class="soap-label">S — Subjective</div>
+                    <div class="soap-content">{{ soapNote.subjective || 'No subjective data entered.' }}</div>
+                  </div>
+                  <div class="soap-section">
+                    <div class="soap-label">O — Objective</div>
+                    <div class="soap-content">{{ soapNote.objective || 'No objective data entered.' }}</div>
+                  </div>
+                  <div class="soap-section">
+                    <div class="soap-label">A — Assessment</div>
+                    <div class="soap-content">{{ soapNote.assessment || 'No assessment entered.' }}</div>
+                  </div>
+                  <div class="soap-section">
+                    <div class="soap-label">P — Plan</div>
+                    <div class="soap-content">{{ soapNote.plan || 'No plan entered.' }}</div>
+                  </div>
+                </div>
+              </div>
 
               <div
                 v-if="currentStepConfig.key === 'prescribeMedication' && prescriptionTemplate"
@@ -241,6 +265,11 @@ const loadPatient = async () => {
 
   try {
     patient.value = await api.getPatient(patientId.value);
+    try {
+      await api.startWaitingRoomConsultation(patientId.value);
+    } catch (err) {
+      console.error("Failed to update waiting room status:", err);
+    }
   } catch (err) {
     console.error("Failed to load patient", err);
   }
@@ -499,6 +528,12 @@ const consultationSteps = computed(() => [
   ...optionalActionSteps.filter((step) => selectedActionKeys.value.includes(step.key)),
   finalStep,
 ]);
+const numberedConsultationSteps = computed(() =>
+  consultationSteps.value.map((step, index) => ({
+    ...step,
+    title: `${index + 1}. ${step.title}`,
+  }))
+);
 
 const currentStepConfig = computed(() => {
   return consultationSteps.value[currentStep.value - 1] || finalStep;
@@ -598,6 +633,48 @@ const updatePrescriptionData = (data) => {
   formData.value.prescriptions = prescriptionSummary.value;
 };
 
+const soapNote = computed(() => {
+  const f = formData.value;
+
+  const vitals = [
+    f.systolicBP && f.diastolicBP ? `BP: ${f.systolicBP}/${f.diastolicBP} mmHg` : null,
+    f.heartRate ? `HR: ${f.heartRate} bpm` : null,
+    f.temperature ? `Temp: ${f.temperature}°C` : null,
+    f.respiratoryRate ? `RR: ${f.respiratoryRate} breaths/min` : null,
+    f.oxygenSaturation ? `O2 Sat: ${f.oxygenSaturation}%` : null,
+  ].filter(Boolean).join(' · ');
+
+  return {
+    subjective: [
+      f.chiefComplaint ? `Chief complaint: ${f.chiefComplaint}` : null,
+      f.symptomDuration ? `Duration: ${f.symptomDuration}` : null,
+      f.reportedSymptoms?.length ? `Symptoms: ${f.reportedSymptoms.join(', ')}` : null,
+      f.painLevel !== undefined ? `Pain level: ${f.painLevel}/10` : null,
+      f.history ? `History: ${f.history}` : null,
+    ].filter(Boolean).join('\n'),
+
+    objective: [
+      vitals || null,
+      f.physicalFindings ? `Findings: ${f.physicalFindings}` : null,
+    ].filter(Boolean).join('\n'),
+
+    assessment: [
+      f.workingDiagnosis ? `Diagnosis: ${f.workingDiagnosis}` : null,
+      f.differentialDiagnosis ? `Differential: ${f.differentialDiagnosis}` : null,
+    ].filter(Boolean).join('\n'),
+
+    plan: [
+      f.plan || null,
+      f.patientInstructions ? `Instructions: ${f.patientInstructions}` : null,
+      f.followUpTimeline ? `Follow-up: ${f.followUpTimeline}` : null,
+      f.returnPrecautions ? `Return precautions: ${f.returnPrecautions}` : null,
+      f.referralTo ? `Referral: ${f.referralTo}` : null,
+      f.surgeryProcedure ? `Surgery: ${f.surgeryProcedure} (${f.surgeryUrgency || 'unspecified'})` : null,
+      prescriptionSummary.value ? `Medication: ${prescriptionSummary.value}` : null,
+    ].filter(Boolean).join('\n'),
+  };
+});
+
 const nextStep = () => {
   formData.value.selectedConsultationSteps = [...selectedActionKeys.value];
   if (currentStep.value < consultationSteps.value.length) currentStep.value++;
@@ -623,6 +700,7 @@ const submitConsultation = async () => {
         ...formData.value,
         selectedConsultationSteps: selectedActionKeys.value,
         completedStepTitles: selectedStepTitles.value,
+        soapNote: soapNote.value,
       },
       prescriptions: prescribedMedications.value,
       testOrderDocuments: testOrderDocuments.value,
@@ -767,6 +845,13 @@ const submitConsultation = async () => {
   color: var(--color-text-1-dark, #333);
 }
 
+.step-count {
+  margin: 0 0 8px;
+  color: #2d6a4f;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 .step-description {
   color: #666;
   margin-bottom: 30px;
@@ -862,6 +947,56 @@ const submitConsultation = async () => {
   color: #b91c1c;
   font-weight: 700;
   margin-top: 16px;
+}
+
+.soap-preview {
+  margin-top: 28px;
+  padding: 20px;
+  background: #f8fdf9;
+  border: 1px solid #b7dfc8;
+  border-radius: 10px;
+}
+
+.soap-title {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e4d38;
+}
+
+.soap-subtitle {
+  margin: 0 0 16px 0;
+  font-size: 12px;
+  color: #6b8f7a;
+}
+
+.soap-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.soap-section {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 14px;
+  border-left: 3px solid #2d6a4f;
+}
+
+.soap-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #2d6a4f;
+  margin-bottom: 6px;
+}
+
+.soap-content {
+  font-size: 13px;
+  color: #333;
+  white-space: pre-line;
+  line-height: 1.5;
 }
 
 .prescription-template {

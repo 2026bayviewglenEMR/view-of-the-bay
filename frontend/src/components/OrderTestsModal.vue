@@ -92,7 +92,7 @@
 <script setup>
 import { ref } from 'vue'
 import { jsPDF } from 'jspdf'
-import { LAB_TESTS, TEST_CATEGORIES } from '../config/labTests.js'
+import { LAB_TESTS, TEST_CATEGORIES } from '../views/consultation/config/labTests.js'
 import { api } from '../api/api.js'
 
 const props = defineProps({

@@ -58,9 +58,9 @@ function collapseSidebar() {
 .sidebar {
     position: fixed;
     left: 0;
-    top: 12px;
+    top: 0;
     width: 20vw;
-    height: calc(100vh - 24px);
+    height: 100vh;
     box-sizing: border-box;
     background-color: var(--color-sidebar-dark);
     color: var(--color-text-1-dark);
@@ -69,7 +69,7 @@ function collapseSidebar() {
     z-index: 10;
     transition: width 0.3s ease;
     overflow: hidden;
-    border-radius: 0 18px 18px 0;
+    border-radius: 0;
 }
 
 .sidebar.collapsed {

@@ -14,7 +14,13 @@ const canAccessPatientPortal = (req, patientId) => {
 
 const getPatientPortalData = async (req, res) => {
   try {
-    const { patientId } = req.params;
+    const patientId = req.params.patientId || req.user?.patientId;
+
+    if (!patientId) {
+      return res.status(400).json({
+        message: "No patient record is linked to this account.",
+      });
+    }
 
     if (!canAccessPatientPortal(req, patientId)) {
       return res.status(403).json({

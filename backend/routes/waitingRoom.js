@@ -8,6 +8,7 @@ const {
   updatePatientStatus,
   removePatient,
   getPatientDetails,
+  startPatientConsultation,
 } = require('../controllers/waitingRoom.controller');
 
 const { authenticateToken, requireRole } = require('../verifyToken');
@@ -60,6 +61,14 @@ router.get(
   authenticateToken,
   requireRole(['doctor', 'admin']),
   getPatientDetails
+);
+
+// PATCH /api/waiting-room/patient/:patientId/start — start consultation
+router.patch(
+  '/patient/:patientId/start',
+  authenticateToken,
+  requireRole(['doctor', 'admin']),
+  startPatientConsultation
 );
 
 module.exports = router;

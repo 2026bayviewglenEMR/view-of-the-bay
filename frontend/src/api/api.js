@@ -32,6 +32,7 @@ export const api = {
     }).then(r => r.data),
 
     // patient portal
+    getOwnPortalData: () => http.get('/patient-portal/me').then(r => r.data),
     getPortalData: (patientId) => http.get(`/patient-portal/${patientId}`).then(r => r.data),
     createAppointment: (patientId, data) => http.post(`/patient-portal/${patientId}/appointments`, data).then(r => r.data),
     updateAppointment: (patientId, appointmentId, data) => http.put(`/patient-portal/${patientId}/appointments/${appointmentId}`, data).then(r => r.data),
@@ -42,6 +43,9 @@ export const api = {
     getPatientSummary: (id) => http.get(`/patients/${id}/summary`).then(r => r.data),
     getPatientEncounters: (id) => http.get(`/patients/${id}/encounters`).then(r => r.data),
     getAllPatients: () => http.get('/patients').then(r => r.data),
+    createPatient: (data) => http.post('/patients', data).then(r => r.data),
+    updatePatient: (id, data) => http.put(`/patients/${id}`, data).then(r => r.data),
+    updateOwnPatient: (data) => http.put('/patients/me', data).then(r => r.data),
     saveOrderedTests: (patientId, tests) =>
         http.post(`/patients/${patientId}/ordered-tests`, { tests }).then(r => r.data),
 
@@ -72,11 +76,12 @@ export const api = {
     checkInPatient: (appointmentId, note, flag) => http.post('/waiting-room/check-in', { appointmentId, note, flag }).then(r => r.data),
     updatePatientStatus: (id, status) => http.patch(`/waiting-room/${id}/status`, { status }).then(r => r.data),
     removePatient: (id) => http.delete(`/waiting-room/${id}`).then(r => r.data),
+    startWaitingRoomConsultation: (patientId) => http.patch(`/waiting-room/patient/${patientId}/start`).then(r => r.data),
 
     // tasks
     getTasks: () => http.get('/tasks').then(r => r.data),
-    createTask: (data) => http.post('/tasks', data).then(r => r.data),
-    completeTask: (id) => http.patch(`/tasks/${id}`, { completed: true }).then(r => r.data),
+    createTask: (taskData) => http.post('/tasks', taskData).then(r => r.data),
+    completeTask: (taskId) => http.post(`/tasks/${taskId}/complete`).then(r => r.data),
 
     // alerts
     getAlerts: () => http.get('/alerts').then(r => r.data),
