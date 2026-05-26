@@ -1,4 +1,4 @@
-const Document = require("../models/Document");
+const Document = require("../models/Documents");
 const fs = require("fs");
 
 // Helper: safely parse arrays (in case they come as JSON strings)
@@ -43,6 +43,7 @@ exports.uploadDocument = async (req, res) => {
       uploaderId: req.user.id,
       patientId,
       fileName: req.file.filename,
+      originalName: req.body.originalName || req.file.originalname || req.file.filename,
       fileUrl: `/uploads/${req.file.filename}`,
       documentType,
       access: {

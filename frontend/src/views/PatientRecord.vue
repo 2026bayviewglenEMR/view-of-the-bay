@@ -155,6 +155,45 @@
               </div>
               <p v-else>No visits yet.</p>
             </section>
+
+            <!-- Documents -->
+            <section v-if="role === 'doctor' || role === 'admin'" class="card">
+              <div class="doc-section-header">
+                <h2>Documents</h2>
+                <div class="doc-upload-controls" v-if="role === 'doctor' || role === 'admin'">
+                  <select v-model="docUploadType" class="doc-type-select">
+                    <option value="general">General</option>
+                    <option value="lab-order">Lab Order</option>
+                    <option value="lab-result">Lab Result</option>
+                    <option value="referral">Referral</option>
+                    <option value="imaging">Imaging</option>
+                    <option value="prescription">Prescription</option>
+                    <option value="consent">Consent Form</option>
+                  </select>
+                  <label class="upload-btn" :class="{ disabled: uploadingDoc }">
+                    {{ uploadingDoc ? 'Uploading...' : '📎 Upload Document' }}
+                    <input type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" @change="handleDocumentUpload" :disabled="uploadingDoc" hidden />
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="documents.length" class="doc-list">
+                <div v-for="doc in documents" :key="doc._id" class="doc-item">
+                  <div class="doc-info">
+                    <span class="doc-icon">{{ doc.documentType === 'lab-order' ? '🧪' : doc.documentType === 'lab-result' ? '📊' : doc.documentType === 'imaging' ? '🩻' : doc.documentType === 'prescription' ? '💊' : '📄' }}</span>
+                    <div>
+                      <div class="doc-name">{{ doc.originalName || doc.fileName }}</div>
+                      <div class="doc-meta">{{ doc.documentType }} · {{ new Date(doc.uploadDate).toLocaleDateString() }}</div>
+                    </div>
+                  </div>
+                  <div class="doc-actions">
+                    <a :href="'http://localhost:3000' + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
+                    <button @click="deleteDocument(doc._id)" class="doc-delete-btn">✕</button>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="doc-empty">No documents uploaded yet.</p>
+            </section>
           </main>
 
           <aside class="summary-panel card">
@@ -222,6 +261,9 @@ export default {
         insurance: "",
       },
       consultationDraft: null,
+      documents: [],
+      uploadingDoc: false,
+      docUploadType: "general",
       patient: {
         id: "",
         name: "",
@@ -400,6 +442,47 @@ export default {
       this.mapPatient(patient);
       const encounters = await api.getPatientEncounters(id);
       this.mapTimeline(encounters);
+
+      try {
+        this.documents = await api.getPatientDocuments(id);
+      } catch {}
+    },
+
+    async handleDocumentUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      this.uploadingDoc = true;
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('patientId', this.patient.id);
+        formData.append('documentType', this.docUploadType);
+        formData.append('originalName', file.name);
+        formData.append('scope', 'role');
+        formData.append('roles', JSON.stringify(['doctor', 'admin']));
+        formData.append('userIds', JSON.stringify([]));
+        const doc = await api.uploadPatientDocument(formData);
+        this.documents.unshift(doc);
+      } catch (err) {
+        alert('Upload failed. Please try again.');
+      } finally {
+        this.uploadingDoc = false;
+        event.target.value = '';
+      }
+    },
+
+    async deleteDocument(id) {
+      if (!confirm('Delete this document?')) return;
+      try {
+        await api.deletePatientDocument(id);
+        this.documents = this.documents.filter(d => d._id !== id);
+      } catch {
+        alert('Could not delete document.');
+      }
+    },
+
+    docBaseUrl() {
+      return import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
     },
     async startConsultation() {
       try {
@@ -765,6 +848,147 @@ async savePatient() {
 .secondary-modal-btn {
   background: #e5e7eb;
   color: #111827;
+}
+
+.doc-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.doc-section-header h2 {
+  margin: 0;
+}
+
+.doc-upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doc-type-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.upload-btn {
+  padding: 8px 16px;
+  background: #2d6a4f;
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.upload-btn:hover {
+  background: #1e4d38;
+}
+
+.upload-btn.disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.doc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  gap: 12px;
+}
+
+.doc-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.doc-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.doc-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.doc-meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+.doc-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.doc-view-btn {
+  padding: 6px 14px;
+  background: white;
+  border: 1px solid #2d6a4f;
+  color: #2d6a4f;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.doc-view-btn:hover {
+  background: #2d6a4f;
+  color: white;
+}
+
+.doc-delete-btn {
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #9ca3af;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.doc-delete-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.doc-empty {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 14px;
 }
 
 .draft-banner {

@@ -137,7 +137,7 @@ function toggleCategory(cat) {
   }
 }
 
-function generatePDF() {
+async function generatePDF() {
   const selectedTests = LAB_TESTS.filter(t => selected.value.includes(t.id))
 
   const doc = new jsPDF({ unit: 'mm', format: 'letter' })
@@ -265,17 +265,35 @@ function generatePDF() {
     W / 2, y, { align: 'center' }
   )
 
-  // Save to patient record
+  const safeName = (props.patientName || 'patient').replace(/\s+/g, '_')
+  const fileName = `test_order_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`
+
+  // Download locally
+  doc.save(fileName)
+
+  // Save ordered tests + attach PDF to patient documents
   if (props.patientId) {
     const testsToSave = selectedTests.map(t => ({ testId: t.id, testName: t.name }))
-    api.saveOrderedTests(props.patientId, testsToSave).catch(err => {
-      console.error('Failed to save ordered tests to patient record:', err)
-    })
-  }
 
-  // Download
-  const safeName = (props.patientName || 'patient').replace(/\s+/g, '_')
-  doc.save(`test_order_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`)
+    api.saveOrderedTests(props.patientId, testsToSave).catch(err => {
+      console.error('Failed to save ordered tests:', err)
+    })
+
+    try {
+      const pdfBlob = doc.output('blob')
+      const formData = new FormData()
+      formData.append('file', pdfBlob, fileName)
+      formData.append('patientId', props.patientId)
+      formData.append('documentType', 'lab-order')
+      formData.append('originalName', fileName)
+      formData.append('scope', 'role')
+      formData.append('roles', JSON.stringify(['doctor', 'admin']))
+      formData.append('userIds', JSON.stringify([]))
+      await api.uploadPatientDocument(formData)
+    } catch (err) {
+      console.error('Failed to attach PDF to patient documents:', err)
+    }
+  }
 
   emit('close')
 }
