@@ -72,26 +72,17 @@
           </div>
 
           <div class="action-buttons">
-            <template v-if="role === 'doctor'">
-              <button class="consultation-btn" @click="startConsultation">
+            <template v-if="role === 'doctor' || role === 'admin'">
+              <button v-if="role === 'doctor'" class="consultation-btn" @click="startConsultation">
                 Start Consultation
               </button>
+              <button class="secondary-action-btn" @click="openAddPatient">
+                Add Patient
+              </button>
+              <button class="secondary-action-btn" @click="openEditPatient">
+                Edit Demographics
+              </button>
             </template>
-<template v-else-if="role === 'admin'">
-  <button
-    class="secondary-action-btn"
-    @click="openAddPatient"
-  >
-    Add Patient
-  </button>
-
-  <button
-    class="secondary-action-btn"
-    @click="openEditPatient"
-  >
-    Edit Demographics
-  </button>
-</template>
 
             
           </div>
