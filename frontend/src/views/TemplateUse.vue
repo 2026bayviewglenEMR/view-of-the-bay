@@ -353,7 +353,6 @@ function proceedFromBuilder() {
 
   hasSeenBuilder.value = true;
   showBuilder.value = false;
-
   // Jump index forward if they picked forms, otherwise stay on last mandatory form
   if (selectedOptionals.length > 0) {
     currentIndex.value = mandatoryTemplates.value.length;
@@ -379,14 +378,25 @@ const currentInitialData = computed(() =>
 );
 
 watch(
-  [currentTemplate, currentInitialData],
+  [currentTemplate],
   () => {
+    if (!currentTemplate.value) return;
+
+    // 1. Get the existing data from allForms
+    const savedData = allForms.value[currentTemplate.value.id] || {};
+    
+    // 2. Get the defaults from formsConfig
+    const defaults = currentInitialData.value;
+
+    // 3. Merge them: Defaults first, then override with saved data
     currentFormData.value = {
-      ...currentInitialData.value
+      ...defaults,
+      ...savedData
     };
   },
   { immediate: true }
 );
+
 const canGoNext = computed(() =>
   formsConfig.validateStep(currentTemplate.value, currentFormData.value)
 );

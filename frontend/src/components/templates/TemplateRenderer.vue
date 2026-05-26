@@ -167,11 +167,12 @@ const removeMedication = (fieldId, index) => {
 const checkDrugInteractions = async () => {
   const checkId = ++interactionCheckId.value;
 
+  const allDrugs = [...(formData.medications || []), ...(formData.current_medications || [])];
+  console.log("alldrugs", allDrugs);
+
   if (
-    !Array.isArray(formData.medications) ||
-    formData.medications.length === 0 ||
-    !Array.isArray(formData.current_medications) ||
-    formData.current_medications.length === 0
+    !Array.isArray(allDrugs) ||
+    allDrugs === 0 
   ) {
     drugInteractionResults.value = [];
     formData.drug_interactions = "";
@@ -182,44 +183,41 @@ const checkDrugInteractions = async () => {
 
   const results = [];
 
-  for (const prescribedDrug of formData.medications) {
-    for (const currentDrug of formData.current_medications) {
-      try {
-        const prescribedId = prescribedDrug._id || prescribedDrug.id;
-        const currentId =
-          currentDrug.drugId ||
-          currentDrug.drug_id ||
-          currentDrug.drugbankId ||
-          currentDrug.name;
 
-        console.log("PRESCRIBED DRUG:", prescribedDrug);
-        console.log("CURRENT DRUG:", currentDrug);
-        console.log("CHECKING IDS:", prescribedId, currentId);
+  for (const drug1 of allDrugs) {
+    for (const drug2 of allDrugs) {
+      try {
+        const prescribedId = drug1._id || drug1.id;
+        const currentId =
+          drug2.drugId ||
+          drug2.drug_id ||
+          drug2.drugbankId ||
+          drug2.name;
 
         const interactions = await api.getInteractions(
           prescribedId,
           currentId
         );
 
-        console.log("INTERACTIONS RETURNED:", interactions);
-
         if (checkId !== interactionCheckId.value) {
           return;
         }
 
         interactions.forEach(interaction => {
-          const key =
-            `${prescribedDrug.id}-${currentDrug.id}-${interaction.drug_id}-${interaction.description}`;
+          const key1 =
+            `${drug1.id}-${drug2.id}`;
+          const key2 =
+            `${drug2.id}-${drug1.id}`;
 
           const alreadyExists = results.some(
-            item => item.key === key
+            item => item.key === key2 || item.key1 === key1
           );
 
           if (!alreadyExists) {
             results.push({
-              key,
-              prescribedName: prescribedDrug.name,
-              currentName: currentDrug.name,
+              key: key1,
+              prescribedName: drug1.name,
+              currentName: drug2.name,
               description: interaction.description
             });
           }
