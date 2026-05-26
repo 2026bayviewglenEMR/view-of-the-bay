@@ -64,6 +64,13 @@ export const api = {
     clearConsultationDraft: (patientId) =>
         http.delete(`/patients/${patientId}/consultation-draft`).then(r => r.data),
 
+    // patient documents
+    getPatientDocuments: (patientId) => http.get(`/documents/patient/${patientId}`).then(r => r.data),
+    uploadPatientDocument: (formData) => http.post('/documents/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(r => r.data),
+    deletePatientDocument: (id) => http.delete(`/documents/${id}`).then(r => r.data),
+
     // dashboard
     getTodaysAppointments: () => http.get('/dashboard/appointments/today').then(r => r.data),
 

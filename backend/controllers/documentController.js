@@ -43,6 +43,7 @@ exports.uploadDocument = async (req, res) => {
       uploaderId: req.user.id,
       patientId,
       fileName: req.file.filename,
+      originalName: req.body.originalName || req.file.originalname || req.file.filename,
       fileUrl: `/uploads/${req.file.filename}`,
       documentType,
       access: {

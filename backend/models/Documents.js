@@ -17,6 +17,10 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    originalName: {
+      type: String,
+      default: "",
+    },
     fileUrl: {
       type: String,
       required: true,
