@@ -76,6 +76,7 @@ export const api = {
     checkInPatient: (appointmentId, note, flag) => http.post('/waiting-room/check-in', { appointmentId, note, flag }).then(r => r.data),
     updatePatientStatus: (id, status) => http.patch(`/waiting-room/${id}/status`, { status }).then(r => r.data),
     removePatient: (id) => http.delete(`/waiting-room/${id}`).then(r => r.data),
+    startWaitingRoomConsultation: (patientId) => http.patch(`/waiting-room/patient/${patientId}/start`).then(r => r.data),
 
     // tasks
     getTasks: () => http.get('/tasks').then(r => r.data),

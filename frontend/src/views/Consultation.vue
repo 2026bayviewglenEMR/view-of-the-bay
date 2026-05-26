@@ -264,6 +264,11 @@ const loadPatient = async () => {
 
   try {
     patient.value = await api.getPatient(patientId.value);
+    try {
+      await api.startWaitingRoomConsultation(patientId.value);
+    } catch (err) {
+      console.error("Failed to update waiting room status:", err);
+    }
   } catch (err) {
     console.error("Failed to load patient", err);
   }

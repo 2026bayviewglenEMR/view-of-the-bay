@@ -445,6 +445,11 @@ async function saveAllForms() {
 onMounted(async () => {
   await loadTemplates();
   await loadPatient();
+  try {
+    await api.startWaitingRoomConsultation(patientId);
+  } catch (err) {
+    console.error("Failed to update waiting room status:", err);
+  }
 });
 </script>
 

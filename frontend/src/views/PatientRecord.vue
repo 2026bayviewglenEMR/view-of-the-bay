@@ -401,7 +401,12 @@ export default {
       const encounters = await api.getPatientEncounters(id);
       this.mapTimeline(encounters);
     },
-    startConsultation() {
+    async startConsultation() {
+      try {
+        await api.startWaitingRoomConsultation(this.patient.id);
+      } catch (err) {
+        console.error("Failed to start waiting room consultation:", err);
+      }
       this.$router.push(`/diagnose/${this.patient.id}`)
     },
     openAddPatient() {
