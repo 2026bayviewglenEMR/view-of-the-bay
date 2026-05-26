@@ -409,6 +409,45 @@ const updatePatient = async (req, res) => {
   }
 };
 
+const updateOwnPatient = async (req, res) => {
+  try {
+    const patientId = req.user?.patientId;
+    if (!patientId) {
+      return res.status(403).json({ message: "No patient record linked to this account." });
+    }
+
+    const { firstName, lastName, dateOfBirth, gender, demographics } = req.body;
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found." });
+    }
+
+    if (firstName) patient.firstName = firstName;
+    if (lastName) patient.lastName = lastName;
+    if (dateOfBirth) patient.dateOfBirth = new Date(dateOfBirth);
+    if (gender !== undefined) patient.gender = gender;
+    if (demographics) {
+      patient.demographics = { ...patient.demographics?.toObject(), ...demographics };
+    }
+
+    const savedPatient = await patient.save();
+
+    if (patient.userId) {
+      const user = await User.findById(patient.userId);
+      if (user) {
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        await user.save();
+      }
+    }
+
+    res.json(savedPatient);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update patient record." });
+  }
+};
+
 module.exports = {
   getAllPatients,
   getPatientById,
@@ -421,4 +460,5 @@ module.exports = {
   updateExecutiveSummary,
   createPatient,
   updatePatient,
+  updateOwnPatient,
 };

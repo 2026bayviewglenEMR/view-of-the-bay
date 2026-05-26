@@ -16,11 +16,14 @@ const {
   updateExecutiveSummary,
   createPatient,
   updatePatient,
+  updateOwnPatient,
 } = require("../controllers/patients.controller");
 
 router.get("/", authenticateToken, getAllPatients);
 
 router.post("/", authenticateToken, requireRole(["admin", "doctor"]), createPatient);
+
+router.put("/me", authenticateToken, updateOwnPatient);
 
 router.get("/:id", authenticateToken, getPatientById);
 

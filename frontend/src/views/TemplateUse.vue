@@ -63,6 +63,29 @@
             @update="updateFormData" />
           <p v-else>Loading templates...</p>
 
+          <div v-if="isLastPage && hasSeenBuilder" class="soap-preview">
+            <h3 class="soap-title">SOAP Note Preview</h3>
+            <p class="soap-subtitle">Auto-generated from your entries. Saved with this consultation.</p>
+            <div class="soap-sections">
+              <div class="soap-section">
+                <div class="soap-label">S — Subjective</div>
+                <div class="soap-content">{{ soapNote.subjective || 'No subjective data entered.' }}</div>
+              </div>
+              <div class="soap-section">
+                <div class="soap-label">O — Objective</div>
+                <div class="soap-content">{{ soapNote.objective || 'No objective data entered.' }}</div>
+              </div>
+              <div class="soap-section">
+                <div class="soap-label">A — Assessment</div>
+                <div class="soap-content">{{ soapNote.assessment || 'No assessment entered.' }}</div>
+              </div>
+              <div class="soap-section">
+                <div class="soap-label">P — Plan</div>
+                <div class="soap-content">{{ soapNote.plan || 'No plan entered.' }}</div>
+              </div>
+            </div>
+          </div>
+
           <div class="navigation-buttons">
             <button v-if="currentIndex > 0" class="back-btn" @click="previousTemplate">Back</button>
 
@@ -110,6 +133,56 @@ import PatientSidebar from "./consultation/PatientSidebar.vue";
 const route = useRoute();
 const router = useRouter();
 const patientId = route.params.patientId;
+
+const soapNote = computed(() => {
+  const sym = allForms.value.symptoms_checklist || {};
+  const diag = allForms.value.basic_diagnosis || {};
+  const vit = allForms.value.vitals_check || {};
+  const med = allForms.value.prescribe_medication || {};
+
+  const vitalsStr = [
+    vit.temperature ? `Temp: ${vit.temperature}°C` : null,
+    vit.heart_rate ? `HR: ${vit.heart_rate} bpm` : null,
+    vit.blood_pressure ? `BP: ${vit.blood_pressure}` : null,
+    vit.respiratory_rate ? `RR: ${vit.respiratory_rate}` : null,
+    vit.height ? `Height: ${vit.height}` : null,
+    vit.weight ? `Weight: ${vit.weight}` : null,
+    vit.bmi ? `BMI: ${vit.bmi}` : null,
+  ].filter(Boolean).join(' · ');
+
+  const medName = med.medication?.name || (typeof med.medication === 'string' ? med.medication : null);
+  const medStr = medName
+    ? [medName, med.dosage, med.frequency, med.instructions].filter(Boolean).join(', ')
+    : null;
+
+  return {
+    subjective: [
+      sym.symptoms?.length ? `Symptoms: ${sym.symptoms.join(', ')}` : null,
+      sym.additional_notes ? `Notes: ${sym.additional_notes}` : null,
+      diag.chief_complaint ? `Chief complaint: ${diag.chief_complaint}` : null,
+      diag.pain_level ? `Pain level: ${diag.pain_level}/10` : null,
+      diag.symptom_duration ? `Duration: ${diag.symptom_duration}` : null,
+    ].filter(Boolean).join('\n'),
+
+    objective: [
+      vitalsStr || null,
+      vit.additional_notes ? `Notes: ${vit.additional_notes}` : null,
+      diag.physical_exam ? `Physical exam: ${diag.physical_exam}` : null,
+    ].filter(Boolean).join('\n'),
+
+    assessment: [
+      diag.diagnosis ? `Diagnosis: ${diag.diagnosis}` : null,
+      diag.allergies ? `Allergies: ${diag.allergies}` : null,
+    ].filter(Boolean).join('\n'),
+
+    plan: [
+      diag.treatment_plan ? `Treatment: ${diag.treatment_plan}` : null,
+      diag.follow_up !== '' && diag.follow_up !== undefined ? `Follow-up needed: ${diag.follow_up ? 'Yes' : 'No'}` : null,
+      medStr ? `Medication: ${medStr}` : null,
+      diag.additional_notes ? `Notes: ${diag.additional_notes}` : null,
+    ].filter(Boolean).join('\n'),
+  };
+});
 
 // State Tracking
 const serverTemplates = ref([]);
@@ -416,7 +489,8 @@ async function saveAllForms() {
 
     await saveTemplateConsultation({
       patientId,
-      forms: allForms.value
+      forms: allForms.value,
+      soapNote: soapNote.value,
     });
     try { await api.clearConsultationDraft(patientId); } catch { }
     alert("Patient examination saved successfully");
@@ -637,6 +711,58 @@ onMounted(async () => {
   color: #b91c1c;
   font-weight: 700;
   margin-bottom: 18px;
+}
+
+.soap-preview {
+  width: 100%;
+  margin-top: 24px;
+  padding: 20px;
+  background: #f8fdf9;
+  border: 1px solid #b7dfc8;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.soap-title {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e4d38;
+}
+
+.soap-subtitle {
+  margin: 0 0 16px 0;
+  font-size: 12px;
+  color: #6b8f7a;
+}
+
+.soap-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.soap-section {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 14px;
+  border-left: 3px solid #2d6a4f;
+}
+
+.soap-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #2d6a4f;
+  margin-bottom: 6px;
+}
+
+.soap-content {
+  font-size: 13px;
+  color: #333;
+  white-space: pre-line;
+  line-height: 1.5;
 }
 
 .save-draft-btn {
