@@ -10,8 +10,8 @@
             </main>
         </div>
 
-        <div v-if="showWelcome" class="welcome-overlay" @animationend="showWelcome = false">
-            <p class="welcome-text">Welcome to The Bay, {{ welcomeName }}</p>
+        <div v-if="showWelcome" class="welcome-bar" @animationend="showWelcome = false">
+            Welcome to The Bay, {{ welcomeName }}
         </div>
     </div>
 </template>
@@ -81,32 +81,28 @@ onMounted(() => {
     margin-left: 70px;
 }
 
-.welcome-overlay {
+.welcome-bar {
     position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    color: #10231b;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 10px 22px;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     pointer-events: none;
     z-index: 9999;
+    white-space: nowrap;
+    animation: barFade 2s ease forwards;
 }
 
-.welcome-text {
-    font-family: Georgia, 'Palatino Linotype', Palatino, serif;
-    font-style: italic;
-    font-size: clamp(1.6rem, 3vw, 2.6rem);
-    color: #b8762a;
-    text-shadow: 0 2px 12px rgba(184, 118, 42, 0.25);
-    margin: 0;
-    text-align: center;
-    padding: 0 2rem;
-    animation: welcomeFade 4.2s ease forwards;
-}
-
-@keyframes welcomeFade {
-    0%   { opacity: 0; transform: translateY(12px); }
-    18%  { opacity: 1; transform: translateY(0); }
-    72%  { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-8px); }
+@keyframes barFade {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+    15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    70%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 }
 </style>
