@@ -185,10 +185,23 @@ const checkDrugInteractions = async () => {
   for (const prescribedDrug of formData.medications) {
     for (const currentDrug of formData.current_medications) {
       try {
+        const prescribedId = prescribedDrug._id || prescribedDrug.id;
+        const currentId =
+          currentDrug.drugId ||
+          currentDrug.drug_id ||
+          currentDrug.drugbankId ||
+          currentDrug.name;
+
+        console.log("PRESCRIBED DRUG:", prescribedDrug);
+        console.log("CURRENT DRUG:", currentDrug);
+        console.log("CHECKING IDS:", prescribedId, currentId);
+
         const interactions = await api.getInteractions(
-          prescribedDrug.id,
-          currentDrug.id
+          prescribedId,
+          currentId
         );
+
+        console.log("INTERACTIONS RETURNED:", interactions);
 
         if (checkId !== interactionCheckId.value) {
           return;

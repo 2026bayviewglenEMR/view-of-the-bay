@@ -19,8 +19,6 @@
           </div>
 
           <p class="step-count">Step {{ currentStepNumber }} of {{ totalStepCount }}</p>
-          <h1 class="title">Plan & Options</h1>
-          <p class="subtitle">Select the extra forms this visit needs, then complete them inside step 4.</p>
 
           <div class="plan-sections">
             <template v-if="optionalTemplateGroups.length > 0">
@@ -72,8 +70,6 @@
           </div>
 
           <p class="step-count">Step {{ currentStepNumber }} of {{ totalStepCount }}</p>
-          <h1 class="title">{{ pageTitle }}</h1>
-          <p v-if="currentPhaseSubtitle" class="subtitle">{{ currentPhaseSubtitle }}</p>
           <p v-if="error" class="error-message">{{ error }}</p>
 
           <div v-if="isInPlanOptions && selectedPlanSteps.length" class="selected-actions-strip">
