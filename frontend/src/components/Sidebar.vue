@@ -35,7 +35,8 @@ const navConfig = [
     { path: '/patients',      label: 'Patient Records', icon: '👥', roles: ['doctor', 'admin', 'patient'] },
     { path: '/messaging',     label: 'Messaging',      icon: '💬', roles: ['doctor', 'admin', 'patient'] },
     { path: '/waitingroom',   label: 'Waiting Room',   icon: '🪑', roles: ['admin'] },
-    { path: '/PatientPortal', label: 'Patient Portal', icon: '🌀', roles: ['patient'] }
+    { path: '/PatientPortal', label: 'Patient Portal', icon: '🌀', roles: ['patient'] },
+    { path: '/drug-directory',label: 'Drug Directory', icon: '💊', roles: ['doctor', 'admin'] },
 ]
 
 // Emit the initial state when the component mounts
