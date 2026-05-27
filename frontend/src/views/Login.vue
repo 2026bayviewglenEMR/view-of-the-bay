@@ -35,6 +35,7 @@
 import { api } from './../api/api';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { syncUser } from '../composables/useUser.js';
 
 const router = useRouter();
 const username = ref("");
@@ -47,9 +48,9 @@ const signIn = async () => {
       const res = await api.signIn(username.value, password.value);
       if (res) {
         localStorage.setItem("token", res.token);
-        console.log(res.user)
         localStorage.setItem("user", JSON.stringify(res.user));
         localStorage.setItem("loginTimestamp", Date.now().toString());
+        syncUser();
 
         router.push("/")
       }

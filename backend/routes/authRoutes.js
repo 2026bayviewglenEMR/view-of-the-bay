@@ -37,7 +37,8 @@ router.post('/signIn', async (req, res) => {
             id: user.id,
             email: user.email,
             role: user.role,
-            patientId: user.patientId ?? null
+            patientId: user.patientId ?? null,
+            profilePicture: user.profilePicture ?? null
         }
         return res.status(200).json({token, user: userToReturn});
     } else {
