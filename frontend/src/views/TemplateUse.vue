@@ -403,7 +403,7 @@ watch(
 
     // 1. Get the existing data from allForms
     const savedData = allForms.value[currentTemplate.value.id] || {};
-    
+
     // 2. Get the defaults from formsConfig
     const defaults = currentInitialData.value;
 
@@ -415,6 +415,19 @@ watch(
   },
   { immediate: true }
 );
+
+// Patient loads AFTER templates, so the initial watch above runs with patient = null.
+// When patient finishes loading, re-sync the current form so allergies and
+// current medications auto-populate from executiveSummary.
+watch(patient, (newPatient, oldPatient) => {
+  if (!newPatient || oldPatient) return; // only fire once on initial load
+  if (!currentTemplate.value) return;
+
+  const savedData = allForms.value[currentTemplate.value.id] || {};
+  const defaults = currentInitialData.value; // patient is now available
+  currentFormData.value = { ...defaults, ...savedData };
+  quickFillKey.value++; // force TemplateRenderer to remount with patient data
+});
 
 const canGoNext = computed(() =>
   formsConfig.validateStep(currentTemplate.value, currentFormData.value)
