@@ -29,7 +29,7 @@
         <div class="card-header">
           <div>
             <p class="eyebrow">Schedule</p>
-            <h2>Book an appointment</h2>
+            <h2>Book an Appointment</h2>
           </div>
         </div>
 
@@ -83,7 +83,7 @@
         <div class="card-header appointments-header">
           <div>
             <p class="eyebrow">View</p>
-            <h2>Your appointments</h2>
+            <h2>Your Appointments</h2>
           </div>
 
           <select v-model="filter" class="filter-select" aria-label="Filter appointments">
@@ -130,7 +130,7 @@
         </div>
 
         <div v-else class="empty-state">
-          <h3>No appointments found</h3>
+          <h3>No Appointments Found</h3>
           <p>Appointments you schedule will appear here.</p>
         </div>
       </div>

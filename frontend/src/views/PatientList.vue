@@ -18,7 +18,7 @@
           <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
           <div class="patient-info">
             <span>DOB: {{ new Date(patient.dateOfBirth).toLocaleDateString() }}</span>
-            <span>Phone: {{ patient.demographics?.phone || '—' }}</span>
+            <span>Email: {{ patient.demographics?.email || '—' }}</span>
           </div>
         </div>
 
@@ -34,7 +34,7 @@
             <input v-model="newPatient.lastName" placeholder="Last Name" />
             <input v-model="newPatient.dateOfBirth" type="date" />
             <input v-model="newPatient.gender" placeholder="Gender" />
-            <input v-model="newPatient.phone" placeholder="Phone" />
+            <input v-model="newPatient.email" placeholder="Email" />
             <input v-model="newPatient.address" placeholder="Address" />
             <input v-model="newPatient.insurance" placeholder="Insurance" />
           </div>
@@ -67,7 +67,7 @@ const newPatient = ref({
   lastName: '',
   dateOfBirth: '',
   gender: '',
-  phone: '',
+  email: '',
   address: '',
   insurance: ''
 })
@@ -100,7 +100,7 @@ const resetNewPatientForm = () => {
     lastName: '',
     dateOfBirth: '',
     gender: '',
-    phone: '',
+    email: '',
     address: '',
     insurance: ''
   }
@@ -114,7 +114,7 @@ const savePatient = async () => {
       dateOfBirth: newPatient.value.dateOfBirth,
       gender: newPatient.value.gender,
       demographics: {
-        phone: newPatient.value.phone,
+        email: newPatient.value.email,
         address: newPatient.value.address,
         insurance: newPatient.value.insurance
       }

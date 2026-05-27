@@ -30,9 +30,20 @@ const getAllPatients = async (req, res) => {
       });
     }
 
-    const patients = await Patient.find();
+    const patients = await Patient.find().populate('userId', 'email');
 
-    res.json(patients);
+    const mappedPatients = patients.map(p => {
+      const obj = p.toObject();
+      if (obj.userId && obj.userId.email) {
+        obj.demographics = {
+          ...obj.demographics,
+          email: obj.userId.email
+        };
+      }
+      return obj;
+    });
+
+    res.json(mappedPatients);
   } catch (err) {
     console.error(err);
 
@@ -50,7 +61,7 @@ const getPatientById = async (req, res) => {
       });
     }
 
-    const patient = await Patient.findById(req.params.id);
+    const patient = await Patient.findById(req.params.id).populate('userId', 'email');
 
     if (!patient) {
       return res.status(404).json({
@@ -58,7 +69,15 @@ const getPatientById = async (req, res) => {
       });
     }
 
-    res.json(patient);
+    const obj = patient.toObject();
+    if (obj.userId && obj.userId.email) {
+      obj.demographics = {
+        ...obj.demographics,
+        email: obj.userId.email
+      };
+    }
+
+    res.json(obj);
   } catch (err) {
     console.error(err);
 
@@ -76,7 +95,7 @@ const getPatientSummary = async (req, res) => {
       });
     }
 
-    const patient = await Patient.findById(req.params.id);
+    const patient = await Patient.findById(req.params.id).populate('userId', 'email');
 
     if (!patient) {
       return res.status(404).json({
@@ -90,6 +109,7 @@ const getPatientSummary = async (req, res) => {
       allergies: patient.executiveSummary?.allergies || [],
       medications:
         patient.executiveSummary?.activeMedications || [],
+      email: patient.userId?.email || patient.demographics?.email,
       phone: patient.demographics?.phone,
       emergencyContact:
         patient.demographics?.emergencyContact,
@@ -343,7 +363,7 @@ const createPatient = async (req, res) => {
       role: "patient",
       firstName,
       lastName,
-      email: `${username}@example.com`,
+      email: demographics?.email || `${username}@example.com`,
       isActive: true,
     });
     const savedUser = await newUser.save();
@@ -363,7 +383,13 @@ const createPatient = async (req, res) => {
     savedUser.patientId = savedPatient._id;
     await savedUser.save();
 
-    res.status(201).json(savedPatient);
+    const obj = savedPatient.toObject();
+    obj.demographics = {
+      ...obj.demographics,
+      email: savedUser.email
+    };
+
+    res.status(201).json(obj);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to create patient record." });
@@ -393,16 +419,29 @@ const updatePatient = async (req, res) => {
 
     const savedPatient = await patient.save();
 
+    let email = "";
     if (patient.userId) {
       const user = await User.findById(patient.userId);
       if (user) {
         if (firstName) user.firstName = firstName;
         if (lastName) user.lastName = lastName;
+        if (demographics && demographics.email !== undefined) {
+          user.email = demographics.email;
+          email = demographics.email;
+        } else {
+          email = user.email;
+        }
         await user.save();
       }
     }
 
-    res.json(savedPatient);
+    const obj = savedPatient.toObject();
+    obj.demographics = {
+      ...obj.demographics,
+      email: email || obj.demographics?.email || ""
+    };
+
+    res.json(obj);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to update patient record." });
@@ -432,16 +471,29 @@ const updateOwnPatient = async (req, res) => {
 
     const savedPatient = await patient.save();
 
+    let email = "";
     if (patient.userId) {
       const user = await User.findById(patient.userId);
       if (user) {
         if (firstName) user.firstName = firstName;
         if (lastName) user.lastName = lastName;
+        if (demographics && demographics.email !== undefined) {
+          user.email = demographics.email;
+          email = demographics.email;
+        } else {
+          email = user.email;
+        }
         await user.save();
       }
     }
 
-    res.json(savedPatient);
+    const obj = savedPatient.toObject();
+    obj.demographics = {
+      ...obj.demographics,
+      email: email || obj.demographics?.email || ""
+    };
+
+    res.json(obj);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to update patient record." });

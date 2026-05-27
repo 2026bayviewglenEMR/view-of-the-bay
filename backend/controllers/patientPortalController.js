@@ -28,12 +28,20 @@ const getPatientPortalData = async (req, res) => {
       });
     }
 
-    const patient = await Patient.findById(patientId);
+    const patient = await Patient.findById(patientId).populate('userId', 'email');
 
     if (!patient) {
       return res.status(404).json({
         message: "Patient not found.",
       });
+    }
+
+    const patientObj = patient.toObject();
+    if (patientObj.userId && patientObj.userId.email) {
+      patientObj.demographics = {
+        ...patientObj.demographics,
+        email: patientObj.userId.email,
+      };
     }
 
     await Appointment.updateMany(
@@ -56,7 +64,7 @@ const getPatientPortalData = async (req, res) => {
     });
 
     return res.status(200).json({
-      patient,
+      patient: patientObj,
       appointments,
       consultations,
     });
