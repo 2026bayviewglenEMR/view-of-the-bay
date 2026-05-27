@@ -45,9 +45,56 @@
         {{ errorMessage }}
       </p>
 
-      <p v-else-if="isLoading" class="loading-message">
-        Loading patient record...
-      </p>
+      <div v-else-if="isLoading" class="skeleton-page">
+        <!-- header -->
+        <div class="skeleton-header">
+          <div class="skel skel-title"></div>
+          <div class="skel skel-subtitle"></div>
+          <div class="skeleton-header-btns">
+            <div class="skel skel-btn"></div>
+            <div class="skel skel-btn"></div>
+          </div>
+        </div>
+        <!-- allergy banner placeholder -->
+        <div class="skel skel-banner"></div>
+
+        <div class="patient-layout">
+          <main class="main-content">
+            <section class="card">
+              <div class="skel skel-card-title"></div>
+              <div class="skel-row" v-for="n in 5" :key="'d'+n">
+                <div class="skel skel-label"></div>
+                <div class="skel skel-value"></div>
+              </div>
+            </section>
+            <section class="card">
+              <div class="skel skel-card-title"></div>
+              <div class="skel-row" v-for="n in 4" :key="'c'+n">
+                <div class="skel skel-label"></div>
+                <div class="skel skel-value"></div>
+              </div>
+            </section>
+            <section class="card">
+              <div class="skel skel-card-title"></div>
+              <div v-for="n in 2" :key="'t'+n" class="skeleton-timeline-item">
+                <div class="skel skel-tl-title"></div>
+                <div class="skel skel-tl-line"></div>
+                <div class="skel skel-tl-line short"></div>
+              </div>
+            </section>
+          </main>
+
+          <aside class="summary-panel card">
+            <div class="skel skel-card-title"></div>
+            <div class="skel skel-photo"></div>
+            <div class="skel skel-value" style="margin-bottom:16px"></div>
+            <div class="skel skel-section-title"></div>
+            <div class="skel skel-value short" v-for="n in 2" :key="'a'+n"></div>
+            <div class="skel skel-section-title" style="margin-top:16px"></div>
+            <div class="skel skel-value short" v-for="n in 3" :key="'m'+n"></div>
+          </aside>
+        </div>
+      </div>
 
       <template v-else>
 
@@ -782,12 +829,69 @@ async savePatient() {
 }
 
 .error-message,
-.loading-message {
-  padding: 14px 18px;
-  border-radius: 10px;
-  background: white;
-  font-weight: 700;
+/* ── Skeleton loading ─────────────────────────────── */
+.skeleton-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
+
+.skel {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.skeleton-header-btns {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.skel-title    { width: 220px; height: 28px; }
+.skel-subtitle { width: 140px; height: 16px; }
+.skel-btn      { width: 130px; height: 36px; border-radius: 8px; }
+.skel-banner   { width: 200px; height: 32px; border-radius: 8px; }
+.skel-card-title    { width: 140px; height: 20px; margin-bottom: 14px; }
+.skel-section-title { width: 110px; height: 14px; margin-bottom: 8px; }
+.skel-photo    { width: 72px; height: 72px; border-radius: 50%; margin: 8px auto 16px; }
+
+.skel-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.skel-row:last-child { border-bottom: none; }
+.skel-label { width: 110px; height: 13px; flex-shrink: 0; }
+.skel-value { flex: 1; height: 13px; }
+.skel-value.short { flex: none; width: 120px; margin-bottom: 6px; }
+
+.skeleton-timeline-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton-timeline-item:last-child { border-bottom: none; }
+.skel-tl-title { width: 60%; height: 15px; }
+.skel-tl-line  { width: 85%; height: 12px; }
+.skel-tl-line.short { width: 55%; }
 
 .error-message {
   color: #b91c1c;
