@@ -12,8 +12,8 @@ const waitingRoomSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Checked-in", "Waiting", "In consultation"],
-      default: "Checked-in",
+      enum: ["Waiting", "In consultation"],
+      default: "Waiting",
     },
     checkedInAt: {
       type: Date,

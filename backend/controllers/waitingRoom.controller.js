@@ -159,7 +159,7 @@ const checkInPatient = async (req, res) => {
 
     const entry = await WaitingRoom.create({
       appointmentId,
-      status: "Checked-in",
+      status: "Waiting",
       checkedInAt: new Date(),
       note: note || "",
       // caller can force flag; otherwise fall back to allergy auto-detect
@@ -191,7 +191,7 @@ const updatePatientStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const allowed = ["Checked-in", "Waiting", "In consultation"];
+    const allowed = ["Waiting", "In consultation"];
     if (!allowed.includes(status)) {
       return res.status(400).json({
         message: `Invalid status. Must be one of: ${allowed.join(", ")}`,

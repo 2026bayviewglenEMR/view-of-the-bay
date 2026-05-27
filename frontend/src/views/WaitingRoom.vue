@@ -285,8 +285,8 @@ const bookingDoctorId = ref('')
 const bookingError = ref('')
 let bookingSearchTimeout = null
 
-const filters = ['All', 'Checked-in', 'Waiting', 'In consultation']
-const statusOptions = ['Checked-in', 'Waiting', 'In consultation']
+const filters = ['All', 'Waiting', 'In consultation']
+const statusOptions = ['Waiting', 'In consultation']
 
 const checkInForm = reactive({
   name: '',
