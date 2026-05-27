@@ -77,7 +77,10 @@
             <strong>{{ currentOptionalPosition }}</strong>
           </div>
 
-          <TemplateRenderer v-if="currentTemplate" :template="currentTemplate" :initialData="currentInitialData"
+          <TemplateRenderer v-if="currentTemplate"
+            :key="`${currentTemplate.id}-${quickFillKey}`"
+            :template="currentTemplate"
+            :initialData="currentInitialData"
             @update="updateFormData" />
           <p v-else>Loading templates...</p>
 
@@ -244,6 +247,7 @@ const error = ref("");
 const allForms = ref({});
 const currentFormData = ref({});
 const showQuickFill = ref(false);
+const quickFillKey = ref(0);
 
 // Authentication & Profile Parsing
 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -716,11 +720,8 @@ function applyQuickFill(template) {
     }
   }
 
-  // Re-sync current form data so the visible form updates immediately
-  if (currentTemplate.value && template.fills[currentTemplate.value.id]) {
-    currentFormData.value = { ...currentFormData.value, ...template.fills[currentTemplate.value.id] };
-  }
-
+  // Force TemplateRenderer to remount so it re-reads the updated initialData
+  quickFillKey.value++;
   showQuickFill.value = false;
 }
 
