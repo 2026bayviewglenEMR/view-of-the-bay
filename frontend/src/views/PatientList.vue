@@ -9,20 +9,32 @@
       </div>
 
       <div class="patient-list">
-        <div
-          v-for="patient in filteredPatients"
-          :key="patient._id"
-          class="patient-card"
-          @click="goToPatient(patient._id)"
-        >
-          <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
-          <div class="patient-info">
-            <span>DOB: {{ new Date(patient.dateOfBirth).toLocaleDateString() }}</span>
-            <span>Email: {{ patient.demographics?.email || '—' }}</span>
+        <template v-if="isLoading">
+          <div v-for="n in 8" :key="n" class="patient-card skeleton-card">
+            <div class="skel skel-name"></div>
+            <div class="skeleton-info-row">
+              <div class="skel skel-info"></div>
+              <div class="skel skel-info"></div>
+            </div>
           </div>
-        </div>
+        </template>
 
-        <p v-if="filteredPatients.length === 0">No patients found.</p>
+        <template v-else>
+          <div
+            v-for="patient in filteredPatients"
+            :key="patient._id"
+            class="patient-card"
+            @click="goToPatient(patient._id)"
+          >
+            <div class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</div>
+            <div class="patient-info">
+              <span>DOB: {{ new Date(patient.dateOfBirth).toLocaleDateString() }}</span>
+              <span>Email: {{ patient.demographics?.email || '—' }}</span>
+            </div>
+          </div>
+
+          <p v-if="filteredPatients.length === 0">No patients found.</p>
+        </template>
       </div>
 
       <div v-if="showAddPatientModal" class="modal-overlay">
@@ -60,6 +72,7 @@ import { api } from '../api/api.js'
 const router = useRouter()
 const route = useRoute()
 const patients = ref([])
+const isLoading = ref(true)
 const showAddPatientModal = ref(false)
 
 const newPatient = ref({
@@ -134,6 +147,8 @@ onMounted(async () => {
     patients.value = await api.getAllPatients()
   } catch (err) {
     console.error('Failed to load patients', err)
+  } finally {
+    isLoading.value = false
   }
 })
 </script>
@@ -271,5 +286,37 @@ onMounted(async () => {
     flex-direction: column;
     gap: 6px;
   }
+}
+
+.skeleton-card {
+  pointer-events: none;
+}
+
+.skeleton-info-row {
+  display: flex;
+  gap: 24px;
+}
+
+.skel {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skel-name {
+  height: 18px;
+  width: 200px;
+  margin-bottom: 10px;
+}
+
+.skel-info {
+  height: 14px;
+  width: 140px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>
