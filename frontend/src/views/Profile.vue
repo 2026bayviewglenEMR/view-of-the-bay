@@ -35,7 +35,7 @@
         <div v-if="user?.role === 'patient'" class="profile-card">
           <h3>Patient Information</h3>
 
-          <p><strong>Phone:</strong> {{ patientData?.demographics?.phone || "Not provided" }}</p>
+          <p><strong>Email:</strong> {{ patientData?.demographics?.email || "Not provided" }}</p>
 
           <p><strong>Address:</strong> {{ patientData?.demographics?.address || "Not provided" }}</p>
 

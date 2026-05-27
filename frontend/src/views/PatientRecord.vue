@@ -10,7 +10,7 @@
       <input v-model="patientForm.lastName" placeholder="Last Name" />
       <input v-model="patientForm.dateOfBirth" type="date" />
       <input v-model="patientForm.gender" placeholder="Gender" />
-      <input v-model="patientForm.phone" placeholder="Phone" />
+      <input v-model="patientForm.email" placeholder="Email" />
       <input v-model="patientForm.address" placeholder="Address" />
       <input v-model="patientForm.insurance" placeholder="Insurance" />
     </div>
@@ -104,7 +104,7 @@
               <div class="grid">
                 <p><strong>Date of Birth:</strong> {{ patient.dob || "-" }}</p>
                 <p><strong>Gender:</strong> {{ patient.gender || "-" }}</p>
-                <p><strong>Phone:</strong> {{ patient.phone || "-" }}</p>
+                <p><strong>Email:</strong> {{ patient.email || "-" }}</p>
                 <p><strong>Address:</strong> {{ patient.address || "-" }}</p>
                 <p><strong>Insurance:</strong> {{ patient.insurance || "-" }}</p>
               </div>
@@ -256,7 +256,7 @@ export default {
         lastName: "",
         dateOfBirth: "",
         gender: "",
-        phone: "",
+        email: "",
         address: "",
         insurance: "",
       },
@@ -269,7 +269,7 @@ export default {
         name: "",
         dob: "",
         gender: "",
-        phone: "",
+        email: "",
         address: "",
         insurance: "",
         photo: "",
@@ -394,7 +394,7 @@ export default {
           ? new Date(patient.dateOfBirth).toISOString().split('T')[0]
           : "",
         gender: patient.gender || "-",
-        phone: patient.demographics?.phone || "-",
+        email: patient.demographics?.email || "-",
         address: patient.demographics?.address || "-",
         insurance: patient.demographics?.insurance || "-",
         photo: patient.photoUrl || "",
@@ -499,7 +499,7 @@ export default {
         lastName: "",
         dateOfBirth: "",
         gender: "",
-        phone: "",
+        email: "",
         address: "",
         insurance: "",
       }
@@ -517,7 +517,7 @@ openEditPatient() {
     lastName,
     dateOfBirth: this.patient.rawDob || "",
     gender: this.patient.gender || "",
-    phone: this.patient.phone || "",
+    email: this.patient.email || "",
     address: this.patient.address || "",
     insurance: this.patient.insurance || "",
   }
@@ -537,7 +537,7 @@ async savePatient() {
       dateOfBirth: this.patientForm.dateOfBirth,
       gender: this.patientForm.gender,
       demographics: {
-        phone: this.patientForm.phone,
+        email: this.patientForm.email,
         address: this.patientForm.address,
         insurance: this.patientForm.insurance,
       },
