@@ -131,6 +131,10 @@
               {{ isSaving ? "Saving..." : "Save Consultation" }}
             </button>
 
+            <button v-if="isDoctor" class="quick-fill-btn" @click="showQuickFill = true">
+              ⚡ Quick Fill
+            </button>
+
             <button v-if="isDoctor" class="save-draft-btn" @click="saveDraft">
               💾 Save & Continue Later
             </button>
@@ -145,6 +149,12 @@
       </div>
     </template>
   </MainLayout>
+
+  <QuickFillModal
+    v-if="showQuickFill"
+    @apply="applyQuickFill"
+    @close="showQuickFill = false"
+  />
 </template>
 
 <script setup>
@@ -157,6 +167,7 @@ import { formsConfig } from "./consultation/formsConfig.js";
 
 import MainLayout from "@/components/MainLayout.vue";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
+import QuickFillModal from "@/components/QuickFillModal.vue";
 
 import PatientSidebar from "./consultation/PatientSidebar.vue";
 
@@ -232,6 +243,7 @@ const error = ref("");
 
 const allForms = ref({});
 const currentFormData = ref({});
+const showQuickFill = ref(false);
 
 // Authentication & Profile Parsing
 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -686,6 +698,32 @@ function downloadSOAPPdf() {
   doc.save(`soap_summary_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
+function applyQuickFill(template) {
+  // Merge the template fills into allForms without overwriting unrelated fields
+  Object.entries(template.fills).forEach(([formId, fills]) => {
+    allForms.value[formId] = { ...(allForms.value[formId] || {}), ...fills };
+  });
+
+  // If prescribe_medication isn't in the workflow yet, add it
+  if (!selectedOptionalIds.value.includes('prescribe_medication')) {
+    const prescribeTemplate = optionalTemplates.value.find(t => t.id === 'prescribe_medication');
+    if (prescribeTemplate) {
+      selectedOptionalIds.value.push('prescribe_medication');
+      if (!workflowTemplates.value.find(t => t.id === 'prescribe_medication')) {
+        workflowTemplates.value = [...workflowTemplates.value, prescribeTemplate];
+      }
+      hasSeenBuilder.value = true;
+    }
+  }
+
+  // Re-sync current form data so the visible form updates immediately
+  if (currentTemplate.value && template.fills[currentTemplate.value.id]) {
+    currentFormData.value = { ...currentFormData.value, ...template.fills[currentTemplate.value.id] };
+  }
+
+  showQuickFill.value = false;
+}
+
 onMounted(async () => {
   await loadTemplates();
   await loadPatient();
@@ -1114,6 +1152,24 @@ onMounted(async () => {
 }
 .go-record-btn:hover {
   background: #1e4d38;
+}
+
+.quick-fill-btn {
+  border: 2px solid #7c3aed;
+  background: white;
+  color: #7c3aed;
+  padding: 14px 34px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-fill-btn:hover {
+  background: #7c3aed;
+  color: white;
+  transform: translateY(-1px);
 }
 
 .save-draft-btn {
