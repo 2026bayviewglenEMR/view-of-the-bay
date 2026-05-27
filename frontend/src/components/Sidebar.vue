@@ -31,7 +31,7 @@ const role = JSON.parse(localStorage.getItem("user")).role
 
 // 1. Define the Navigation Structure Array
 const navConfig = [
-    { path: '/dashboard',     label: 'Dashboard',      icon: '📊', roles: ['doctor', 'admin'] },
+    { path: '/dashboard',     label: 'Dashboard',      icon: '📊', roles: ['doctor'] },
     { path: '/patients',      label: 'Patient Records', icon: '👥', roles: ['doctor', 'admin', 'patient'] },
     { path: '/messaging',     label: 'Messaging',      icon: '💬', roles: ['doctor', 'admin', 'patient'] },
     { path: '/waitingroom',   label: 'Waiting Room',   icon: '🪑', roles: ['admin'] },

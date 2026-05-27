@@ -95,7 +95,7 @@ const routesConfig = {
   '/': {
     patientRedirect: '/patientPortal',
     doctorRedirect: '/dashboard',
-    adminRedirect: '/dashboard',
+    adminRedirect: '/waitingRoom',
   },
   '/patients': {
     patientRedirect: () => {
