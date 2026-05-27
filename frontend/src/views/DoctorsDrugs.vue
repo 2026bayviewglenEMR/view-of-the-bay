@@ -6,6 +6,18 @@ import { api } from "../api/api";
 const drugs = ref([]);
 const search = ref("");
 const loading = ref(false);
+const expandedDrug = ref(null);
+
+function toggleExpand(id) {
+    expandedDrug.value = expandedDrug.value === id ? null : id;
+}
+
+function shortDescription(description) {
+    if (!description) return "No description available.";
+    if (description.length <= 220) return description;
+
+    return description.substring(0, 220) + "...";
+}
 
 async function searchDrugs() {
     const query = search.value.trim();
@@ -48,7 +60,12 @@ onMounted(() => {
                 </div>
             </div>
 
-            <input v-model="search" @input="searchDrugs" class="search" placeholder="Search drugs..." />
+            <input
+                v-model="search"
+                @input="searchDrugs"
+                class="search"
+                placeholder="Search drugs..."
+            />
 
             <div v-if="loading" class="status">
                 Loading...
@@ -67,8 +84,20 @@ onMounted(() => {
                     </div>
 
                     <div class="description">
-                        {{ drug.description || "No description available." }}
+                        {{
+                            expandedDrug === drug._id
+                                ? (drug.description || "No description available.")
+                                : shortDescription(drug.description)
+                        }}
                     </div>
+
+                    <button
+                        v-if="drug.description && drug.description.length > 220"
+                        class="expand-btn"
+                        @click="toggleExpand(drug._id)"
+                    >
+                        {{ expandedDrug === drug._id ? "Show less" : "Read more" }}
+                    </button>
                 </div>
             </div>
 
@@ -145,6 +174,20 @@ h2 {
 .description {
     line-height: 1.6;
     white-space: pre-wrap;
+}
+
+.expand-btn {
+    margin-top: 12px;
+    border: none;
+    background: none;
+    color: var(--color-primary);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
+.expand-btn:hover {
+    text-decoration: underline;
 }
 
 .status {
