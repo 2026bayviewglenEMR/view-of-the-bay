@@ -721,15 +721,24 @@ function applyQuickFill(template) {
     allForms.value[formId] = { ...(allForms.value[formId] || {}), ...fills };
   });
 
-  // If prescribe_medication isn't in the workflow yet, add it
-  if (!selectedOptionalIds.value.includes('prescribe_medication')) {
-    const prescribeTemplate = optionalTemplates.value.find(t => t.id === 'prescribe_medication');
-    if (prescribeTemplate) {
-      selectedOptionalIds.value.push('prescribe_medication');
-      if (!workflowTemplates.value.find(t => t.id === 'prescribe_medication')) {
+  // Pre-check prescribe_medication in the builder so it's already selected when
+  // the Plan & Options page appears. Do NOT add it to workflowTemplates directly
+  // or set hasSeenBuilder — the builder must still show so the doctor can confirm.
+  // Exception: if the doctor has already been through the builder and
+  // prescribe_medication is already in the workflow, we just fill in the data.
+  if (hasSeenBuilder.value) {
+    // Builder already passed — add to workflow if not present
+    if (!workflowTemplates.value.find(t => t.id === 'prescribe_medication')) {
+      const prescribeTemplate = optionalTemplates.value.find(t => t.id === 'prescribe_medication');
+      if (prescribeTemplate) {
+        selectedOptionalIds.value = [...new Set([...selectedOptionalIds.value, 'prescribe_medication'])];
         workflowTemplates.value = [...workflowTemplates.value, prescribeTemplate];
       }
-      hasSeenBuilder.value = true;
+    }
+  } else {
+    // Builder not yet shown — just pre-select so it's checked when builder opens
+    if (!selectedOptionalIds.value.includes('prescribe_medication')) {
+      selectedOptionalIds.value.push('prescribe_medication');
     }
   }
 
