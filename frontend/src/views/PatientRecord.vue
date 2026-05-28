@@ -234,7 +234,7 @@
                     </div>
                   </div>
                   <div class="doc-actions">
-                    <a :href="'http://localhost:3000' + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
+                    <a :href="import.meta.env.VITE_SERVER_URL || 'http://localhost:3000' + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
                     <button @click="deleteDocument(doc._id)" class="doc-delete-btn">✕</button>
                   </div>
                 </div>
