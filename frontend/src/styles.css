@@ -235,6 +235,94 @@ html[data-theme="dark"] .info-label {
   color: #8faa98;
 }
 
+/* --- Waiting Room page --- */
+html[data-theme="dark"] .page {
+  background: #0f1a14;
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .waiting-room {
+  background: #192a20;
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .waiting-room th {
+  color: #8faa98;
+}
+
+html[data-theme="dark"] .waiting-room td {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .waiting-room tr:hover {
+  background: #1e3226;
+}
+
+html[data-theme="dark"] .doctor-card {
+  background: #192a20;
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .doctor-card p,
+html[data-theme="dark"] .doctor-card h3 {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .modal {
+  background: #192a20;
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .modal h2 {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .modal .form-group label {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .modal .form-group input,
+html[data-theme="dark"] .modal .form-group select,
+html[data-theme="dark"] .modal .form-group textarea {
+  background: #1e3226;
+  color: #deeee4;
+  border-color: #2d4a38;
+}
+
+html[data-theme="dark"] .filters button {
+  background: #1e3226;
+  color: #8faa98;
+}
+
+html[data-theme="dark"] .filters .active {
+  background: #2d6a4f;
+  color: white;
+}
+
+html[data-theme="dark"] .cancel-btn {
+  background: #1e3226;
+  color: #deeee4;
+  border-color: #2d4a38;
+}
+
+html[data-theme="dark"] .modal .search-dropdown {
+  background: #1e3226;
+  border-color: #2d4a38;
+}
+
+html[data-theme="dark"] .modal .search-result {
+  color: #deeee4;
+  border-color: #2d4a38;
+}
+
+html[data-theme="dark"] .modal .search-result:hover {
+  background: #253d2e;
+}
+
+html[data-theme="dark"] .empty {
+  color: #5c7a68;
+}
+
 /* --- Generic white-background elements --- */
 html[data-theme="dark"] [style*="background: white"],
 html[data-theme="dark"] [style*="background-color: white"],
