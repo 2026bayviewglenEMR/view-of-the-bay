@@ -56,9 +56,12 @@ const getTemplates = () => {
       name: "Medication Management",
       isMandatory: false,
       fields: [
+        { id: "allergies", label: "Patient Allergies", type: "text", readonly: true, default: "" },
+        { id: "current_medications", label: "Current Medications (Patient Record)", type: "drug-list", readonly: true, default: [] },
         { id: "medications", label: "Prescribed Medications", type: "drug-list", default: [] },
         { id: "dosage", label: "Dosage", type: "text", default: "" },
         { id: "frequency", label: "Frequency", type: "select", options: ["Once daily", "Twice daily", "Three times daily", "Every 6 hours", "As needed"], default: "" },
+        { id: "instructions", label: "Instructions", type: "textarea", default: "" },
         { id: "drug_interactions", label: "Drug Interaction Results", type: "drug-interaction", default: "" }
       ],
     },

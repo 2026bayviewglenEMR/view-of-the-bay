@@ -1,4 +1,4 @@
-export const SOURCE_TEMPLATE = "basic_diagnosis";
+export const SOURCE_TEMPLATE = "intake_assessment";
 
 function getPatientAllergies(patient) {
   const allergies =
@@ -79,7 +79,7 @@ export const formsConfig = {
     const patientMedications =
       getPatientMedications(patient);
 
-    if (template.id === "basic_diagnosis") {
+    if (template.id === "intake_assessment") {
       return {
         ...savedCurrentPage,
 

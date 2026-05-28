@@ -34,11 +34,6 @@ const router = createRouter({
       component: () => import('../views/TemplateUse.vue')
     },
     {
-      path: '/order-tests/:patientId',
-      name: 'orderTests',
-      component: () => import('../views/OrderTests.vue')
-    },
-    {
       path: '/messaging',
       name: 'messaging',
       component: () => import('../views/Messaging.vue')
@@ -82,6 +77,16 @@ const router = createRouter({
       path: '/consultation',
       name: "Consultation",
       component: () => import('../views/Consultation.vue')
+    },
+    {
+      path: "/drug-directory",
+      name: "Drug Directory",
+      component: () => import('../views/DoctorsDrugs.vue')
+    },
+    {
+      path: "/drug-details/:id",
+      name: "drug-details",
+      component: () => import("../views/DrugDetails.vue")
     }
   ]
 })

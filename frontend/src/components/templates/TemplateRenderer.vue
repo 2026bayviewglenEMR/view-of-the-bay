@@ -30,22 +30,28 @@
           <option :value="false">No</option>
         </select>
 
-        <div v-else-if="field.type === 'drug-list'" class="drug-list-box">
-          <input v-model="drugListSearch[field.id]" @input="searchDrugList(field.id)" class="select"
-            placeholder="Search medication..." />
+        <div v-else-if="field.type === 'drug-list'" class="drug-list-box" :class="{ 'drug-list-readonly': field.readonly }">
+          <template v-if="!field.readonly">
+            <input v-model="drugListSearch[field.id]" @input="searchDrugList(field.id)" class="select"
+              placeholder="Search medication..." />
 
-          <div v-if="drugListOptions[field.id]?.length > 0" class="drug-options">
-            <div v-for="drug in drugListOptions[field.id]" :key="drug.id" class="drug-option"
-              @click="addMedication(field.id, drug)">
-              {{ drug.name }}
+            <div v-if="drugListOptions[field.id]?.length > 0" class="drug-options">
+              <div v-for="drug in drugListOptions[field.id]" :key="drug.id" class="drug-option"
+                @click="addMedication(field.id, drug)">
+                {{ drug.name }}
+              </div>
             </div>
-          </div>
+          </template>
+
+          <p v-if="field.readonly && (!formData[field.id] || formData[field.id].length === 0)" class="no-meds-note">
+            None on record
+          </p>
 
           <div class="selected-drugs">
             <div v-for="(drug, index) in formData[field.id]" :key="drug.id" class="selected-drug">
               {{ drug.name }}
 
-              <button type="button" @click="removeMedication(field.id, index)">
+              <button v-if="!field.readonly" type="button" @click="removeMedication(field.id, index)">
                 ×
               </button>
             </div>
@@ -172,7 +178,7 @@ const checkDrugInteractions = async () => {
 
   if (
     !Array.isArray(allDrugs) ||
-    allDrugs === 0 
+    allDrugs.length === 0
   ) {
     drugInteractionResults.value = [];
     formData.drug_interactions = "";
@@ -420,6 +426,18 @@ const normalFields = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.drug-list-readonly {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.no-meds-note {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 4px 0;
+  font-style: italic;
 }
 
 .selected-drugs {

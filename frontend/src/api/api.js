@@ -14,6 +14,7 @@ export const api = {
     //drugs
     getInteractions: (id1, id2) => http.get(`/drugs/${id1}/${id2}`).then(r => r.data),
     getDrugs: (query) => http.get(`/drugs/${query}`),
+    getDrugDetails: (id) => http.get(`/drugs/details/${id}`).then(r => r.data),
 
     //auth
     signIn: (username, password) => http.post('/auth/signIn', { username, password }).then(r => r.data),
@@ -21,6 +22,7 @@ export const api = {
     createUser: ({ username, password, firstName, lastName, email, role }) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
     getMe: () => http.get('/auth/me').then(r => r.data),
     uploadAvatar: (formData) => http.post('/auth/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data),
+    updatePreferences: (prefs) => http.patch('/auth/preferences', prefs).then(r => r.data),
 
     // messaging
     sendMessage: (senderId, receiverId, content, attachments = []) =>

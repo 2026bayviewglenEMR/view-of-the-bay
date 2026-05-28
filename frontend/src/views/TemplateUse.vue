@@ -77,7 +77,10 @@
             <strong>{{ currentOptionalPosition }}</strong>
           </div>
 
-          <TemplateRenderer v-if="currentTemplate" :template="currentTemplate" :initialData="currentInitialData"
+          <TemplateRenderer v-if="currentTemplate"
+            :key="`${currentTemplate.id}-${quickFillKey}`"
+            :template="currentTemplate"
+            :initialData="currentInitialData"
             @update="updateFormData" />
           <p v-else>Loading templates...</p>
 
@@ -244,6 +247,7 @@ const error = ref("");
 const allForms = ref({});
 const currentFormData = ref({});
 const showQuickFill = ref(false);
+const quickFillKey = ref(0);
 
 // Authentication & Profile Parsing
 const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -399,7 +403,7 @@ watch(
 
     // 1. Get the existing data from allForms
     const savedData = allForms.value[currentTemplate.value.id] || {};
-    
+
     // 2. Get the defaults from formsConfig
     const defaults = currentInitialData.value;
 
@@ -411,6 +415,19 @@ watch(
   },
   { immediate: true }
 );
+
+// Patient loads AFTER templates, so the initial watch above runs with patient = null.
+// When patient finishes loading, re-sync the current form so allergies and
+// current medications auto-populate from executiveSummary.
+watch(patient, (newPatient, oldPatient) => {
+  if (!newPatient || oldPatient) return; // only fire once on initial load
+  if (!currentTemplate.value) return;
+
+  const savedData = allForms.value[currentTemplate.value.id] || {};
+  const defaults = currentInitialData.value; // patient is now available
+  currentFormData.value = { ...defaults, ...savedData };
+  quickFillKey.value++; // force TemplateRenderer to remount with patient data
+});
 
 const canGoNext = computed(() =>
   formsConfig.validateStep(currentTemplate.value, currentFormData.value)
@@ -704,23 +721,29 @@ function applyQuickFill(template) {
     allForms.value[formId] = { ...(allForms.value[formId] || {}), ...fills };
   });
 
-  // If prescribe_medication isn't in the workflow yet, add it
-  if (!selectedOptionalIds.value.includes('prescribe_medication')) {
-    const prescribeTemplate = optionalTemplates.value.find(t => t.id === 'prescribe_medication');
-    if (prescribeTemplate) {
-      selectedOptionalIds.value.push('prescribe_medication');
-      if (!workflowTemplates.value.find(t => t.id === 'prescribe_medication')) {
+  // Pre-check prescribe_medication in the builder so it's already selected when
+  // the Plan & Options page appears. Do NOT add it to workflowTemplates directly
+  // or set hasSeenBuilder — the builder must still show so the doctor can confirm.
+  // Exception: if the doctor has already been through the builder and
+  // prescribe_medication is already in the workflow, we just fill in the data.
+  if (hasSeenBuilder.value) {
+    // Builder already passed — add to workflow if not present
+    if (!workflowTemplates.value.find(t => t.id === 'prescribe_medication')) {
+      const prescribeTemplate = optionalTemplates.value.find(t => t.id === 'prescribe_medication');
+      if (prescribeTemplate) {
+        selectedOptionalIds.value = [...new Set([...selectedOptionalIds.value, 'prescribe_medication'])];
         workflowTemplates.value = [...workflowTemplates.value, prescribeTemplate];
       }
-      hasSeenBuilder.value = true;
+    }
+  } else {
+    // Builder not yet shown — just pre-select so it's checked when builder opens
+    if (!selectedOptionalIds.value.includes('prescribe_medication')) {
+      selectedOptionalIds.value.push('prescribe_medication');
     }
   }
 
-  // Re-sync current form data so the visible form updates immediately
-  if (currentTemplate.value && template.fills[currentTemplate.value.id]) {
-    currentFormData.value = { ...currentFormData.value, ...template.fills[currentTemplate.value.id] };
-  }
-
+  // Force TemplateRenderer to remount so it re-reads the updated initialData
+  quickFillKey.value++;
   showQuickFill.value = false;
 }
 

@@ -3,6 +3,47 @@ const router = express.Router();
 const { authenticateToken } = require("../verifyToken.js");
 const Drug = require("../models/Drugs.js");
 
+
+router.get("/all", authenticateToken, async (req, res) => {
+    try {
+        const drugs = await Drug.find(
+            {},
+            {
+                name: 1,
+                id: 1,
+                description: 1,
+                _id: 1
+            }
+        ).sort({ name: 1 });
+
+        res.status(200).json(drugs);
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ message: "Error getting drug directory" });
+    }
+});
+
+router.get("/details/:id", authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const drug = await Drug.findOne({
+            $or: [
+                { id: id },
+                { name: new RegExp(`^${id}$`, "i") }
+            ]
+        });
+
+        if (!drug) {
+            return res.status(404).json({ message: "Drug not found" });
+        }
+
+        res.status(200).json(drug);
+    } catch (e) {
+        console.log("Drug details error:", e);
+        res.status(500).json({ message: "Error getting drug details" });
+    }
+});
 router.get("/:id1/:id2", authenticateToken, async (req, res) => {
     try {
         const { id1, id2 } = req.params;
@@ -41,11 +82,12 @@ router.get("/:id1/:id2", authenticateToken, async (req, res) => {
 router.get('/:query', authenticateToken, async (req, res) => {
     try {
         const { query } = req.params;
-        console.log("query", JSON.stringify(query));
+
         const drugs = await Drug.find(
             { name: { $regex: `^${query}`, $options: 'i' } },
-            { drug_interactions: 0, description: 0 }
+            { drug_interactions: 0 }
         );
+
         res.status(200).json(drugs);
     } catch (e) {
         console.log(e);
