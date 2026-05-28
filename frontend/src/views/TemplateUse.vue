@@ -38,6 +38,15 @@
                     </span>
                   </label>
                 </div>
+
+                <button
+                  v-if="isDoctor && group.name === 'Orders & Requests'"
+                  class="order-tests-inline-btn"
+                  @click="showOrderTests = true"
+                >
+                  🧪 Order Tests
+                  <small>Select lab tests and generate a PDF order form.</small>
+                </button>
               </div>
             </template>
             <p v-else class="panel-empty">No optional templates available from server.</p>
@@ -141,13 +150,14 @@
             <button v-if="isDoctor" class="save-draft-btn" @click="saveDraft">
               💾 Save & Continue Later
             </button>
-            <button v-if="isDoctor" class="order-tests-btn" @click="router.push(`/order-tests/${patientId}`)">
-              🧪 Order Tests
-            </button>
+
           </div>
         </div>
 
-
+        <OrderTestsModal v-if="showOrderTests" :patientId="patientId"
+          :patientName="patient ? `${patient.firstName} ${patient.lastName}` : ''"
+          :patientDob="patient?.dateOfBirth || ''" :doctorName="doctorName" :alreadyOrderedIds="pendingTestIds"
+          @close="onOrderTestsClose" />
 
       </div>
     </template>
@@ -171,7 +181,7 @@ import { formsConfig } from "./consultation/formsConfig.js";
 import MainLayout from "@/components/MainLayout.vue";
 import TemplateRenderer from "@/components/templates/TemplateRenderer.vue";
 import QuickFillModal from "@/components/QuickFillModal.vue";
-
+import OrderTestsModal from "./consultation/OrderTestsModal.vue";
 import PatientSidebar from "./consultation/PatientSidebar.vue";
 
 const route = useRoute();
@@ -242,7 +252,7 @@ const patient = ref(null);
 const isSaving = ref(false);
 const saved = ref(false);
 const error = ref("");
-
+const showOrderTests = ref(false);
 
 const allForms = ref({});
 const currentFormData = ref({});
@@ -255,6 +265,18 @@ const isDoctor = storedUser.role === 'doctor';
 const doctorName = storedUser.firstName && storedUser.lastName
   ? `Dr. ${storedUser.firstName} ${storedUser.lastName}`
   : storedUser.username || '';
+
+// Modal logic tracking
+const pendingTestIds = computed(() =>
+  (patient.value?.orderedTests || []).filter(t => t.status === 'pending').map(t => t.testId)
+);
+
+async function onOrderTestsClose() {
+  showOrderTests.value = false;
+  if (patientId) {
+    try { patient.value = await api.getPatient(patientId); } catch { }
+  }
+}
 
 
 
@@ -1005,8 +1027,7 @@ onMounted(async () => {
 .back-btn,
 .next-btn,
 .save-btn,
-.save-draft-btn,
-.order-tests-btn {
+.save-draft-btn {
   padding: 14px 34px;
   border: none;
   border-radius: 12px;
@@ -1207,15 +1228,33 @@ onMounted(async () => {
   transform: translateY(-1px);
 }
 
-.order-tests-btn {
-  border: 2px solid #2e7d32;
-  background: white;
-  color: #2e7d32;
+.order-tests-inline-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 18px;
+  border: 2px dashed #2d6a4f;
+  border-radius: 10px;
+  background: #f0f8f2;
+  color: #2d6a4f;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.order-tests-btn:hover {
-  background: #2e7d32;
-  color: white;
+.order-tests-inline-btn small {
+  font-weight: 400;
+  font-size: 12px;
+  color: #5f6f66;
+}
+
+.order-tests-inline-btn:hover {
+  background: #e0f0e4;
+  border-color: #1b5e20;
   transform: translateY(-1px);
 }
 </style>
