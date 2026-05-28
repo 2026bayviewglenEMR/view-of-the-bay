@@ -34,11 +34,6 @@ const router = createRouter({
       component: () => import('../views/TemplateUse.vue')
     },
     {
-      path: '/order-tests/:patientId',
-      name: 'orderTests',
-      component: () => import('../views/OrderTests.vue')
-    },
-    {
       path: '/messaging',
       name: 'messaging',
       component: () => import('../views/Messaging.vue')
