@@ -74,6 +74,10 @@ watch(
                 </button>
 
                 <div class="drug-header">
+                    <div class="drug-image-placeholder">
+                        💊
+                    </div>
+
                     <div>
                         <h2>{{ drug.name }}</h2>
                         <p class="id">{{ drug.id }}</p>
@@ -150,6 +154,25 @@ watch(
     border-left: 6px solid var(--color-primary);
     box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
     margin-bottom: 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.drug-image-placeholder {
+    width: 90px;
+    height: 90px;
+    min-width: 90px;
+
+    background: #f3f7f5;
+    border-radius: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 44px;
 }
 
 h2 {
@@ -239,5 +262,12 @@ h2 {
 
 .clickable:hover {
     transform: translateY(-2px);
+}
+
+@media (max-width: 700px) {
+    .drug-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 </style>
