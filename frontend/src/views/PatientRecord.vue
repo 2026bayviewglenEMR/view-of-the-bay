@@ -234,7 +234,7 @@
                     </div>
                   </div>
                   <div class="doc-actions">
-                    <a :href="serverUrl || 'http://localhost:3000' + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
+                    <a :href="(serverUrl || 'http://localhost:3000') + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
                     <button @click="deleteDocument(doc._id)" class="doc-delete-btn">✕</button>
                   </div>
                 </div>
@@ -284,13 +284,12 @@
 import MainLayout from "../components/MainLayout.vue";
 import { api } from "../api/api.js";
 
-const serverUrl = import.meta.env.VITE_SERVER_URL;
-
 export default {
   name: "PatientRecord",
   components: { MainLayout },
   data() {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const serverUrl = import.meta.env.VITE_SERVER_URL;
 
     return {
       role: currentUser.role?.toLowerCase() || "doctor",
