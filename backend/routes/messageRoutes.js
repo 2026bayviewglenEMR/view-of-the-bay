@@ -22,7 +22,7 @@ router.post("/", sendMessage);
 router.patch("/:id/read", markAsRead);
 router.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.VITE_SERVER_URL || "http://localhost:3000";
   res.status(200).json({
     name: req.file.originalname,
     url: `${baseUrl}/uploads/${req.file.filename}`
