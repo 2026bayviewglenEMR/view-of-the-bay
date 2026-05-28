@@ -81,3 +81,165 @@ a {
 a:hover {
   opacity: 0.8;
 }
+
+/* ========================= */
+/* Dark Mode                 */
+/* ========================= */
+
+/* html[data-theme="dark"] has one extra type selector over scoped [data-v-xxx],
+   giving it higher specificity so it wins without needing !important */
+
+html[data-theme="dark"] {
+  --color-bg: #0f1a14;
+  --color-paper: #192a20;
+  --color-text-1: #deeee4;
+  --color-text-2: #8faa98;
+  --color-text-3: #5c7a68;
+  --color-border: #2d4a38;
+  --color-sidebar-dark: #111e16;
+  --color-secondary: #2d4a38;
+
+  /* Element Plus token overrides */
+  --el-bg-color: #0f1a14;
+  --el-bg-color-overlay: #192a20;
+  --el-text-color-primary: #deeee4;
+  --el-text-color-regular: #8faa98;
+  --el-text-color-secondary: #5c7a68;
+  --el-border-color: #2d4a38;
+  --el-border-color-light: #243d2e;
+  --el-fill-color-blank: #192a20;
+  --el-fill-color: #1e3226;
+  --el-fill-color-light: #1e3226;
+  --el-fill-color-lighter: #192a20;
+  --el-color-white: #192a20;
+  --el-mask-color: rgba(0, 0, 0, 0.75);
+}
+
+/* --- Card / surface backgrounds --- */
+html[data-theme="dark"] .patient-card,
+html[data-theme="dark"] .profile-card,
+html[data-theme="dark"] .modal-card,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .welcome-bar {
+  background: #192a20;
+  color: #deeee4;
+}
+
+/* --- Text colours --- */
+html[data-theme="dark"] .patient-name {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .patient-info,
+html[data-theme="dark"] .result-dob,
+html[data-theme="dark"] .avatar-hint {
+  color: #8faa98;
+}
+
+html[data-theme="dark"] .modal-content h2,
+html[data-theme="dark"] .modal-content h3,
+html[data-theme="dark"] .modal-card h2 {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .form-group label {
+  color: #deeee4;
+}
+
+/* --- Inputs --- */
+html[data-theme="dark"] input:not([type="file"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background-color: #1e3226;
+  color: #deeee4;
+  border-color: #2d4a38;
+}
+
+html[data-theme="dark"] input::placeholder {
+  color: #5c7a68;
+}
+
+html[data-theme="dark"] .modal-grid input {
+  background: #1e3226;
+  color: #deeee4;
+  border-color: #2d4a38;
+}
+
+/* --- TopBar search dropdown --- */
+html[data-theme="dark"] .search-dropdown {
+  background: #192a20;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .search-result {
+  background: #192a20;
+  color: #deeee4;
+  border-color: #2d4a38;
+}
+
+html[data-theme="dark"] .search-result:hover {
+  background: #1e3226;
+}
+
+/* --- TopBar dropdowns --- */
+html[data-theme="dark"] .dropdown-menu {
+  background: #192a20;
+  border-color: #2d4a38;
+}
+
+/* --- Profile page --- */
+html[data-theme="dark"] .profile-card h3 {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .profile-card p {
+  color: #8faa98;
+  border-color: #2d4a38;
+}
+
+/* --- Secondary / cancel buttons --- */
+html[data-theme="dark"] .secondary-modal-btn,
+html[data-theme="dark"] .btn-cancel {
+  background: #2d4a38;
+  color: #deeee4;
+  border-color: #3a5c48;
+}
+
+/* --- Skeleton shimmer in dark mode --- */
+html[data-theme="dark"] .skel {
+  background: linear-gradient(90deg, #1e3226 25%, #253d2e 50%, #1e3226 75%);
+  background-size: 200% 100%;
+}
+
+/* --- PatientRecord common classes --- */
+html[data-theme="dark"] .record-card,
+html[data-theme="dark"] .encounter-card,
+html[data-theme="dark"] .info-card,
+html[data-theme="dark"] .summary-card,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .sidebar-card,
+html[data-theme="dark"] .timeline-item {
+  background: #192a20;
+  color: #deeee4;
+  border-color: #2d4a38;
+}
+
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .card-title,
+html[data-theme="dark"] .record-title {
+  color: #deeee4;
+}
+
+html[data-theme="dark"] .label-text,
+html[data-theme="dark"] .info-label {
+  color: #8faa98;
+}
+
+/* --- Generic white-background elements --- */
+html[data-theme="dark"] [style*="background: white"],
+html[data-theme="dark"] [style*="background-color: white"],
+html[data-theme="dark"] [style*="background:#fff"],
+html[data-theme="dark"] [style*="background: #fff"] {
+  background: #192a20 !important;
+  color: #deeee4 !important;
+}
