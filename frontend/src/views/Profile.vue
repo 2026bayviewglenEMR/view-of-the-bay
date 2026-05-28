@@ -90,6 +90,13 @@
             </button>
 
             <button
+              class="dark-mode-button"
+              @click="toggleDarkMode"
+            >
+              {{ isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode' }}
+            </button>
+
+            <button
               class="logout-button"
               @click="logout"
             >
@@ -107,7 +114,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import MainLayout from "../components/MainLayout.vue";
 import { api } from "../api/api";
-import { currentUser, updateUser, getAvatarUrl } from "../composables/useUser.js";
+import { currentUser, isDarkMode, updateUser, getAvatarUrl } from "../composables/useUser.js";
 
 const router = useRouter();
 
@@ -224,6 +231,17 @@ const formatMedications =
       .join(", ");
 
   };
+
+const toggleDarkMode = async () => {
+  const next = !isDarkMode.value;
+  updateUser({ darkMode: next });
+  try {
+    await api.updatePreferences({ darkMode: next });
+  } catch {
+    // revert on failure
+    updateUser({ darkMode: !next });
+  }
+};
 
 const updatePassword =
 async () => {
@@ -559,12 +577,20 @@ h2 {
 }
 
 .action-button {
-  background:
-    var(--color-primary);
+  background: var(--color-primary);
+}
+
+.dark-mode-button {
+  background: #374151;
+  color: white;
+}
+
+html[data-theme="dark"] .dark-mode-button {
+  background: #d4a847;
+  color: #111;
 }
 
 .logout-button {
-  background:
-    #d9534f;
+  background: #d9534f;
 }
 </style>

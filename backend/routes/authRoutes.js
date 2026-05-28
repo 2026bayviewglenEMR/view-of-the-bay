@@ -38,7 +38,8 @@ router.post('/signIn', async (req, res) => {
             email: user.email,
             role: user.role,
             patientId: user.patientId ?? null,
-            profilePicture: user.profilePicture ?? null
+            profilePicture: user.profilePicture ?? null,
+            darkMode: user.darkMode ?? false
         }
         return res.status(200).json({token, user: userToReturn});
     } else {
@@ -135,6 +136,22 @@ router.post('/avatar', authenticateToken, upload.single('avatar'), async (req, r
     } catch (err) {
         console.error("Avatar upload error:", err);
         res.status(500).json({ message: "Failed to upload avatar" });
+    }
+});
+
+router.patch('/preferences', authenticateToken, async (req, res) => {
+    try {
+        const { darkMode } = req.body;
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { darkMode: !!darkMode },
+            { new: true }
+        ).select('-password');
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.json({ darkMode: user.darkMode });
+    } catch (err) {
+        console.error("Failed to update preferences:", err);
+        res.status(500).json({ message: "Failed to update preferences" });
     }
 });
 

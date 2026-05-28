@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema({
   profilePicture: {
     type: String,
     default: null
+  },
+  darkMode: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true // Automatically adds 'createdAt' and 'updatedAt' fields!

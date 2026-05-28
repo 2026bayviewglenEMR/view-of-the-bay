@@ -22,6 +22,7 @@ export const api = {
     createUser: ({ username, password, firstName, lastName, email, role }) => http.post('/auth/createUser', { username, password, firstName, lastName, email, role }),
     getMe: () => http.get('/auth/me').then(r => r.data),
     uploadAvatar: (formData) => http.post('/auth/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data),
+    updatePreferences: (prefs) => http.patch('/auth/preferences', prefs).then(r => r.data),
 
     // messaging
     sendMessage: (senderId, receiverId, content, attachments = []) =>
