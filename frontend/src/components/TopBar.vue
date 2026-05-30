@@ -193,12 +193,8 @@ const closePasswordModal = () => {
 const submitUpdatePassword = async () => {
     try {
         const result = await api.updatePassword(newPasswordInput.value);
-        if (result.status >= 200 && result.status < 300) {
-            alert("Success: Your password has been updated!");
-            closePasswordModal();
-        } else {
-            alert(`Error: ${result.data?.message || 'Failed to update password'}`);
-        }
+        console.log("update password result", result);
+        alert(result.message);
     } catch (error) {
         console.error("Failed to update password:", error);
         const errorMessage = error.response?.data?.message || "An unexpected error occurred.";

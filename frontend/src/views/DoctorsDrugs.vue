@@ -1,12 +1,20 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import MainLayout from "../components/MainLayout.vue";
 import { api } from "../api/api";
+
+const router = useRouter();
 
 const drugs = ref([]);
 const search = ref("");
 const loading = ref(false);
 const expandedDrug = ref(null);
+
+function openDrugDetails(drug) {
+    if (!drug.id) return;
+    router.push(`/drug-details/${drug.id}`);
+}
 
 function toggleExpand(id) {
     expandedDrug.value = expandedDrug.value === id ? null : id;
@@ -60,12 +68,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <input
-                v-model="search"
-                @input="searchDrugs"
-                class="search"
-                placeholder="Search drugs..."
-            />
+            <input v-model="search" @input="searchDrugs" class="search" placeholder="Search drugs..." />
 
             <div v-if="loading" class="status">
                 Loading...
@@ -76,7 +79,7 @@ onMounted(() => {
             </div>
 
             <div v-else class="drug-grid">
-                <div v-for="drug in drugs" :key="drug._id" class="card">
+                <div v-for="drug in drugs" :key="drug._id" class="card" @click="openDrugDetails(drug)">
                     <h3>{{ drug.name }}</h3>
 
                     <div class="id">
@@ -91,11 +94,8 @@ onMounted(() => {
                         }}
                     </div>
 
-                    <button
-                        v-if="drug.description && drug.description.length > 220"
-                        class="expand-btn"
-                        @click="toggleExpand(drug._id)"
-                    >
+                    <button v-if="drug.description && drug.description.length > 220" class="expand-btn"
+                        @click.stop="toggleExpand(drug._id)">
                         {{ expandedDrug === drug._id ? "Show less" : "Read more" }}
                     </button>
                 </div>
@@ -157,6 +157,12 @@ h2 {
     border-left: 6px solid var(--color-primary);
     box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
     overflow: hidden;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
 }
 
 .card h3 {

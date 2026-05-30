@@ -234,7 +234,7 @@
                     </div>
                   </div>
                   <div class="doc-actions">
-                    <a :href="'http://localhost:3000' + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
+                    <a :href="(serverUrl || 'http://localhost:3000') + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
                     <button @click="deleteDocument(doc._id)" class="doc-delete-btn">✕</button>
                   </div>
                 </div>
@@ -289,6 +289,7 @@ export default {
   components: { MainLayout },
   data() {
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const serverUrl = import.meta.env.VITE_SERVER_URL;
 
     return {
       role: currentUser.role?.toLowerCase() || "doctor",
@@ -529,7 +530,7 @@ export default {
     },
 
     docBaseUrl() {
-      return import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+      return import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/api';
     },
     async startConsultation() {
       try {
