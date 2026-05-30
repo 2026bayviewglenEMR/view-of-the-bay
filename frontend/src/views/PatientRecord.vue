@@ -234,7 +234,7 @@
                     </div>
                   </div>
                   <div class="doc-actions">
-                    <a :href="(serverUrl || 'http://localhost:3000') + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
+                    <a :href="docBaseUrl() + doc.fileUrl" target="_blank" class="doc-view-btn">View</a>
                     <button @click="deleteDocument(doc._id)" class="doc-delete-btn">✕</button>
                   </div>
                 </div>
@@ -530,7 +530,8 @@ export default {
     },
 
     docBaseUrl() {
-      return import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/api';
+      // VITE_SERVER_URL is "http://host:port/api" — strip /api to get the file-serve origin
+      return (import.meta.env.VITE_SERVER_URL || 'http://localhost:3000/api').replace(/\/api$/, '');
     },
     async startConsultation() {
       try {
