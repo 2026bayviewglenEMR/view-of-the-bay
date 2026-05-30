@@ -179,51 +179,56 @@ const router = useRouter();
 const patientId = route.params.patientId;
 
 const soapNote = computed(() => {
-  const sym = allForms.value.symptoms_checklist || {};
-  const diag = allForms.value.basic_diagnosis || {};
-  const vit = allForms.value.vitals_check || {};
-  const med = allForms.value.prescribe_medication || {};
+  const intake = allForms.value.intake_assessment || {};
+  const vit    = allForms.value.vitals_check || {};
+  const med    = allForms.value.prescribe_medication || {};
+  const cn     = allForms.value.clinical_notes || {};
+  const mh     = allForms.value.mental_health || {};
 
   const vitalsStr = [
-    vit.temperature ? `Temp: ${vit.temperature}°C` : null,
-    vit.heart_rate ? `HR: ${vit.heart_rate} bpm` : null,
-    vit.blood_pressure ? `BP: ${vit.blood_pressure}` : null,
-    vit.respiratory_rate ? `RR: ${vit.respiratory_rate}` : null,
-    vit.height ? `Height: ${vit.height}` : null,
-    vit.weight ? `Weight: ${vit.weight}` : null,
-    vit.bmi ? `BMI: ${vit.bmi}` : null,
+    vit.temperature      ? `Temp: ${vit.temperature}°C`       : null,
+    vit.heart_rate       ? `HR: ${vit.heart_rate} bpm`         : null,
+    vit.blood_pressure   ? `BP: ${vit.blood_pressure}`         : null,
+    vit.respiratory_rate ? `RR: ${vit.respiratory_rate}`       : null,
+    vit.height           ? `Height: ${vit.height}`             : null,
+    vit.weight           ? `Weight: ${vit.weight}`             : null,
+    vit.bmi              ? `BMI: ${vit.bmi}`                   : null,
   ].filter(Boolean).join(' · ');
 
-  const medName = med.medication?.name || (typeof med.medication === 'string' ? med.medication : null);
-  const medStr = medName
-    ? [medName, med.dosage, med.frequency, med.instructions].filter(Boolean).join(', ')
-    : null;
+  // prescribed medications (drug-list field returns array of objects)
+  const prescribedMeds = (med.medications || [])
+    .map(m => [m.name, med.dosage, med.frequency].filter(Boolean).join(' '))
+    .filter(Boolean);
 
   return {
     subjective: [
-      sym.symptoms?.length ? `Symptoms: ${sym.symptoms.join(', ')}` : null,
-      sym.additional_notes ? `Notes: ${sym.additional_notes}` : null,
-      diag.chief_complaint ? `Chief complaint: ${diag.chief_complaint}` : null,
-      diag.pain_level ? `Pain level: ${diag.pain_level}/10` : null,
-      diag.symptom_duration ? `Duration: ${diag.symptom_duration}` : null,
+      intake.symptoms?.length ? `Symptoms: ${intake.symptoms.join(', ')}` : null,
+      intake.chief_complaint  ? `Chief complaint: ${intake.chief_complaint}` : null,
+      intake.pain_level       ? `Pain level: ${intake.pain_level}/10` : null,
+      intake.symptom_duration ? `Duration: ${intake.symptom_duration}` : null,
+      mh.current_mood         ? `Mood: ${mh.current_mood}` : null,
+      mh.stress_level         ? `Stress: ${mh.stress_level}` : null,
+      mh.sleep_quality        ? `Sleep: ${mh.sleep_quality}` : null,
     ].filter(Boolean).join('\n'),
 
     objective: [
       vitalsStr || null,
-      vit.additional_notes ? `Notes: ${vit.additional_notes}` : null,
-      diag.physical_exam ? `Physical exam: ${diag.physical_exam}` : null,
+      vit.physical_exam           ? `Physical exam: ${vit.physical_exam}` : null,
+      vit.differential_diagnosis  ? `Differential: ${vit.differential_diagnosis}` : null,
+      vit.clinical_impression     ? `Impression: ${vit.clinical_impression}` : null,
     ].filter(Boolean).join('\n'),
 
     assessment: [
-      diag.diagnosis ? `Diagnosis: ${diag.diagnosis}` : null,
-      diag.allergies ? `Allergies: ${diag.allergies}` : null,
+      vit.working_diagnosis ? `Diagnosis: ${vit.working_diagnosis}` : null,
+      vit.severity          ? `Severity: ${vit.severity}` : null,
+      intake.allergies      ? `Allergies: ${intake.allergies}` : null,
     ].filter(Boolean).join('\n'),
 
     plan: [
-      diag.treatment_plan ? `Treatment: ${diag.treatment_plan}` : null,
-      diag.follow_up !== '' && diag.follow_up !== undefined ? `Follow-up needed: ${diag.follow_up ? 'Yes' : 'No'}` : null,
-      medStr ? `Medication: ${medStr}` : null,
-      diag.additional_notes ? `Notes: ${diag.additional_notes}` : null,
+      prescribedMeds.length ? `Medications: ${prescribedMeds.join('; ')}` : null,
+      med.instructions      ? `Instructions: ${med.instructions}` : null,
+      cn.additional_notes   ? `Notes: ${cn.additional_notes}` : null,
+      cn.care_team_notes    ? `Care team: ${cn.care_team_notes}` : null,
     ].filter(Boolean).join('\n'),
   };
 });
