@@ -738,18 +738,50 @@ function downloadSOAPPdf() {
 }
 
 function applyQuickFill(template) {
-  // Merge the template fills into allForms without overwriting unrelated fields
+  // Loop through each form in the template
   Object.entries(template.fills).forEach(([formId, fills]) => {
-    allForms.value[formId] = { ...(allForms.value[formId] || {}), ...fills };
+    
+    // Ensure the form object exists in our reactive state
+    if (!allForms.value[formId]) {
+      allForms.value[formId] = {};
+    }
+
+    // Loop through the specific fields (symptoms, notes, etc.)
+    Object.entries(fills).forEach(([key, fillValue]) => {
+      const existingValue = allForms.value[formId][key];
+
+      // 1. If empty, insert directly into the reactive object
+      if (existingValue === undefined || existingValue === null || existingValue === '') {
+        allForms.value[formId][key] = fillValue;
+      } 
+      // 2. If both are arrays, merge and insert
+      else if (Array.isArray(existingValue) && Array.isArray(fillValue)) {
+        const combined = [...existingValue, ...fillValue];
+        
+        const unique = [];
+        const seen = new Set();
+        combined.forEach(item => {
+          const identifier = item && typeof item === 'object' ? (item.id || item.name) : item;
+          if (!seen.has(identifier)) {
+            seen.add(identifier);
+            unique.push(item);
+          }
+        });
+        
+        // Mutate reactive state directly
+        allForms.value[formId][key] = unique;
+      } 
+      // 3. If strings, append and insert
+      else if (typeof existingValue === 'string' && typeof fillValue === 'string') {
+        if (!existingValue.includes(fillValue)) {
+          allForms.value[formId][key] = existingValue + '\n\n' + fillValue;
+        }
+      }
+    });
   });
 
-  // Pre-check prescribe_medication in the builder so it's already selected when
-  // the Plan & Options page appears. Do NOT add it to workflowTemplates directly
-  // or set hasSeenBuilder — the builder must still show so the doctor can confirm.
-  // Exception: if the doctor has already been through the builder and
-  // prescribe_medication is already in the workflow, we just fill in the data.
+  // Builder Logic
   if (hasSeenBuilder.value) {
-    // Builder already passed — add to workflow if not present
     if (!workflowTemplates.value.find(t => t.id === 'prescribe_medication')) {
       const prescribeTemplate = optionalTemplates.value.find(t => t.id === 'prescribe_medication');
       if (prescribeTemplate) {
@@ -758,14 +790,14 @@ function applyQuickFill(template) {
       }
     }
   } else {
-    // Builder not yet shown — just pre-select so it's checked when builder opens
     if (!selectedOptionalIds.value.includes('prescribe_medication')) {
       selectedOptionalIds.value.push('prescribe_medication');
     }
   }
 
-  // Force TemplateRenderer to remount so it re-reads the updated initialData
-  quickFillKey.value++;
+  // Because we mutated the reactive object directly, Vue should automatically update the UI!
+  // You MIGHT be able to delete this line entirely now, but leave it for now just in case.
+  // quickFillKey.value++;
   showQuickFill.value = false;
 }
 

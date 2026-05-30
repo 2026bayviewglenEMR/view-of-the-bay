@@ -324,7 +324,7 @@ async () => {
     api.getAppointments(),
     api.getTodaysAppointments(),
     api.getTasks(),
-    api.getAlerts()
+    // api.getAlerts()
   ]);
 
   doctorStats.value =

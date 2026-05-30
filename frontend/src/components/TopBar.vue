@@ -195,6 +195,7 @@ const submitUpdatePassword = async () => {
         const result = await api.updatePassword(newPasswordInput.value);
         console.log("update password result", result);
         alert(result.message);
+        showCreateUserModal.value = false;
     } catch (error) {
         console.error("Failed to update password:", error);
         const errorMessage = error.response?.data?.message || "An unexpected error occurred.";

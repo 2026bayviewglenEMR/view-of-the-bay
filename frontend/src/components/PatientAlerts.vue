@@ -35,7 +35,7 @@ onMounted(async () => {
   document.addEventListener('mousedown', closeOnClickOutside);
 
   try {
-    patientAlerts.value = await api.getAlerts(); 
+    // patientAlerts.value = await api.getAlerts(); 
   } catch (error) {
     console.error("Error fetching alerts from database:", error);
   }
